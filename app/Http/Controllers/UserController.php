@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 //use App\Exports\UsersExport;
 use App\Models\RaonMember;
 use App\UserDetail;
-use App\ShopCategory;
+use App\Models\ShopCategory;
 use App\UserAppInfo;
 //use App\Models\RaonMember;
 use Carbon\Carbon;
@@ -312,7 +312,7 @@ class UserController extends Controller
                     $profile_image = $userMemberDetail->user_picture ?? '';
 //                    $userDetail = RaonMember::where('idx', $row->id)->first();
 
-                    $shopCategory = ShopCategory::where('depth', 1)->where('category_year', $userMemberDetail->course_year)->first();
+                    $shopCategory = ShopCategory::where('cd_lev', 1)->where('cd_year', $userMemberDetail->course_year)->first();
 
                     $birth_day = null;
                     if ($userMemberDetail->birthday) {
@@ -330,7 +330,7 @@ class UserController extends Controller
                     $result = Arr::add($result, "list.{$index}.name", $row->name);
                     $result = Arr::add($result, "list.{$index}.profile_image", $profile_image ? \App::make('helper')->getImage($profile_image) : null);
                     $result = Arr::add($result, "list.{$index}.birthday", $birth_day);
-                    $result = Arr::add($result, "list.{$index}.branch_name", $shopCategory ? $shopCategory->name : '');
+                    $result = Arr::add($result, "list.{$index}.branch_name", $shopCategory ? $shopCategory->cd_text : '');
                     $result = Arr::add($result, "list.{$index}.center_name", '');
                 }
             }
