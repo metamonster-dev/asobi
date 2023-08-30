@@ -32,7 +32,7 @@ class ShareController extends Controller
         }
 
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereId($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');

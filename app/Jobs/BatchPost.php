@@ -64,7 +64,7 @@ class BatchPost implements ShouldQueue
         //
         foreach ($this->student as $l) {
             if ($this->type == AdviceNote::ADVICE_TYPE) {
-                $student_row = User::whereId($l)->first();
+                $student_row = RaonMember::whereId($l)->first();
                 if ($student_row) {
                     $this->title = $student_row->name . "의 선생님이 알립니다.";
                 }

@@ -18,7 +18,7 @@ class CounselingController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereId($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -93,7 +93,7 @@ class CounselingController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereId($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -134,7 +134,7 @@ class CounselingController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereId($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -150,7 +150,7 @@ class CounselingController extends Controller
 
         $row = Counseling::whereMidx($user->id)->whereId($counseling_id)->first();
         if ($row) {
-            $student = User::whereId($row->sidx)->first();
+            $student = RaonMember::whereId($row->sidx)->first();
             $result = Arr::add($result, 'result', 'success');
             $result = Arr::add($result, "id", $row->id);
             $result = Arr::add($result, "content", $row->content);

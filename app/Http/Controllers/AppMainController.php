@@ -38,7 +38,7 @@ class AppMainController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereId($user_id)->first();
         $check_date = Carbon::now()->subDay(3)->format('Y-m-d');
 
         if (empty($user)) {
@@ -108,7 +108,7 @@ class AppMainController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereId($user_id)->first();
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '사용자 정보가 없습니다.');
@@ -181,7 +181,7 @@ class AppMainController extends Controller
                 })->orderBy('date', 'asc')->get();
             } else {
                 if ($user->user_type == 's') {
-                    $center = User::select('id')->whereId($user->center_id)->first();
+                    $center = RaonMember::select('id')->whereId($user->center_id)->first();
                     $centerCenterDetail = UserCenterDetail::where('user_id', $center->id)->first();
                     $center->franchisetype = $centerCenterDetail->franchise_type ?? '';
 
@@ -234,7 +234,7 @@ class AppMainController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereId($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -307,7 +307,7 @@ class AppMainController extends Controller
                 })->orderBy('date', 'asc')->get();
             } else {
                 if ($user->user_type == 's') {
-                    $center = User::select('id')->whereId($user->center_id)->first();
+                    $center = RaonMember::select('id')->whereId($user->center_id)->first();
                     $centerCenterDetail = UserCenterDetail::where('user_id', $center->id)->first();
                     $center->franchisetype = $centerCenterDetail->franchise_type ?? '';
 

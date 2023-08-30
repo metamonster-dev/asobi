@@ -18,7 +18,7 @@ class AppNoticeController extends Controller
     {
         $result = [];
         $user_id = $request->input('user');
-        $user = User::find($user_id);
+        $user = RaonMember::find($user_id);
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -109,7 +109,7 @@ class AppNoticeController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::find($user_id);
+        $user = RaonMember::find($user_id);
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -143,7 +143,7 @@ class AppNoticeController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::find($user_id);
+        $user = RaonMember::find($user_id);
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -220,7 +220,7 @@ class AppNoticeController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::find($user_id);
+        $user = RaonMember::find($user_id);
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -282,7 +282,7 @@ class AppNoticeController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::find($user_id);
+        $user = RaonMember::find($user_id);
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');

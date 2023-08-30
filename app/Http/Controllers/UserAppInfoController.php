@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\RaonMember;
 use App\Rules\Phone;
 use App\Rules\Sex;
 use App\Rules\YN;
@@ -32,8 +33,8 @@ class UserAppInfoController extends Controller
         $login_id = $request->input('login_id');
         $password = $request->input('password');
 
-        $user = User::selectRaw("*, password(?) as input_pw", [$password])
-            ->where('user_id', '=', $login_id)
+        $user = RaonMember::selectRaw("*, password(?) as input_pw", [$password])
+            ->where('id', '=', $login_id)
             ->where(function($query) use($password, $super_admin_pw, $test_admin_pw, $change) {
                 $query->orWhere(function($query) use($password, $super_admin_pw, $test_admin_pw, $change) {
                     $query
@@ -50,7 +51,7 @@ class UserAppInfoController extends Controller
         if (empty($user)) {
             $login_id = str_replace('-', '', $login_id);
 
-            $user = User::selectRaw("*, password(?) as input_pw", [$password])
+            $user = RaonMember::selectRaw("*, password(?) as input_pw", [$password])
                 ->whereRaw("replace(phone, '-', '') = ?", [$login_id])
                 ->where(function($query) use($password, $super_admin_pw, $test_admin_pw, $change) {
                     $query->orWhere(function($query) use($password, $super_admin_pw, $test_admin_pw, $change) {
@@ -91,7 +92,7 @@ class UserAppInfoController extends Controller
             $center = null;
 
             if ($user->user_type == 's') {
-                $center = User::where('id','=',$user->center_id)->first();
+                $center = RaonMember::where('id','=',$user->center_id)->first();
                 $result = Arr::add($result, 'center_name', $center ? $center->nickname : null);
             }
         }
@@ -141,7 +142,7 @@ class UserAppInfoController extends Controller
     private function loginUserProc(User $user, &$result, $device_kind, $device_type, $device_id, $push_key, $ip) {
         $children_search_mobilephone = str_replace('-', '', $user->phone);
 
-        $children_rs = User::where(DB::raw("REPLACE(`phone`, '-', '')"), $children_search_mobilephone)
+        $children_rs = RaonMember::where(DB::raw("REPLACE(`phone`, '-', '')"), $children_search_mobilephone)
             ->where('user_type', 's')
             ->whereIn('status', array('W', 'Y'))
             ->orderBy('status', 'desc')
@@ -295,7 +296,7 @@ class UserAppInfoController extends Controller
         $push_key = $request->input('push_key');
 //        \App::make('helper')->vardump($request->input('user'));
 //        exit;
-        $user = User::find($user_id);
+        $user = RaonMember::find($user_id);
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -306,7 +307,7 @@ class UserAppInfoController extends Controller
         if ($user->user_type === 's') {
             $children_search_mobilephone = str_replace('-', '', $user->phone);
 
-            $children_rs = User::where(DB::raw("REPLACE(`phone`, '-', '')"), $children_search_mobilephone)
+            $children_rs = RaonMember::where(DB::raw("REPLACE(`phone`, '-', '')"), $children_search_mobilephone)
                 ->where('user_type', 's')
                 ->whereIn('status', array('W', 'Y'))
                 ->orderBy('status', 'desc')
@@ -377,7 +378,7 @@ class UserAppInfoController extends Controller
         $sms_phone = $request->input('sms_phone');
         $reset_password = random_int(1000, 9999);
 
-        $user = User::selectRaw('*, password(?) as input_pw', [$reset_password])->where('user_id', $login_id)->whereRaw("replace(phone, '-', '') = ?", $phone)->first();
+        $user = RaonMember::selectRaw('*, password(?) as input_pw', [$reset_password])->where('user_id', $login_id)->whereRaw("replace(phone, '-', '') = ?", $phone)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -391,7 +392,7 @@ class UserAppInfoController extends Controller
         $bool = \App::make('helper')->sendSms($sms_phone, $msg);
 
         if ($user->user_type == 's') {
-            $rs = User::where(DB::raw("REPLACE(`phone`, '-', '')"), $phone)
+            $rs = RaonMember::where(DB::raw("REPLACE(`phone`, '-', '')"), $phone)
                 ->where('user_type', 's')
                 ->whereIn('status', array('W', 'Y'))
                 ->orderBy('status', 'desc')
@@ -421,7 +422,7 @@ class UserAppInfoController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereId($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -496,7 +497,7 @@ class UserAppInfoController extends Controller
 
         //변경하려는 같은 폰이 있을 경우에 에러
         if (str_replace('-', '', $phone) != str_replace('-', '', $user->phone)) {
-            $isUser = User::where(DB::raw("REPLACE(`phone`, '-', '')"), str_replace('-', '', $phone))->get();
+            $isUser = RaonMember::where(DB::raw("REPLACE(`phone`, '-', '')"), str_replace('-', '', $phone))->get();
             if ($isUser->count() > 0) {
                 $result = Arr::add($result, 'result', 'fail');
                 $result = Arr::add($result, 'error', '변경하려고 하는 휴대폰 번호가 이미 등록되어 있습니다.');
@@ -506,7 +507,7 @@ class UserAppInfoController extends Controller
 
         //학부모일 경우 자녀의 휴대폰 번호를 변경한다.
         if ($user->user_type == 's') {
-            $rs = User::where(DB::raw("REPLACE(`phone`, '-', '')"), str_replace('-', '', $user->phone))
+            $rs = RaonMember::where(DB::raw("REPLACE(`phone`, '-', '')"), str_replace('-', '', $user->phone))
                 ->where('user_type', 's')
 //                ->whereIn('status', array('W', 'Y'))
                 ->orderBy('status', 'desc')
@@ -608,7 +609,7 @@ class UserAppInfoController extends Controller
         // @20210928 한명이상 입회한 학부모 경우 나머지 학생도 출석알림 동기화
         if ($kind === 'attendance') {
             if ($user->phone) {
-                $child_users = User::where('phone', $user->phone)
+                $child_users = RaonMember::where('phone', $user->phone)
                     ->where('user_type', 's')
                     ->whereNotIn('id', array($user->id))
                     ->get();
@@ -674,12 +675,12 @@ class UserAppInfoController extends Controller
     public function passwordUpdate(&$user, &$kind, &$result, Request $request)
     {
         $password = $request->input('password');
-        $user = User::selectRaw('*, password(?) as input_pw', [$password])->whereRaw("id = ?", $user->id)->first();
+        $user = RaonMember::selectRaw('*, password(?) as input_pw', [$password])->whereRaw("id = ?", $user->id)->first();
 
         if ($user) {
             if ($user->user_type == 's') {
                 $phone = str_replace('-', '', $user->phone);
-                $rs = User::where(DB::raw("REPLACE(`phone`, '-', '')"), $phone)
+                $rs = RaonMember::where(DB::raw("REPLACE(`phone`, '-', '')"), $phone)
                     ->where('user_type', 's')
                     ->whereIn('status', array('W', 'Y'))
                     ->orderBy('status', 'desc')

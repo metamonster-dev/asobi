@@ -29,7 +29,7 @@ class AlbumController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereId($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -83,7 +83,7 @@ class AlbumController extends Controller
                 $result = Arr::add($result, "list.{$index}.reg_date", $row->created_at->format(Album::REG_DATE_FORMAT));
 
                 if ($user->user_type == 'm') {
-                    $students = $row->sidx != 'null' && $row->sidx ? User::whereIn('id', json_decode($row->sidx))->get() : null;
+                    $students = $row->sidx != 'null' && $row->sidx ? RaonMember::whereIn('id', json_decode($row->sidx))->get() : null;
 
                     if ($students) {
                         foreach ($students as $student_index => $student) {
@@ -119,7 +119,7 @@ class AlbumController extends Controller
         $result = array();
         $modify = $request->input('modify') ?? '';
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereId($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -134,7 +134,7 @@ class AlbumController extends Controller
         }
 
         if ($user->user_type == 's') {
-            $children_rs = User::where('phone', $user->phone)
+            $children_rs = RaonMember::where('phone', $user->phone)
                 ->where('password', $user->password)
                 ->where('user_type', 's')
                 ->where('status', 'Y')
@@ -181,7 +181,7 @@ class AlbumController extends Controller
         $result = Arr::add($result, "reg_date", $row->created_at->format(Album::REG_DATE_FORMAT));
 
         if ($user->user_type == 'm') {
-            $students = User::whereIn('id', json_decode($row->sidx))->get();
+            $students = RaonMember::whereIn('id', json_decode($row->sidx))->get();
             if ($students) {
                 foreach ($students as $student_index => $student) {
                     $userMemberDetail = UserMemberDetail::where('user_id', $student->id)->first();
@@ -257,7 +257,7 @@ class AlbumController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereId($user_id)->first();
 
         $validator = Validator::make($request->all(), [
             'upload_files' => [new UploadFile],
@@ -385,7 +385,7 @@ class AlbumController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereId($user_id)->first();
 
         $validator = Validator::make($request->all(), [
             'upload_files' => [new UploadFile],
@@ -496,7 +496,7 @@ class AlbumController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereId($user_id)->first();
 
         RequestLog::create(
             [
@@ -570,7 +570,7 @@ class AlbumController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereId($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');

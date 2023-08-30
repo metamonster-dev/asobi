@@ -22,7 +22,7 @@ class AttendanceController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereId($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -41,7 +41,7 @@ class AttendanceController extends Controller
         $month = $request->input('month') ? sprintf('%02d',$request->input('month')) : $now->format('m');
         $day = $request->input('day') ? sprintf('%02d',$request->input('day')) : null;
 
-        $rs = User::where('center_id', $user->id)
+        $rs = RaonMember::where('center_id', $user->id)
             ->where('user_type', 's')
             ->where('status', 'Y')
             ->orderBy('name', 'asc')
@@ -102,7 +102,7 @@ class AttendanceController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereId($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -226,7 +226,7 @@ class AttendanceController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereId($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -241,7 +241,7 @@ class AttendanceController extends Controller
         }
 
         $student_id = $request->input('student');
-        $student = User::whereId($student_id)->first();
+        $student = RaonMember::whereId($student_id)->first();
         if (empty($student)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '학생 정보가 없습니다.');
@@ -334,7 +334,7 @@ class AttendanceController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereId($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -387,7 +387,7 @@ class AttendanceController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereId($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');

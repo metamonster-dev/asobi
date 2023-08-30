@@ -22,7 +22,7 @@ class CommonCommentController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereId($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -91,7 +91,7 @@ class CommonCommentController extends Controller
         $result = array();
 
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereId($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -144,7 +144,7 @@ class CommonCommentController extends Controller
                 $result = Arr::add($result, "list.{$index}.depth", $comment->depth);
                 $result = Arr::add($result, "list.{$index}.pid", $comment->pid);
 
-                $writer = User::whereId($comment->writer_id)->first();
+                $writer = RaonMember::whereId($comment->writer_id)->first();
                 $userMemberDetail = UserMemberDetail::where('user_id', $writer->id)->first();
                 $profile_image = $userMemberDetail->profile_image ?? '';
                 $result = Arr::add($result, "list.{$index}.is_auth", $comment->writer_id == $user->id ? "Y":"N");
@@ -163,7 +163,7 @@ class CommonCommentController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereId($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -199,7 +199,7 @@ class CommonCommentController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereId($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
