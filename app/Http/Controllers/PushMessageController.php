@@ -154,7 +154,7 @@ class PushMessageController extends Controller
                             ->where('mtype', 's')
                             ->where(function($query) use($row) {
                                 $query->where('status', 'Y')
-                                    ->orWhereRaw("id IN (SELECT `student_id` FROM `logs` WHERE `center_id` = ? AND `log_type` = 'M2' AND date(`accepted_at`) between '2022-01-24' and '2022-01-28')", [$row->midx]);
+                                    ->orWhereRaw("id IN (SELECT `sidx` FROM `asobi_log` WHERE `midx` = ? AND `log_type` = 'M2' AND date(`acceptDate`) between '2022-01-24' and '2022-01-28')", [$row->midx]);
                             })
                             ->pluck('id')
                             ->toArray();
