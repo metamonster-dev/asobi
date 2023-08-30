@@ -8,8 +8,7 @@ use App\Attendance;
 use App\Http\Controllers\AppMainController;
 use App\Jobs\BatchPush;
 use App\Notice;
-use App\User;
-use App\UserMemberDetail;
+use App\Models\RaonMember;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -22,7 +21,7 @@ class AttendanceController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -41,8 +40,9 @@ class AttendanceController extends Controller
         $month = $request->input('month') ? sprintf('%02d',$request->input('month')) : $now->format('m');
         $day = $request->input('day') ? sprintf('%02d',$request->input('day')) : null;
 
-        $rs = RaonMember::where('center_id', $user->id)
-            ->where('user_type', 's')
+        $rs = RaonMember::where('midx', $user->id)
+            ->where('mtype', 's')
+            // ToDo: status 종합적으로 변경 필요
             ->where('status', 'Y')
             ->orderBy('name', 'asc')
             ->get();
@@ -61,8 +61,8 @@ class AttendanceController extends Controller
                 $rep = $appMainController->calendar($req);
             }
             foreach ($rs as $index => $row) {
-                $userMemberDetail = UserMemberDetail::where('user_id', $row->id)->first();
-                $profile_image = $userMemberDetail->profile_image ?? '';
+                $userMemberDetail = RaonMember::where('idx', $row->id)->first();
+                $profile_image = $userMemberDetail->user_picture ?? '';
 
                 $result = Arr::add($result, "list.{$index}.id", $row->id);
                 $result = Arr::add($result, "list.{$index}.name", $row->name);
@@ -102,7 +102,7 @@ class AttendanceController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -226,7 +226,7 @@ class AttendanceController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -241,7 +241,7 @@ class AttendanceController extends Controller
         }
 
         $student_id = $request->input('student');
-        $student = RaonMember::whereId($student_id)->first();
+        $student = RaonMember::whereIdx($student_id)->first();
         if (empty($student)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '학생 정보가 없습니다.');
@@ -334,7 +334,7 @@ class AttendanceController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -387,7 +387,7 @@ class AttendanceController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');

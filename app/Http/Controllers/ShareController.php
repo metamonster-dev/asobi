@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Route;
 use App\AdviceNote;
 use App\AdviceNoteHistory;
 use App\AdviceNoteShareHistory;
-use App\User;
+use App\Models\RaonMember;
 
 class ShareController extends Controller
 {
@@ -32,7 +32,7 @@ class ShareController extends Controller
         }
 
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');

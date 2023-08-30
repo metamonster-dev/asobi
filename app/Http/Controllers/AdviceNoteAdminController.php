@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\AdviceNoteAdmin;
-use App\User;
+use App\Models\RaonMember;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -15,7 +15,7 @@ class AdviceNoteAdminController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -54,7 +54,7 @@ class AdviceNoteAdminController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');

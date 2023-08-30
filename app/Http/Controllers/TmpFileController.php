@@ -8,7 +8,7 @@ use App\AdviceFile;
 use App\AlbumFile;
 use App\NoticeFile;
 use App\Rules\UploadFile;
-use App\User;
+use App\Models\RaonMember;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +21,7 @@ class TmpFileController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -61,7 +61,7 @@ class TmpFileController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -84,7 +84,7 @@ class TmpFileController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -185,7 +185,7 @@ class TmpFileController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');

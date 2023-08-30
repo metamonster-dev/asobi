@@ -11,9 +11,8 @@ use App\AppendFile;
 use App\File;
 use App\Jobs\BatchPush;
 use App\Jobs\BatchPost;
-use App\User;
+use App\Models\RaonMember;
 use App\RequestLog;
-use App\UserMemberDetail;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -49,7 +48,7 @@ class AdviceNoteController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -71,8 +70,8 @@ class AdviceNoteController extends Controller
         $search_user_id = $request->input('search_user_id') ?? "";
 
 
-        $rs = User::where('center_id', $user->id)
-            ->where('user_type', 's')
+        $rs = RaonMember::where('midx', $user->id)
+            ->where('mtype', 's')
             ->where('status', 'Y')
             ->when($search_user_id != "", function ($q) use ($search_user_id) {
                 $q->where('id', $search_user_id);
@@ -127,8 +126,8 @@ class AdviceNoteController extends Controller
             $result = Arr::add($result, 'letter_count', count($letterArr));
 
             foreach ($rs as $index => $row) {
-                $userMemberDetail = UserMemberDetail::where('user_id', $row->id)->first();
-                $profile_image = $userMemberDetail->profile_image ?? '';
+                $userMemberDetail = RaonMember::where('idx', $row->id)->first();
+                $profile_image = $userMemberDetail->user_picture ?? '';
 
                 $result = Arr::add($result, "list.{$index}.id", $row->id);
                 $result = Arr::add($result, "list.{$index}.name", $row->name);
@@ -156,7 +155,7 @@ class AdviceNoteController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -225,7 +224,7 @@ class AdviceNoteController extends Controller
         $result = array();
         $modify = $request->input('modify') ?? '';
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -240,10 +239,10 @@ class AdviceNoteController extends Controller
         }
 
         if ($user->user_type == 's') {
-            $children_rs = User::where('phone', $user->phone)->where(
-                'password',
+            $children_rs = RaonMember::where('phone', $user->phone)->where(
+                'pw',
                 $user->password
-            )->where('user_type', 's')->where('status', 'Y')->get();
+            )->where('mtype', 's')->where('status', 'Y')->get();
             if (sizeof($children_rs) > 1) {
                 $check_row = AdviceNote::find($adviceNote_id);
                 if ($check_row) {
@@ -279,7 +278,7 @@ class AdviceNoteController extends Controller
         $result = Arr::add($result, "date2", $this_date->format('Y-m-d'));
 //        $result = Arr::add($result, "reg_date", $row->created_at->format(AdviceNote::REG_DATE_FORMAT));
         $result = Arr::add($result, "student", $row->sidx);
-        $student = User::whereId($row->sidx)->first();
+        $student = RaonMember::whereIdx($row->sidx)->first();
         $result = Arr::add($result, "student_name", $student->name);
 
         if ($row->type == AdviceNote::LETTER_TYPE) {
@@ -430,7 +429,7 @@ class AdviceNoteController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -549,7 +548,7 @@ class AdviceNoteController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -588,7 +587,7 @@ class AdviceNoteController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         $validator = Validator::make($request->all(), [
             'upload_files' => [new UploadFile],
@@ -714,7 +713,7 @@ class AdviceNoteController extends Controller
                 if (isset($check_letter) && $check_letter->count() > 0) {
                     $names = [];
                     if (isset($check_letter) && $check_letter->count() > 0) {
-                        $name_arr = User::select('name')
+                        $name_arr = RaonMember::select('name')
                             ->whereIn('id', $check_letter->pluck('sidx')->toArray())
                             ->get()
                             ->toArray();
@@ -741,7 +740,7 @@ class AdviceNoteController extends Controller
 //        BatchPost::dispatch($student, $type, $user, $title, $content, $class_content, $year, $month, $day, $this_month, $next_month, $request);
         foreach ($student as $l) {
             if ($type == AdviceNote::ADVICE_TYPE) {
-                $student_row = User::whereId($l)->first();
+                $student_row = RaonMember::whereIdx($l)->first();
                 if ($student_row) {
                     $title = $student_row->name . "의 선생님이 알립니다.";
                 }
@@ -821,7 +820,7 @@ class AdviceNoteController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         $validator = Validator::make($request->all(), [
             'upload_files' => [new UploadFile],
@@ -931,7 +930,7 @@ class AdviceNoteController extends Controller
         $result = array();
         $user_id = $request->input('user');
 
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         $arr_request_file = array();
         if ($request->allFiles()) {
@@ -983,8 +982,8 @@ class AdviceNoteController extends Controller
         $debug_write = $request->input('debug_write') ? true : false;
         if (env('APP_ENV') != 'development') $debug_write = false;
 
-        $studentCount = User::where('center_id', $user->id)
-            ->where('user_type', 's')
+        $studentCount = RaonMember::where('midx', $user->id)
+            ->where('mtype', 's')
             ->where('status', 'Y')
             ->count();
 
@@ -1033,8 +1032,8 @@ class AdviceNoteController extends Controller
             return response()->json($result);
         }
 
-        $students = User::where('center_id', $user->id)
-            ->where('user_type', 's')
+        $students = RaonMember::where('midx', $user->id)
+            ->where('mtype', 's')
             ->where('status', 'Y')
             ->whereRaw("`id` NOT IN (
                 SELECT `sidx` FROM advice_notes
@@ -1137,7 +1136,7 @@ class AdviceNoteController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         RequestLog::create(
             [
@@ -1175,8 +1174,8 @@ class AdviceNoteController extends Controller
         $batch_exec = 'N';
         $write_not_possible = false;
 
-        $studentCount = User::where('center_id', $user->id)
-            ->where('user_type', 's')
+        $studentCount = RaonMember::where('midx', $user->id)
+            ->where('mtype', 's')
             ->where('status', 'Y')
             ->count();
 
@@ -1230,7 +1229,7 @@ class AdviceNoteController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         RequestLog::create(
             [
@@ -1306,7 +1305,7 @@ class AdviceNoteController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -1348,7 +1347,7 @@ class AdviceNoteController extends Controller
         $result = array();
         $user_id = $request->input('user');
 
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');

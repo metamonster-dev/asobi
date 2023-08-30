@@ -6,7 +6,7 @@ use App\AdviceFile;
 use App\AdviceNote;
 use App\AppendFile;
 use App\Http\Controllers\VimeoController;
-use App\User;
+use App\Models\RaonMember;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -64,7 +64,7 @@ class BatchPost implements ShouldQueue
         //
         foreach ($this->student as $l) {
             if ($this->type == AdviceNote::ADVICE_TYPE) {
-                $student_row = RaonMember::whereId($l)->first();
+                $student_row = RaonMember::whereIdx($l)->first();
                 if ($student_row) {
                     $this->title = $student_row->name . "의 선생님이 알립니다.";
                 }

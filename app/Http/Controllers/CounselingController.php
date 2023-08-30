@@ -3,9 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Counseling;
-use App\User;
-use App\UserDetail;
-use App\UserMemberDetail;
+use App\Models\RaonMember;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -18,7 +16,7 @@ class CounselingController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -54,7 +52,7 @@ class CounselingController extends Controller
             ->leftJoin(DB::raw('(select max(created_at) created_at, sidx, year, month from counselings group by sidx) as cls'),function ($join) {
                 $join->on('users.id','=','cls.sidx');
             })
-            ->where('center_id', $user->id)
+            ->where('midx', $user->id)
             ->where('users.user_type','s')
             ->where('users.status','Y')
 //            ->whereRaw("users.user_type = 's'")
@@ -73,8 +71,8 @@ class CounselingController extends Controller
 
         if ($rs) {
             foreach ($rs as $index => $row) {
-                $userMemberDetail = UserMemberDetail::where('user_id', $row->uid)->first();
-                $profile_image = $userMemberDetail->profile_image ?? '';
+                $userMemberDetail = RaonMember::where('idx', $row->uid)->first();
+                $profile_image = $userMemberDetail->user_picture ?? '';
 
                 $result = Arr::add($result, "list.{$index}.id", $row->uid);
                 $result = Arr::add($result, "list.{$index}.name", $row->uname);
@@ -93,7 +91,7 @@ class CounselingController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -134,7 +132,7 @@ class CounselingController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -150,7 +148,7 @@ class CounselingController extends Controller
 
         $row = Counseling::whereMidx($user->id)->whereId($counseling_id)->first();
         if ($row) {
-            $student = RaonMember::whereId($row->sidx)->first();
+            $student = RaonMember::whereIdx($row->sidx)->first();
             $result = Arr::add($result, 'result', 'success');
             $result = Arr::add($result, "id", $row->id);
             $result = Arr::add($result, "content", $row->content);
@@ -170,7 +168,7 @@ class CounselingController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -220,7 +218,7 @@ class CounselingController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -257,7 +255,7 @@ class CounselingController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');

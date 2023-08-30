@@ -5,8 +5,7 @@ namespace App\Http\Controllers;
 use App\Album;
 use App\AlbumComment;
 use App\Jobs\BatchPush;
-use App\User;
-use App\UserMemberDetail;
+use App\Models\RaonMember;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +18,7 @@ class AlbumCommentController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -61,9 +60,9 @@ class AlbumCommentController extends Controller
                 $result = Arr::add($result, "list.{$index}.pid", $comment->pid);
 
                 if ($comment->writer_type == 's') {
-                    $writer = RaonMember::where('id',$comment->sid)->first();
-                    $userMemberDetail = UserMemberDetail::where('user_id', $writer->id)->first();
-                    $profile_image = $userMemberDetail->profile_image ?? '';
+                    $writer = RaonMember::whereIdx($comment->sid)->first();
+                    $userMemberDetail = RaonMember::where('idx', $writer->id)->first();
+                    $profile_image = $userMemberDetail->user_picture ?? '';
                     $result = Arr::add($result, "list.{$index}.is_auth", $comment->sid == $user->id ? "Y":"N");
                     $result = Arr::add($result, "list.{$index}.writer_id", $writer->id);
                     $result = Arr::add($result, "list.{$index}.writer", $writer->name);
@@ -75,9 +74,9 @@ class AlbumCommentController extends Controller
                     } else if ($comment->writer_type == 'h') {
                         $writerId = $comment->hidx;
                     }
-                    $writer = RaonMember::whereId($writerId)->first();
-                    $userMemberDetail = UserMemberDetail::where('user_id', $writer->id)->first();
-                    $profile_image = $userMemberDetail->profile_image ?? '';
+                    $writer = RaonMember::whereIdx($writerId)->first();
+                    $userMemberDetail = RaonMember::where('idx', $writer->id)->first();
+                    $profile_image = $userMemberDetail->user_picture ?? '';
                     $result = Arr::add($result, "list.{$index}.is_auth", $comment->midx == $user->id ? "Y":"N");
                     $result = Arr::add($result, "list.{$index}.writer_id", $writer->id);
                     $result = Arr::add($result, "list.{$index}.writer", $writer->nickname);
@@ -94,7 +93,7 @@ class AlbumCommentController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -168,7 +167,7 @@ class AlbumCommentController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -220,7 +219,7 @@ class AlbumCommentController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');

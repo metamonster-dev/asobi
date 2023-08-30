@@ -8,7 +8,7 @@ use App\AlbumHistory;
 use App\AppendFile;
 use App\AlbumComment;
 use App\Jobs\BatchPush;
-use App\User;
+use App\Models\RaonMember;
 use App\RequestLog;
 use App\UserMemberDetail;
 use Carbon\Carbon;
@@ -29,7 +29,7 @@ class AlbumController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -83,12 +83,12 @@ class AlbumController extends Controller
                 $result = Arr::add($result, "list.{$index}.reg_date", $row->created_at->format(Album::REG_DATE_FORMAT));
 
                 if ($user->user_type == 'm') {
-                    $students = $row->sidx != 'null' && $row->sidx ? RaonMember::whereIn('id', json_decode($row->sidx))->get() : null;
+                    $students = $row->sidx != 'null' && $row->sidx ? RaonMember::whereIn('idx', json_decode($row->sidx))->get() : null;
 
                     if ($students) {
                         foreach ($students as $student_index => $student) {
-                            $userMemberDetail = UserMemberDetail::where('user_id', $student->id)->first();
-                            $profile_image = $userMemberDetail->profile_image ?? '';
+                            $userMemberDetail = RaonMember::where('idx', $student->id)->first();
+                            $profile_image = $userMemberDetail->user_picture ?? '';
 
                             $result = Arr::add($result, "list.{$index}.student.{$student_index}.id", $student->id);
                             $result = Arr::add($result, "list.{$index}.student.{$student_index}.name", $student->name);
@@ -119,7 +119,7 @@ class AlbumController extends Controller
         $result = array();
         $modify = $request->input('modify') ?? '';
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -134,9 +134,9 @@ class AlbumController extends Controller
         }
 
         if ($user->user_type == 's') {
-            $children_rs = RaonMember::where('phone', $user->phone)
-                ->where('password', $user->password)
-                ->where('user_type', 's')
+            $children_rs = RaonMember::where('mobilephone', $user->phone)
+                ->where('pw', $user->password)
+                ->where('mtype', 's')
                 ->where('status', 'Y')
                 ->get();
 
@@ -181,11 +181,11 @@ class AlbumController extends Controller
         $result = Arr::add($result, "reg_date", $row->created_at->format(Album::REG_DATE_FORMAT));
 
         if ($user->user_type == 'm') {
-            $students = RaonMember::whereIn('id', json_decode($row->sidx))->get();
+            $students = RaonMember::whereIn('idx', json_decode($row->sidx))->get();
             if ($students) {
                 foreach ($students as $student_index => $student) {
-                    $userMemberDetail = UserMemberDetail::where('user_id', $student->id)->first();
-                    $profile_image = $userMemberDetail->profile_image ?? '';
+                    $userMemberDetail = RaonMember::where('user_id', $student->id)->first();
+                    $profile_image = $userMemberDetail->user_picture ?? '';
 
                     $result = Arr::add($result, "student.{$student_index}.id", $student->id);
                     $result = Arr::add($result, "student.{$student_index}.name", $student->name);
@@ -257,7 +257,7 @@ class AlbumController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         $validator = Validator::make($request->all(), [
             'upload_files' => [new UploadFile],
@@ -385,7 +385,7 @@ class AlbumController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         $validator = Validator::make($request->all(), [
             'upload_files' => [new UploadFile],
@@ -496,7 +496,7 @@ class AlbumController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         RequestLog::create(
             [
@@ -570,7 +570,7 @@ class AlbumController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');

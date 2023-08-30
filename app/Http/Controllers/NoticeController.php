@@ -8,7 +8,7 @@ use App\Jobs\BatchPush;
 use App\Notice;
 use App\NoticeFile;
 use App\NoticeHistory;
-use App\User;
+use App\Models\RaonMember;
 use App\RequestLog;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -28,7 +28,7 @@ class NoticeController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -157,7 +157,7 @@ class NoticeController extends Controller
         $result = array();
         $modify = $request->input('modify') ?? '';
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -248,13 +248,13 @@ class NoticeController extends Controller
                 $readed_students_array = $readed_students->pluck('id');
             }
 
-            $not_readed_students = User::select(
+            $not_readed_students = RaonMember::select(
                 'id',
                 'user_id',
                 'name'
             )
-            ->where('center_id', $user->id)
-            ->where('user_type', 's')
+            ->where('midx', $user->id)
+            ->where('mtype', 's')
             ->where('status', 'Y')
             ->when(count($readed_students_array) > 0, function($query) use($readed_students_array) {
                 return $query->whereNotIn('id', $readed_students_array->toArray());
@@ -273,7 +273,7 @@ class NoticeController extends Controller
     public function store(Request $request) {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         $validator = Validator::make($request->all(), [
             'upload_files' => [new UploadFile],
@@ -415,7 +415,7 @@ class NoticeController extends Controller
     public function update(Request $request, $notice_id) {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         $validator = Validator::make($request->all(), [
             'upload_files' => [new UploadFile],
@@ -517,7 +517,7 @@ class NoticeController extends Controller
     public function destroy($notice_id, Request $request) {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -581,7 +581,7 @@ class NoticeController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');

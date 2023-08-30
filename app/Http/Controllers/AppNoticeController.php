@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\AppNotice;
 use App\Http\Requests\AppNoticeValidation;
 use App\Jobs\BatchPush;
-use App\User;
+use App\Models\RaonMember;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Route;

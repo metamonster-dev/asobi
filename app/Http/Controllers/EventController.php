@@ -6,7 +6,7 @@ use App\AppendFile;
 use App\CommonHistory;
 use App\File;
 use App\Rules\UploadFile;
-use App\User;
+use App\Models\RaonMember;
 use App\Event;
 use App\CommonComment;
 use App\EditorFile;
@@ -27,7 +27,7 @@ class EventController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -217,7 +217,7 @@ class EventController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -315,7 +315,7 @@ class EventController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -573,7 +573,7 @@ class EventController extends Controller
         $result = array();
 
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '사용자 정보가 없습니다.');
@@ -705,7 +705,7 @@ class EventController extends Controller
         $result = array();
 
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');

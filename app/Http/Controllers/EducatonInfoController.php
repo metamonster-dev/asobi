@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\AppendFile;
 use App\CommonHistory;
 use App\Rules\UploadFile;
-use App\User;
+use App\Models\RaonMember;
 use App\EducatonInfo;
 use App\CommonComment;
 use App\EditorFile;
@@ -26,7 +26,7 @@ class EducatonInfoController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -135,7 +135,7 @@ class EducatonInfoController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -207,7 +207,7 @@ class EducatonInfoController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -353,7 +353,7 @@ class EducatonInfoController extends Controller
         $result = array();
 
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '사용자 정보가 없습니다.');

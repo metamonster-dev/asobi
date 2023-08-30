@@ -13,9 +13,7 @@ use App\Notice;
 use App\NoticeHistory;
 use App\ScheduleAcademyStudy;
 use App\ScheduleStudy;
-use App\User;
-use App\UserMemberDetail;
-use App\UserCenterDetail;
+use App\Models\RaonMember;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -38,7 +36,7 @@ class AppMainController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
         $check_date = Carbon::now()->subDay(3)->format('Y-m-d');
 
         if (empty($user)) {
@@ -66,8 +64,8 @@ class AppMainController extends Controller
             $event_rs = Event::where('created_at', '>', $check_date)->get();
             $eventHistoryCount = CommonHistory::where('type', '=', '2')->whereIn('type_id', $event_rs->pluck('id')->toArray())->where('sidx', $user->id)->count();
 
-            $userMemberDetail = UserMemberDetail::where('user_id', $user->id)->first();
-            $profile_image = $userMemberDetail->profile_image ?? '';
+            $userMemberDetail = RaonMember::where('idx', $user->id)->first();
+            $profile_image = $userMemberDetail->user_picture ?? '';
 
             $result = Arr::add($result, 'adviceNote', $advice_rs->count() > $adviceNoteHistoryCount ? "Y" : "N");
             $result = Arr::add($result, 'album', $album_rs->count() > $albumHistoryCount ? "Y" : "N");
@@ -108,7 +106,7 @@ class AppMainController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '사용자 정보가 없습니다.');
@@ -127,8 +125,8 @@ class AppMainController extends Controller
 
         $midx = 0;
         if ($user->user_type == 'm') {
-            $userCenterDetail = UserCenterDetail::where('user_id', $user->id)->first();
-            $franchisetype = $userCenterDetail->franchise_type ?? '';
+            $userCenterDetail = RaonMember::where('idx', $user->id)->first();
+            $franchisetype = $userCenterDetail->franchisetype ?? '';
             if ($franchisetype == 'B' || $franchisetype == 'C') {
                 $midx = $user->id;
             }
@@ -181,9 +179,9 @@ class AppMainController extends Controller
                 })->orderBy('date', 'asc')->get();
             } else {
                 if ($user->user_type == 's') {
-                    $center = RaonMember::select('id')->whereId($user->center_id)->first();
-                    $centerCenterDetail = UserCenterDetail::where('user_id', $center->id)->first();
-                    $center->franchisetype = $centerCenterDetail->franchise_type ?? '';
+                    $center = RaonMember::select('idx')->whereId($user->center_id)->first();
+                    $centerCenterDetail = RaonMember::where('idx', $center->id)->first();
+                    $center->franchisetype = $centerCenterDetail->franchisetype ?? '';
 
                     if ($center && $center->franchisetype == 'C') {
                         $center_calendar_years = DB::table('schedule_academy_studies')
@@ -234,7 +232,7 @@ class AppMainController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -253,8 +251,8 @@ class AppMainController extends Controller
 
         $midx = 0;
         if ($user->user_type == 'm') {
-            $userCenterDetail = UserCenterDetail::where('user_id', $user->id)->first();
-            $franchisetype = $userCenterDetail->franchise_type ?? '';
+            $userCenterDetail = RaonMember::where('idx', $user->id)->first();
+            $franchisetype = $userCenterDetail->franchisetype ?? '';
             if ($franchisetype == 'B' || $franchisetype == 'C') {
                 $midx = $user->id;
             }
@@ -307,9 +305,9 @@ class AppMainController extends Controller
                 })->orderBy('date', 'asc')->get();
             } else {
                 if ($user->user_type == 's') {
-                    $center = RaonMember::select('id')->whereId($user->center_id)->first();
-                    $centerCenterDetail = UserCenterDetail::where('user_id', $center->id)->first();
-                    $center->franchisetype = $centerCenterDetail->franchise_type ?? '';
+                    $center = RaonMember::select('idx')->whereId($user->center_id)->first();
+                    $centerCenterDetail = RaonMember::where('idx', $center->id)->first();
+                    $center->franchisetype = $centerCenterDetail->franchisetype ?? '';
 
                     if ($center && $center->franchisetype == 'C') {
                         $center_calendar_years = DB::table('schedule_academy_studies')

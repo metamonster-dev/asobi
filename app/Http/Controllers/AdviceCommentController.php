@@ -5,8 +5,7 @@ namespace App\Http\Controllers;
 use App\AdviceComment;
 use App\AdviceNote;
 use App\Jobs\BatchPush;
-use App\User;
-use App\UserMemberDetail;
+use App\Models\RaonMember;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Route;
@@ -18,7 +17,7 @@ class AdviceCommentController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -59,9 +58,9 @@ class AdviceCommentController extends Controller
                 $result = Arr::add($result, "list.{$index}.depth", $comment->depth);
                 $result = Arr::add($result, "list.{$index}.pid", $comment->pid);
                 if ($comment->writer_type == 's') {
-                    $writer = RaonMember::whereId($comment->sidx)->first();
-                    $userMemberDetail = UserMemberDetail::where('user_id', $writer->id)->first();
-                    $profile_image = $userMemberDetail->profile_image ?? '';
+                    $writer = RaonMember::whereIdx($comment->sidx)->first();
+                    $userMemberDetail = RaonMember::where('idx', $writer->id)->first();
+                    $profile_image = $userMemberDetail->user_picture ?? '';
                     $result = Arr::add($result, "list.{$index}.is_auth", $comment->sidx == $user->id ? "Y":"N");
                     $result = Arr::add($result, "list.{$index}.writer_id", $writer->id);
                     $result = Arr::add($result, "list.{$index}.writer", $writer->name);
@@ -73,9 +72,9 @@ class AdviceCommentController extends Controller
                     } else if ($comment->writer_type == 'h') {
                         $writerId = $comment->hidx;
                     }
-                    $writer = RaonMember::whereId($writerId)->first();
-                    $userMemberDetail = UserMemberDetail::where('user_id', $writer->id)->first();
-                    $profile_image = $userMemberDetail->profile_image ?? '';
+                    $writer = RaonMember::whereIdx($writerId)->first();
+                    $userMemberDetail = RaonMember::where('idx', $writer->id)->first();
+                    $profile_image = $userMemberDetail->user_picture ?? '';
                     $result = Arr::add($result, "list.{$index}.is_auth", $comment->midx == $user->id ? "Y":"N");
                     $result = Arr::add($result, "list.{$index}.writer_id", $writer->id);
                     $result = Arr::add($result, "list.{$index}.writer", $writer->nickname);
@@ -91,7 +90,7 @@ class AdviceCommentController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -161,7 +160,7 @@ class AdviceCommentController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -204,7 +203,7 @@ class AdviceCommentController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');

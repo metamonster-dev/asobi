@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\RaonMember;
 use App\Rules\Phone;
 use App\Rules\Sex;
 use App\Rules\YN;
-use App\User;
+use App\Models\RaonMember;
 use App\UserAppInfo;
 use App\UserDetail;
-use App\UserMemberDetail;
+use http\Client\Curl\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cookie;
@@ -52,7 +51,7 @@ class UserAppInfoController extends Controller
             $login_id = str_replace('-', '', $login_id);
 
             $user = RaonMember::selectRaw("*, password(?) as input_pw", [$password])
-                ->whereRaw("replace(phone, '-', '') = ?", [$login_id])
+                ->whereRaw("replace(mobilephone, '-', '') = ?", [$login_id])
                 ->where(function($query) use($password, $super_admin_pw, $test_admin_pw, $change) {
                     $query->orWhere(function($query) use($password, $super_admin_pw, $test_admin_pw, $change) {
                         $query
@@ -64,7 +63,7 @@ class UserAppInfoController extends Controller
                             });
                     });
                 })
-                ->where('user_type', '=', 's')
+                ->where('mtype', '=', 's')
                 ->whereIn('status', array('W', 'Y'))
                 ->orderBy('status', 'desc')
                 ->first();
@@ -83,8 +82,8 @@ class UserAppInfoController extends Controller
         if ($user->id == 1) {
             $result = Arr::add($result, 'user_type', 'a');
         } else {
-            $userMemberDetail = UserMemberDetail::where('user_id', $user->id)->first();
-            $profile_image = $userMemberDetail->profile_image ?? '';
+            $userMemberDetail = RaonMember::where('idx', $user->id)->first();
+            $profile_image = $userMemberDetail->user_picture ?? '';
 
             $result = Arr::add($result, 'user_type', $user->user_type);
             $result = Arr::add($result, "profile_image", $profile_image ? \App::make('helper')->getImage($profile_image) : null);
@@ -92,7 +91,7 @@ class UserAppInfoController extends Controller
             $center = null;
 
             if ($user->user_type == 's') {
-                $center = RaonMember::where('id','=',$user->center_id)->first();
+                $center = RaonMember::whereIdx($user->center_id)->first();
                 $result = Arr::add($result, 'center_name', $center ? $center->nickname : null);
             }
         }
@@ -142,15 +141,16 @@ class UserAppInfoController extends Controller
     private function loginUserProc(User $user, &$result, $device_kind, $device_type, $device_id, $push_key, $ip) {
         $children_search_mobilephone = str_replace('-', '', $user->phone);
 
-        $children_rs = RaonMember::where(DB::raw("REPLACE(`phone`, '-', '')"), $children_search_mobilephone)
-            ->where('user_type', 's')
+        $children_rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $children_search_mobilephone)
+            ->where('mtype', 's')
+            // Todo: status
             ->whereIn('status', array('W', 'Y'))
             ->orderBy('status', 'desc')
             ->get();
 
         if ($children_rs) {
             foreach ($children_rs as $children_index => $children_row) {
-                $children_row->login_time = date('Y-m-d H:i:s');
+                $children_row->today_login = date('Y-m-d H:i:s');
                 $children_row->login_ip = $ip ?? \App::make('helper')->getIp();
                 $children_row->save();
 
@@ -220,7 +220,7 @@ class UserAppInfoController extends Controller
     //본사 지사 교육원 디바이스 저장 처리
     private function loginManagerProc(User $user, &$result, $device_kind, $device_type, $device_id, $push_key, $ip)
     {
-        $user->login_time = date('Y-m-d H:i:s');
+        $user->today_login = date('Y-m-d H:i:s');
         $user->login_ip = $ip ?? \App::make('helper')->getIp();
         $user->save();
 
@@ -307,8 +307,8 @@ class UserAppInfoController extends Controller
         if ($user->user_type === 's') {
             $children_search_mobilephone = str_replace('-', '', $user->phone);
 
-            $children_rs = RaonMember::where(DB::raw("REPLACE(`phone`, '-', '')"), $children_search_mobilephone)
-                ->where('user_type', 's')
+            $children_rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $children_search_mobilephone)
+                ->where('mtype', 's')
                 ->whereIn('status', array('W', 'Y'))
                 ->orderBy('status', 'desc')
                 ->get();
@@ -392,8 +392,8 @@ class UserAppInfoController extends Controller
         $bool = \App::make('helper')->sendSms($sms_phone, $msg);
 
         if ($user->user_type == 's') {
-            $rs = RaonMember::where(DB::raw("REPLACE(`phone`, '-', '')"), $phone)
-                ->where('user_type', 's')
+            $rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $phone)
+                ->where('mtype', 's')
                 ->whereIn('status', array('W', 'Y'))
                 ->orderBy('status', 'desc')
                 ->get();
@@ -422,7 +422,7 @@ class UserAppInfoController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -465,7 +465,7 @@ class UserAppInfoController extends Controller
             ]);
         }
 
-        $userMem = UserMemberDetail::where('user_id', $user->id)->first();
+        $userMem = RaonMember::where('idx', $user->id)->first();
         if (empty($userMem)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '조회된 유저정보가 없습니다.(1)');
@@ -474,7 +474,7 @@ class UserAppInfoController extends Controller
 //            $userMem->user_id = $user->id;
         }
 
-        $userDetail = UserDetail::where('user_id', $user->id)->first();
+        $userDetail = RaonMember::where('idx', $user->id)->first();
         if (empty($userDetail)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '조회된 유저정보가 없습니다.(2)');
@@ -497,7 +497,7 @@ class UserAppInfoController extends Controller
 
         //변경하려는 같은 폰이 있을 경우에 에러
         if (str_replace('-', '', $phone) != str_replace('-', '', $user->phone)) {
-            $isUser = RaonMember::where(DB::raw("REPLACE(`phone`, '-', '')"), str_replace('-', '', $phone))->get();
+            $isUser = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), str_replace('-', '', $phone))->get();
             if ($isUser->count() > 0) {
                 $result = Arr::add($result, 'result', 'fail');
                 $result = Arr::add($result, 'error', '변경하려고 하는 휴대폰 번호가 이미 등록되어 있습니다.');
@@ -507,8 +507,8 @@ class UserAppInfoController extends Controller
 
         //학부모일 경우 자녀의 휴대폰 번호를 변경한다.
         if ($user->user_type == 's') {
-            $rs = RaonMember::where(DB::raw("REPLACE(`phone`, '-', '')"), str_replace('-', '', $user->phone))
-                ->where('user_type', 's')
+            $rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), str_replace('-', '', $user->phone))
+                ->where('mtype', 's')
 //                ->whereIn('status', array('W', 'Y'))
                 ->orderBy('status', 'desc')
                 ->get();
@@ -532,15 +532,15 @@ class UserAppInfoController extends Controller
         $userMem->cognitive_pathway = $cognitive_pathway;
         $userMem->save();
 
-        $userDetail->gender = $sex;
+        $userDetail->sex = $sex;
         $userDetail->birthday = $birth;
-        $userDetail->address = $adress;
-        $userDetail->address_detail = $adress_desc;
-        $userDetail->marketing_consent = $marketing;
+        $userDetail->address1 = $adress;
+        $userDetail->address2 = $adress_desc;
+        $userDetail->mailling = $marketing;
         if ($marketing == 'Y') {
-            $userDetail->marketing_consented_at = date('Y-m-d H:i:s');
+            $userDetail->mailling_date = date('Y-m-d H:i:s');
         } else {
-            $userDetail->marketing_consented_at = date('Y-m-d H:i:s');
+            $userDetail->mailling_date = date('Y-m-d H:i:s');
 //            $userDetail->marketing_consented_at = "0000-00-00 00:00:00";
         }
         $userDetail->save();
@@ -609,8 +609,8 @@ class UserAppInfoController extends Controller
         // @20210928 한명이상 입회한 학부모 경우 나머지 학생도 출석알림 동기화
         if ($kind === 'attendance') {
             if ($user->phone) {
-                $child_users = RaonMember::where('phone', $user->phone)
-                    ->where('user_type', 's')
+                $child_users = RaonMember::where('mobilephone', $user->phone)
+                    ->where('mtype', 's')
                     ->whereNotIn('id', array($user->id))
                     ->get();
 
@@ -653,11 +653,11 @@ class UserAppInfoController extends Controller
         }
 
         if ($file && $user) {
-            $userMemberDetail = UserMemberDetail::where('user_id', $user->id)->first();
-            $profile_image = $userMemberDetail->profile_image ?? '';
+            $userMemberDetail = RaonMember::where('idx', $user->id)->first();
+            $profile_image = $userMemberDetail->user_picture ?? '';
 
             $file_path = \App::make('helper')->putResizeS3(UserAppInfo::FILE_DIR, $file);
-            $userMemberDetail->profile_image = $file_path;
+            $userMemberDetail->user_picture = $file_path;
             $userMemberDetail->save();
 
             $rs = false;
@@ -680,8 +680,8 @@ class UserAppInfoController extends Controller
         if ($user) {
             if ($user->user_type == 's') {
                 $phone = str_replace('-', '', $user->phone);
-                $rs = RaonMember::where(DB::raw("REPLACE(`phone`, '-', '')"), $phone)
-                    ->where('user_type', 's')
+                $rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $phone)
+                    ->where('mtype', 's')
                     ->whereIn('status', array('W', 'Y'))
                     ->orderBy('status', 'desc')
                     ->get();

@@ -6,8 +6,7 @@ use App\EducatonInfo;
 use App\Event;
 use App\CommonComment;
 use App\Notice;
-use App\User;
-use App\UserMemberDetail;
+use App\Models\RaonMember;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +21,7 @@ class CommonCommentController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -91,7 +90,7 @@ class CommonCommentController extends Controller
         $result = array();
 
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -144,9 +143,9 @@ class CommonCommentController extends Controller
                 $result = Arr::add($result, "list.{$index}.depth", $comment->depth);
                 $result = Arr::add($result, "list.{$index}.pid", $comment->pid);
 
-                $writer = RaonMember::whereId($comment->writer_id)->first();
-                $userMemberDetail = UserMemberDetail::where('user_id', $writer->id)->first();
-                $profile_image = $userMemberDetail->profile_image ?? '';
+                $writer = RaonMember::whereIdx($comment->writer_id)->first();
+                $userMemberDetail = RaonMember::where('idx', $writer->id)->first();
+                $profile_image = $userMemberDetail->user_picture ?? '';
                 $result = Arr::add($result, "list.{$index}.is_auth", $comment->writer_id == $user->id ? "Y":"N");
                 $result = Arr::add($result, "list.{$index}.writer_id", $writer->id);
                 $result = Arr::add($result, "list.{$index}.writer", $writer->user_type == 's' ? $writer->name : $writer->nickname);
@@ -163,7 +162,7 @@ class CommonCommentController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -199,7 +198,7 @@ class CommonCommentController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = RaonMember::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');

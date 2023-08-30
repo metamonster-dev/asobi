@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\User;
+use App\Models\RaonMember;
 use App\UserAppInfo;
 use Closure;
 use Illuminate\Http\Request;
@@ -43,7 +43,7 @@ class CheckLogin
                     ->where('device_type', "web")
                     ->where('device_id', "web")->first();
 
-                $user = RaonMember::where('id','=',$cookieAutoLogin)->first();
+                $user = RaonMember::whereIdx($cookieAutoLogin)->first();
 
                 //로그인 한 정보가 없을 경우..
                 if (empty($rs) || empty($user)) return redirect('/auth/login');
@@ -60,7 +60,7 @@ class CheckLogin
                     ->where('device_type', $deviceType)
                     ->where('device_id', $deviceId)->first();
 
-                $user = RaonMember::where('id','=',$userId)->first();
+                $user = RaonMember::whereIdx($userId)->first();
 
                 //로그인 한 정보가 없을 경우..
                 if (empty($rs) || empty($user)) return redirect('/auth/login?fcmToken='.$fcmToken.'&deviceId='.$deviceId.'&os='.$deviceKind.'&deviceType='.$deviceType);
