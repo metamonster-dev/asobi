@@ -1,0 +1,4 @@
+<svg id="ic_back" xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30">
+  <rect id="square" width="30" height="30" fill="none"/>
+  <path id="stroke" d="M105.375,48,96,57.375l9.375,9.375" transform="translate(-86.625 -42.375)" fill="none" stroke="#222" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/>
+</svg>

@@ -1,0 +1,97 @@
+$theme-colors: (
+    // 색상 변경
+    "primary": #1ED0BF,
+    "secondary": #F16133,
+    "success": #FFD277,
+    "light": #999,
+    // 색상 추가
+    "primary_bg": #EEFFFD,
+    "secondary_bg": #FFAF95,
+    "border": #E9E9E9,
+    "text": #222,
+    "text2": #121212,
+    "gray": #999,
+    "dark_gray": #888,
+    "light_gray": #f5f5f5,
+    "f9f9f9": #f9f9f9,
+    "bg": #fff,
+    "input_placeholder": #888,
+    "input_disabled": #f5f5f5
+);
+
+// 컨테이너
+$container-max-widths: (
+    sm: 540px,
+    md: 720px,
+    lg: 960px,
+    xl: 1160px,
+);
+
+// 컨테이너 및 일반 row 마진 row내부 col 패딩 값 조절 *0.5하면 됨
+$grid-gutter-width: 40px;
+
+// .form-row 마진 form-row내부 col에 패딩값 *0.5
+$form-grid-gutter-width: 10px;
+
+$body-color: var(--text);
+$body-bg: var(--bg);
+
+// 기본 폰트 설정
+$font-family-sans-serif: Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+$font-size-base: 1.6rem;
+$line-height-base: 1;
+
+$border-color: var(--border);
+
+// 라운드 설정
+$border-radius: 1rem;
+$border-radius-lg: 1.5rem;
+$border-radius-sm: 0.5rem;
+
+// 인풋 및 버튼
+$label-margin-bottom: 0;
+
+$input-btn-padding-y: 0.5rem;
+$input-btn-padding-x: 1rem;
+$input-btn-font-size: $font-size-base;
+$input-btn-line-height: $line-height-base;
+
+$input-btn-padding-y-sm: 0.5rem;
+$input-btn-padding-x-sm: 1rem;
+$input-btn-font-size-sm: $font-size-base;
+$input-btn-line-height-sm: $line-height-base;
+
+$input-btn-padding-y-lg: 0.5rem;
+$input-btn-padding-x-lg: 1rem;
+$input-btn-font-size-lg: $font-size-base;
+$input-btn-line-height-lg: $line-height-base;
+
+$input-color: var(--text);
+$input-placeholder-color: var(--input_placeholder);
+
+$input-border-color: $border-color;
+$input-bg: var(--bg);
+$input-disabled-bg: var(--input_disabled);
+
+$input-border-radius: 1rem;
+$btn-border-radius: 1rem;
+$btn-border-radius-lg: 1.5rem;
+$btn-border-radius-sm: 0.5rem;
+
+$input-focus-border-color: var(--primary);
+$input-btn-focus-width: 0;
+$input-btn-focus-color: $border-color;
+
+$form-text-margin-top: 1rem;
+
+// 셀렉트 박스
+$custom-select-border-radius: 0;
+$custom-select-indicator: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1em' height='1em' preserveAspectRatio='xMidYMid meet' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='m12 15.4l-6-6L7.4 8l4.6 4.6L16.6 8L18 9.4Z'/%3E%3C/svg%3E");
+/* 셀렉트 화살표 색 수정 => fill="%23 => 000을 Hex값으로 수정하면 됨*/
+$custom-select-indicator-color: var(--text);
+
+// a태그
+$link-color: var(--text);
+$link-hover-color: var(--text);
+
+@import "./bootstrap/bootstrap";

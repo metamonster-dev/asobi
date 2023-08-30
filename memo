@@ -1,0 +1,221 @@
+Storage::disk('s3')->url($profile_image)
+\App::make('helper')->getImage($profile_image)
+Storage::disk('s3')
+
+
+use App\Rules\UploadFile;
+use Validator;
+
+$validator = Validator::make($request->all(), [
+    'upload_files' => [new UploadFile],
+]);
+
+if($validator->fails()){
+    return response()->json([
+        'result' => 'fail',
+        'error' => "업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 500Mb 이하로만 가능합니다."
+    ]);
+}
+
+$file_path = \App::make('helper')->putResizeS3(AlbumFile::FILE_DIR, $file);
+\App::make('helper')->log('adviceComment', ['aaa' => $advice_note_comment->id], 'adviceComment');
+
+if ($type == "1") {
+    $row = EducatonInfo::find($type_id);
+} else if ($type == "2") {
+    $row = Event::find($type_id);
+} else {
+    $row = Notice::find($type_id);
+}
+
+todo:
+1. .env - APP_ENV=production
+2. .env - APP_DEBUG=false
+3. AppServiceProvider - boot 쿼리 로그 남기는부분 삭제
+4. 웹에서 학부모 로그인 시 주석 해제해야함. (UserAppInfoController.login)
+5. 임시비밀번호 발송 내역: 5/17 - 18:02분 1건
+
+6. 알림장, 앨범에 지사, 본사 댓글
+
+다영 체크
+
+환재 체크
+
+#알림 잡큐
+systemctl status batchPush
+systemctl start batchPush
+systemctl stop batchPush
+
+#로그인 시 알람 수신
+ALTER TABLE `user_app_infos` ADD `adu_info_alarm` CHAR(1)  NOT NULL  DEFAULT 'Y'  COMMENT '교육정보 알람 수신(Y,N)'  AFTER `attendance_alarm`;
+ALTER TABLE `user_app_infos` ADD `event_alarm` CHAR(1)  NOT NULL  DEFAULT 'Y'  COMMENT '이벤트 알람수신(Y,N)'  AFTER `adu_info_alarm`;
+
+ALTER TABLE `advice_files` ADD INDEX (`advice_note_id`);
+ALTER TABLE `advice_comments` ADD INDEX (`advice_note_id`);
+ALTER TABLE `advice_comments` ADD `depth` TINYINT(1)  NULL  DEFAULT 1  COMMENT '댓글단계 댓글:1, 대댓글:2'  AFTER `updated_at`;
+ALTER TABLE `advice_comments` ADD `pid` BIGINT  NULL  DEFAULT NULL  COMMENT '댓글 부모 ID'  AFTER `depth`;
+ALTER TABLE `advice_comments` ADD INDEX (`pid`);
+ALTER TABLE `advice_comments` ADD `deleted_at` TIMESTAMP  NULL  COMMENT '삭제일시'  AFTER `pid`;
+ALTER TABLE `album_files` ADD INDEX (`album_id`);
+ALTER TABLE `album_comments` CHANGE `sidx` `sidx` LONGTEXT  CHARACTER SET utf8mb4  BINARY  NOT NULL  COMMENT '회원 IDS';
+ALTER TABLE `album_comments` ADD `deleted_at` TIMESTAMP  NULL  COMMENT '삭제일자'  AFTER `updated_at`;
+ALTER TABLE `album_comments` ADD INDEX (`album_id`);
+ALTER TABLE `album_comments` ADD `depth` TINYINT(1)  NULL  DEFAULT 1  COMMENT '댓글단계 댓글:1, 대댓글:2'  AFTER `deleted_at`;
+ALTER TABLE `album_comments` ADD `pid` BIGINT  NULL  DEFAULT NULL  COMMENT '댓글 부모 ID'  AFTER `depth`;
+ALTER TABLE `album_comments` ADD INDEX (`pid`);
+ALTER TABLE `albums` CHANGE `sidx` `sidx` LONGTEXT  CHARACTER SET utf8mb4  BINARY  NOT NULL  COMMENT '회원 IDS';
+ALTER TABLE `album_comments` ADD `sid` INT(11)  NULL  DEFAULT NULL  COMMENT '회원 ID'  AFTER `sidx`;
+ALTER TABLE `attendances` ADD `in` TINYINT(1)  NULL  DEFAULT 0  COMMENT '등원'  AFTER `updated_at`;
+ALTER TABLE `attendances` ADD `out` TINYINT(1)  NULL  DEFAULT 0  COMMENT '하원'  AFTER `in`;
+#기존 출석부 데이터 등하원 한걸로 체크
+update attendances set `in` = 1, `out` = 1;
+ALTER TABLE `attendances` ADD `in_at` TIMESTAMP  NULL  COMMENT '등원시간'  AFTER `out`;
+ALTER TABLE `attendances` ADD `out_at` TIMESTAMP  NULL  COMMENT '하원시간'  AFTER `in_at`;
+
+ALTER TABLE `advice_note_histories` CHANGE `hidx` `hidx` BIGINT(20)  NOT NULL  COMMENT '지사 회원 ID';
+ALTER TABLE `advice_note_histories` CHANGE `midx` `midx` BIGINT(20)  NULL  DEFAULT NULL  COMMENT '교육원 회원 ID';
+ALTER TABLE `advice_note_histories` CHANGE `sidx` `sidx` BIGINT(20)  NULL  DEFAULT NULL  COMMENT '회원 ID';
+ALTER TABLE `advice_note_histories` ADD INDEX (`hidx`);
+ALTER TABLE `advice_note_histories` ADD INDEX (`midx`);
+ALTER TABLE `advice_note_histories` ADD INDEX (`sidx`);
+delete from advice_note_histories where deleted_at is not null;
+
+ALTER TABLE `album_histories` CHANGE `hidx` `hidx` BIGINT(20)  NOT NULL  COMMENT '지사 회원 ID';
+ALTER TABLE `album_histories` CHANGE `midx` `midx` BIGINT(20)  NULL  DEFAULT NULL  COMMENT '교육원 회원 ID';
+ALTER TABLE `album_histories` CHANGE `sidx` `sidx` BIGINT(20)  NULL  DEFAULT NULL  COMMENT '회원 ID';
+ALTER TABLE `album_histories` ADD INDEX (`album_id`);
+ALTER TABLE `album_histories` ADD INDEX (`hidx`);
+ALTER TABLE `album_histories` ADD INDEX (`midx`);
+ALTER TABLE `album_histories` ADD INDEX (`sidx`);
+
+ALTER TABLE `notice_histories` CHANGE `hidx` `hidx` BIGINT(20)  NOT NULL  COMMENT '지사 회원 ID';
+ALTER TABLE `notice_histories` CHANGE `midx` `midx` BIGINT(20)  NULL  DEFAULT NULL  COMMENT '교육원 회원 ID';
+ALTER TABLE `notice_histories` CHANGE `sidx` `sidx` BIGINT(20)  NULL  DEFAULT NULL  COMMENT '회원 ID';
+ALTER TABLE `notice_histories` ADD INDEX (`hidx`);
+ALTER TABLE `notice_histories` ADD INDEX (`midx`);
+
+ALTER TABLE `advice_comments` CHANGE `hidx` `hidx` BIGINT(20)  NOT NULL  COMMENT '지사 회원 ID';
+ALTER TABLE `advice_comments` CHANGE `midx` `midx` BIGINT(20)  NOT NULL  COMMENT '교육원 회원 ID';
+ALTER TABLE `advice_comments` CHANGE `sidx` `sidx` BIGINT(20)  NOT NULL  COMMENT '회원 ID';
+ALTER TABLE `advice_comments` ADD INDEX (`depth`);
+ALTER TABLE `advice_notes` CHANGE `hidx` `hidx` BIGINT(20)  NOT NULL  COMMENT '지사 회원 ID';
+ALTER TABLE `advice_notes` CHANGE `midx` `midx` BIGINT(20)  NOT NULL  COMMENT '교육원 회원 ID';
+ALTER TABLE `advice_notes` CHANGE `sidx` `sidx` BIGINT(20)  NOT NULL  COMMENT '회원 ID';
+
+CREATE TABLE `educaton_infos` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `created_at` timestamp NULL DEFAULT NULL COMMENT '생성일시',
+  `updated_at` timestamp NULL DEFAULT NULL COMMENT '수정일시',
+  `subject` text DEFAULT NULL COMMENT '제목',
+  `content` text DEFAULT NULL COMMENT '내용',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='교육정보';
+CREATE TABLE `editor_files` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '에디터 파일 ID',
+  `type` tinyint(1) NOT NULL COMMENT '타입: 1 교육정보, 2 이벤트',
+  `type_id` bigint(20) DEFAULT NULL COMMENT '타입 아이디',
+  `file_name` varchar(255) NOT NULL COMMENT '파일명',
+  `file_path` varchar(255) NOT NULL COMMENT '파일 업로드 경로',
+  `file_size` bigint(20) DEFAULT NULL COMMENT '파일용량 (byte)',
+  `file_mimetype` varchar(255) DEFAULT NULL COMMENT '파일 종류',
+  `vimeo_id` varchar(255) DEFAULT NULL COMMENT '비메오 ID (동영상인 경우)',
+  `created_at` timestamp NULL DEFAULT NULL COMMENT '생성일자',
+  `updated_at` timestamp NULL DEFAULT NULL COMMENT '수정일자',
+  PRIMARY KEY (`id`),
+  KEY `type` (`type`),
+  KEY `type_id` (`type_id`),
+  KEY `file_path` (`file_path`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='에디터 파일';
+CREATE TABLE `common_comments` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `type` tinyint(1) NOT NULL COMMENT '타입: 1 교육정보, 2 이벤트, 3 공지사항',
+  `type_id` bigint(20) NOT NULL COMMENT '타입 아이디',
+  `writer_id` bigint(20) NOT NULL COMMENT '등록한 ID',
+  `comment` varchar(255) NOT NULL COMMENT '댓글 내용',
+  `created_at` timestamp NULL DEFAULT NULL COMMENT '생성일자',
+  `updated_at` timestamp NULL DEFAULT NULL COMMENT '수정일자',
+  `deleted_at` timestamp NULL DEFAULT NULL COMMENT '삭제일시',
+  `depth` tinyint(1) DEFAULT 1 COMMENT '댓글단계 댓글:1, 대댓글:2',
+  `pid` bigint(20) DEFAULT NULL COMMENT '부모 ID',
+  PRIMARY KEY (`id`),
+  KEY `type` (`type`),
+  KEY `type_id` (`type_id`),
+  KEY `writer_id` (`writer_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='통합 댓글: 교육정보, 이벤트, 공지사항';
+CREATE TABLE `events` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `created_at` timestamp NULL DEFAULT NULL COMMENT '생성일시',
+  `updated_at` timestamp NULL DEFAULT NULL COMMENT '수정일시',
+  `subject` text DEFAULT NULL COMMENT '제목',
+  `content` text DEFAULT NULL COMMENT '내용',
+  `status` tinyint(1) DEFAULT 1 COMMENT '진행상태: 1 진행중, 0: 마감',
+  `start` date DEFAULT NULL COMMENT '이벤트 시작일',
+  `end` date DEFAULT NULL COMMENT '이벤트 종료일',
+  PRIMARY KEY (`id`),
+  KEY `status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='이벤트';
+CREATE TABLE `common_histories` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `type` tinyint(1) NOT NULL COMMENT '타입: 1 교육정보, 2 이벤트, 3 미사용',
+  `type_id` bigint(20) NOT NULL COMMENT '타입 아이디',
+  `hidx` bigint(20) NOT NULL COMMENT '지사 회원 ID',
+  `midx` bigint(20) DEFAULT NULL COMMENT '교육원 회원 ID',
+  `sidx` bigint(20) DEFAULT NULL COMMENT '회원 ID',
+  `created_at` timestamp NULL DEFAULT NULL COMMENT '생성일자',
+  `updated_at` timestamp NULL DEFAULT NULL COMMENT '수정일자',
+  PRIMARY KEY (`id`),
+  KEY `type` (`type`),
+  KEY `type_id` (`type_id`),
+  KEY `hidx` (`hidx`),
+  KEY `midx` (`midx`),
+  KEY `sidx` (`sidx`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='통합 히스토리';
+ALTER TABLE `user_app_infos` ADD `wifi` CHAR(1)  NULL  DEFAULT 'N'  COMMENT 'wifi (Y,N)'  AFTER `event_alarm`;
+CREATE TABLE `files` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '파일 ID',
+  `type` tinyint(1) NOT NULL COMMENT '타입: 1 교육정보썸네일, 2 이벤트 썸네일, 3 알림장임시저장, 4 앨범임시저장, 5 학부모공지 임시저장',
+  `type_id` bigint(20) DEFAULT NULL COMMENT '타입 아이디',
+  `file_name` varchar(255) NOT NULL COMMENT '파일명',
+  `file_path` varchar(255) NOT NULL COMMENT '파일 업로드 경로',
+  `file_size` bigint(20) DEFAULT NULL COMMENT '파일용량 (byte)',
+  `file_mimetype` varchar(255) DEFAULT NULL COMMENT '파일 종류',
+  `vimeo_id` varchar(255) DEFAULT NULL COMMENT '비메오 ID (동영상인 경우)',
+  `created_at` timestamp NULL DEFAULT NULL COMMENT '생성일자',
+  `updated_at` timestamp NULL DEFAULT NULL COMMENT '수정일자',
+  PRIMARY KEY (`id`),
+  KEY `type` (`type`),
+  KEY `type_id` (`type_id`),
+  KEY `file_path` (`file_path`),
+  KEY `created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='썸네일등 기타 파일';
+
+#기존 학부모공지 본사 타입 변경
+update notices set writer_type = 'a' where writer_type = 'admin';
+
+#이벤트 썸네일 타입 추가
+ALTER TABLE `files` CHANGE `type` `type` TINYINT(1)  NOT NULL  COMMENT '타입: 1 교육정보썸네일, 2 이벤트 썸네일, 3 알림장임시저장, 4 앨범임시저장, 5 학부모공지 임시저장, 6 이벤트썸네일2, 7 이벤트썸네일3';
+
+
+#교육정보 이벤트 모든 메시지리를 발송하기 위한 잡 큐 테이블 생성
+#테이블 추가됨: jobs, failed_jobs, personal_access_tokens
+php artisan queue:table
+php artisan queue:failed-table
+php artisan migrate
+
+--------------------------------------------------------------------------------------------------------------------------------
+
+select * from users where id = 86293; # 교육원
+select * from users where id = 70; # 지사
+select * from `app_notices` limit 100;
+select * from `user_member_details` where `user_id` = 138445 limit 1;
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="17.667" height="17.143" viewBox="0 0 17.667 17.143">
+  <g id="그룹_21023" data-name="그룹 21023" transform="translate(-187.74 -678.858)">
+    <g id="그룹_20070" data-name="그룹 20070" transform="translate(188.54 680.831)">
+      <path id="패스_339" data-name="패스 339" d="M188.54,694.983v9.39a.845.845,0,0,0,.845.845h14.375a.845.845,0,0,0,.846-.845v-9.39Z" transform="translate(-188.54 -690.849)" fill="none" stroke="#999" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/>
+      <path id="패스_340" data-name="패스 340" d="M204.607,684.912a.846.846,0,0,0-.846-.845H189.385a.846.846,0,0,0-.845.845V688.2h16.067Z" transform="translate(-188.54 -684.067)" fill="none" stroke="#999" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/>
+    </g>
+    <g id="그룹_20071" data-name="그룹 20071" transform="translate(191.359 678.858)">
+      <path id="패스_341" data-name="패스 341" d="M195.381,681.676a.94.94,0,0,1-.939.94h0a.94.94,0,0,1-.939-.94V679.8a.94.94,0,0,1,.939-.94h0a.94.94,0,0,1,.939.94Z" transform="translate(-193.502 -678.858)" fill="#999"/>
+      <path id="패스_342" data-name="패스 342" d="M222.916,681.676a.94.94,0,0,1-.94.94h0a.94.94,0,0,1-.94-.94V679.8a.94.94,0,0,1,.94-.94h0a.94.94,0,0,1,.94.94Z" transform="translate(-212.488 -678.858)" fill="#999"/>
+    </g>
+    <path id="패스_343" data-name="패스 343" d="M202.189,703.546l2.525,2.02L208,701.779" transform="translate(-8.479 -14.239)" fill="none" stroke="#999" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/>
+  </g>
+</svg>
