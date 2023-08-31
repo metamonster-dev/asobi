@@ -37,7 +37,7 @@ class AlbumController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m', 's'])) {
+        if (!in_array($user->mtype, ['m', 's'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -49,10 +49,10 @@ class AlbumController extends Controller
         $search_text = $request->input('search_text') ?? '';
         $search_text = trim($search_text);
 
-        if ($user->user_type == 'm') {
+        if ($user->mtype == 'm') {
             $rs = Album::with('files')
                 ->where('status', 'Y')
-                ->where('midx', $user->id)
+                ->where('midx', $user->idx)
                 ->where('year', $year)
                 ->where('month', $month)
                 ->when($search_text != "", function ($q) use ($search_text) {
@@ -63,7 +63,7 @@ class AlbumController extends Controller
         } else {
             $rs = Album::with('files')
                 ->where('status', 'Y')
-                ->where('sidx', 'like', "%" . json_encode($user->id) . "%")
+                ->where('sidx', 'like', "%" . json_encode($user->idx) . "%")
                 ->where('year', $year)
                 ->where('month', $month)
                 ->orderByDesc('created_at')
@@ -82,15 +82,15 @@ class AlbumController extends Controller
                 $result = Arr::add($result, "list.{$index}.date", $this_date->format('Y.m.d')." ".\App::make('helper')->dayOfKo($this_date, 2));
                 $result = Arr::add($result, "list.{$index}.reg_date", $row->created_at->format(Album::REG_DATE_FORMAT));
 
-                if ($user->user_type == 'm') {
+                if ($user->mtype == 'm') {
                     $students = $row->sidx != 'null' && $row->sidx ? RaonMember::whereIn('idx', json_decode($row->sidx))->get() : null;
 
                     if ($students) {
                         foreach ($students as $student_index => $student) {
-                            $userMemberDetail = RaonMember::where('idx', $student->id)->first();
+                            $userMemberDetail = RaonMember::where('idx', $student->idx)->first();
                             $profile_image = $userMemberDetail->user_picture ?? '';
 
-                            $result = Arr::add($result, "list.{$index}.student.{$student_index}.id", $student->id);
+                            $result = Arr::add($result, "list.{$index}.student.{$student_index}.id", $student->idx);
                             $result = Arr::add($result, "list.{$index}.student.{$student_index}.name", $student->name);
                             $result = Arr::add($result, "list.{$index}.student.{$student_index}.user_picture", $profile_image ? \App::make('helper')->getImage($profile_image) : null);
                         }
@@ -127,15 +127,15 @@ class AlbumController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m', 's'])) {
+        if (!in_array($user->mtype, ['m', 's'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
         }
 
-        if ($user->user_type == 's') {
-            $children_rs = RaonMember::where('mobilephone', $user->phone)
-                ->where('pw', $user->password)
+        if ($user->mtype == 's') {
+            $children_rs = RaonMember::where('mobilephone', $user->mobilephone)
+                ->where('pw', $user->pw)
                 ->where('mtype', 's')
                 ->where('status', 'Y')
                 ->get();
@@ -153,16 +153,16 @@ class AlbumController extends Controller
             }
         }
 
-        if ($user->user_type == 'm') {
+        if ($user->mtype == 'm') {
             $row = Album::with('files')
                 ->where('status', 'Y')
-                ->where('midx', $user->id)
+                ->where('midx', $user->idx)
                 ->whereId($album_id)
                 ->first();
         } else {
             $row = Album::with('files')
                 ->where('status', 'Y')
-                ->where('sidx', 'like', "%" . json_encode($user->id) . "%")
+                ->where('sidx', 'like', "%" . json_encode($user->idx) . "%")
                 ->whereId($album_id)
                 ->first();
         }
@@ -180,21 +180,21 @@ class AlbumController extends Controller
         $result = Arr::add($result, "date", $this_date->format('Y.m.d')." ".\App::make('helper')->dayOfKo($this_date, 2));
         $result = Arr::add($result, "reg_date", $row->created_at->format(Album::REG_DATE_FORMAT));
 
-        if ($user->user_type == 'm') {
+        if ($user->mtype == 'm') {
             $students = RaonMember::whereIn('idx', json_decode($row->sidx))->get();
             if ($students) {
                 foreach ($students as $student_index => $student) {
-                    $userMemberDetail = RaonMember::where('user_id', $student->id)->first();
+                    $userMemberDetail = RaonMember::where('user_id', $student->idx)->first();
                     $profile_image = $userMemberDetail->user_picture ?? '';
 
-                    $result = Arr::add($result, "student.{$student_index}.id", $student->id);
+                    $result = Arr::add($result, "student.{$student_index}.id", $student->idx);
                     $result = Arr::add($result, "student.{$student_index}.name", $student->name);
                     $result = Arr::add($result, "student.{$student_index}.user_picture", $profile_image ? \App::make('helper')->getImage($profile_image) : null);
 
                     $albumHistory = AlbumHistory::where('album_id', $album_id)
-                        ->where('hidx', $user->branch_id)
-                        ->where('midx', $user->id)
-                        ->where('sidx', 'like', '%' . $student->id . '%')
+                        ->where('hidx', $user->hidx)
+                        ->where('midx', $user->idx)
+                        ->where('sidx', 'like', '%' . $student->idx . '%')
                         ->count();
 
                     $readed = $albumHistory ? 'Y' : 'N';
@@ -297,7 +297,7 @@ class AlbumController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m'])) {
+        if (!in_array($user->mtype, ['m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -320,8 +320,8 @@ class AlbumController extends Controller
         $day = $request->input('day') ? sprintf('%02d', $request->input('day')) : $now->format('d');
 
         $payload = [
-            'hidx' => $user->branch_id,
-            'midx' => $user->id,
+            'hidx' => $user->hidx,
+            'midx' => $user->idx,
             'sidx' => $student,
             'title' => $title,
             'year' => $year,
@@ -425,7 +425,7 @@ class AlbumController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m'])) {
+        if (!in_array($user->mtype, ['m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -513,16 +513,16 @@ class AlbumController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['a','m'])) {
+        if (!in_array($user->mtype, ['a','m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
         }
 
-        if ($user->user_type === 'a') {
+        if ($user->mtype === 'a') {
             $album = Album::whereId($album_id)->first();
         } else {
-            $album = Album::whereId($album_id)->where('midx', $user->id)->first();
+            $album = Album::whereId($album_id)->where('midx', $user->idx)->first();
         }
 
         if (empty($album)) {
@@ -585,7 +585,7 @@ class AlbumController extends Controller
             return response()->json($result);
         }
 
-        $album = Album::whereMidx($user->id)->whereId($file->album_id)->first();
+        $album = Album::whereMidx($user->idx)->whereId($file->album_id)->first();
         if (empty($album)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');

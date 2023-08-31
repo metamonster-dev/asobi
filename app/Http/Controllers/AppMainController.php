@@ -48,23 +48,23 @@ class AppMainController extends Controller
 //        $result = Arr::add($result, 'user_type', $user->user_type);
 //        $result = Arr::add($result, 'check_date', $check_date);
 
-        if ($user->user_type == 's') {
-            $advice_rs = AdviceNote::where('status', 'Y')->where('sidx', $user->id)->where('created_at', '>', $check_date)->get();
-            $adviceNoteHistoryCount = AdviceNoteHistory::whereIn('advice_note_id', $advice_rs->pluck('id')->toArray())->where('sidx', $user->id)->count();
+        if ($user->mtype == 's') {
+            $advice_rs = AdviceNote::where('status', 'Y')->where('sidx', $user->idx)->where('created_at', '>', $check_date)->get();
+            $adviceNoteHistoryCount = AdviceNoteHistory::whereIn('advice_note_id', $advice_rs->pluck('id')->toArray())->where('sidx', $user->idx)->count();
 
-            $album_rs = Album::where('status', 'Y')->where('sidx', 'like', "%" . json_encode($user->id) . "%")->where('created_at', '>', $check_date)->get();
-            $albumHistoryCount = AlbumHistory::whereIn('album_id', $album_rs->pluck('id')->toArray())->where('sidx', $user->id)->count();
+            $album_rs = Album::where('status', 'Y')->where('sidx', 'like', "%" . json_encode($user->idx) . "%")->where('created_at', '>', $check_date)->get();
+            $albumHistoryCount = AlbumHistory::whereIn('album_id', $album_rs->pluck('id')->toArray())->where('sidx', $user->idx)->count();
 
-            $notice_rs = Notice::where('status', 'Y')->whereIn('midx', [$user->center_id, 0])->where('view_type', 'like', "%" . json_encode($user->user_type) . "%")->where('created_at', '>', $check_date)->orderByDesc('created_at')->get();
-            $noticeHistoryCount = NoticeHistory::whereIn('notice_id', $notice_rs->pluck('id')->toArray())->where('sidx', $user->id)->count();
+            $notice_rs = Notice::where('status', 'Y')->whereIn('midx', [$user->midx, 0])->where('view_type', 'like', "%" . json_encode($user->mtype) . "%")->where('created_at', '>', $check_date)->orderByDesc('created_at')->get();
+            $noticeHistoryCount = NoticeHistory::whereIn('notice_id', $notice_rs->pluck('id')->toArray())->where('sidx', $user->idx)->count();
 
             $educatonInfo_rs = EducatonInfo::where('created_at', '>', $check_date)->get();
-            $educatonInfoHistoryCount = CommonHistory::where('type', '=', '1')->whereIn('type_id', $educatonInfo_rs->pluck('id')->toArray())->where('sidx', $user->id)->count();
+            $educatonInfoHistoryCount = CommonHistory::where('type', '=', '1')->whereIn('type_id', $educatonInfo_rs->pluck('id')->toArray())->where('sidx', $user->idx)->count();
 
             $event_rs = Event::where('created_at', '>', $check_date)->get();
-            $eventHistoryCount = CommonHistory::where('type', '=', '2')->whereIn('type_id', $event_rs->pluck('id')->toArray())->where('sidx', $user->id)->count();
+            $eventHistoryCount = CommonHistory::where('type', '=', '2')->whereIn('type_id', $event_rs->pluck('id')->toArray())->where('sidx', $user->idx)->count();
 
-            $userMemberDetail = RaonMember::where('idx', $user->id)->first();
+            $userMemberDetail = RaonMember::where('idx', $user->idx)->first();
             $profile_image = $userMemberDetail->user_picture ?? '';
 
             $result = Arr::add($result, 'adviceNote', $advice_rs->count() > $adviceNoteHistoryCount ? "Y" : "N");
@@ -78,14 +78,14 @@ class AppMainController extends Controller
             $result = Arr::add($result, 'adviceNote', 'N');
             $result = Arr::add($result, 'album', 'N');
 
-            $notice_rso = Notice::where('status', 'Y')->where('view_type', 'like', "%" . json_encode($user->user_type) . "%")->where('created_at', '>', $check_date)->orderByDesc('created_at');
-            if ($user->user_type == 'm') {
-                $notice_rs = $notice_rso->where('hidx', $user->branch_id)->whereIn('midx', [0, $user->id])->get();
-                $noticeHistoryCount = NoticeHistory::whereIn('notice_id', $notice_rs->pluck('id')->toArray())->where('midx', $user->id)->count();
+            $notice_rso = Notice::where('status', 'Y')->where('view_type', 'like', "%" . json_encode($user->mtype) . "%")->where('created_at', '>', $check_date)->orderByDesc('created_at');
+            if ($user->mtype == 'm') {
+                $notice_rs = $notice_rso->where('hidx', $user->hidx)->whereIn('midx', [0, $user->idx])->get();
+                $noticeHistoryCount = NoticeHistory::whereIn('notice_id', $notice_rs->pluck('id')->toArray())->where('midx', $user->idx)->count();
                 $result = Arr::add($result, 'notice', $notice_rs->count() > $noticeHistoryCount ? "Y" : "N");
-            } else if ($user->user_type == 'h') {
-                $notice_rs = $notice_rso->whereIn('hidx', [0, $user->id])->get();
-                $noticeHistoryCount = NoticeHistory::whereIn('notice_id', $notice_rs->pluck('id')->toArray())->where('hidx', $user->id)->count();
+            } else if ($user->mtype == 'h') {
+                $notice_rs = $notice_rso->whereIn('hidx', [0, $user->idx])->get();
+                $noticeHistoryCount = NoticeHistory::whereIn('notice_id', $notice_rs->pluck('id')->toArray())->where('hidx', $user->idx)->count();
                 $result = Arr::add($result, 'notice', $notice_rs->count() > $noticeHistoryCount ? "Y" : "N");
             } else {
                 $result = Arr::add($result, 'notice', 'N');
@@ -124,11 +124,11 @@ class AppMainController extends Controller
         }
 
         $midx = 0;
-        if ($user->user_type == 'm') {
-            $userCenterDetail = RaonMember::where('idx', $user->id)->first();
+        if ($user->mtype == 'm') {
+            $userCenterDetail = RaonMember::where('idx', $user->idx)->first();
             $franchisetype = $userCenterDetail->franchisetype ?? '';
             if ($franchisetype == 'B' || $franchisetype == 'C') {
-                $midx = $user->id;
+                $midx = $user->idx;
             }
         }
 
@@ -173,13 +173,13 @@ class AppMainController extends Controller
                 ->orderBy('date', 'asc')
                 ->get();
         } else {
-            if ($user->user_type == 'm') {
+            if ($user->mtype == 'm') {
                 $rs = ScheduleStudy::whereIn('type', ['blue', 'red'])->when($year_month_day, function ($query, $year_month_day) {
                     $query->whereRaw("date = ?", [$year_month_day]);
                 })->orderBy('date', 'asc')->get();
             } else {
-                if ($user->user_type == 's') {
-                    $center = RaonMember::select('idx')->whereId($user->center_id)->first();
+                if ($user->mtype == 's') {
+                    $center = RaonMember::select('idx')->whereId($user->midx)->first();
                     $centerCenterDetail = RaonMember::where('idx', $center->id)->first();
                     $center->franchisetype = $centerCenterDetail->franchisetype ?? '';
 
@@ -250,11 +250,11 @@ class AppMainController extends Controller
         }
 
         $midx = 0;
-        if ($user->user_type == 'm') {
-            $userCenterDetail = RaonMember::where('idx', $user->id)->first();
+        if ($user->mtype == 'm') {
+            $userCenterDetail = RaonMember::where('idx', $user->idx)->first();
             $franchisetype = $userCenterDetail->franchisetype ?? '';
             if ($franchisetype == 'B' || $franchisetype == 'C') {
-                $midx = $user->id;
+                $midx = $user->idx;
             }
         }
 
@@ -299,13 +299,13 @@ class AppMainController extends Controller
                 ->orderBy('date', 'asc')
                 ->get();
         } else {
-            if ($user->user_type == 'm') {
+            if ($user->mtype == 'm') {
                 $rs = ScheduleStudy::whereIn('type', ['blue', 'red'])->when($year_month, function ($query, $year_month) {
                     $query->whereRaw("date_format(date, '%Y-%m') = ?", [$year_month]);
                 })->orderBy('date', 'asc')->get();
             } else {
-                if ($user->user_type == 's') {
-                    $center = RaonMember::select('idx')->whereId($user->center_id)->first();
+                if ($user->mtype == 's') {
+                    $center = RaonMember::select('idx')->whereId($user->midx)->first();
                     $centerCenterDetail = RaonMember::where('idx', $center->id)->first();
                     $center->franchisetype = $centerCenterDetail->franchisetype ?? '';
 

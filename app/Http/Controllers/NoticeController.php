@@ -36,7 +36,7 @@ class NoticeController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m','s'])) {
+        if (!in_array($user->mtype, ['m','s'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -49,21 +49,21 @@ class NoticeController extends Controller
         $search_text = $request->input('search_text') ?? '';
         $search_text = trim($search_text);
 
-        if (in_array($user->user_type, ['a'])) {
+        if (in_array($user->mtype, ['a'])) {
             $rs = Notice::with('files')
                 ->where('writer_type', 'a')
                 ->when($search_text != "", function ($q) use ($search_text) {
                     return $q->whereRaw('(title like ? or content like ?)',['%'.$search_text.'%','%'.$search_text.'%']);
                 })
                 ->orderByDesc('created_at')->get();
-        } else if (in_array($user->user_type, ['h','m'])) {
+        } else if (in_array($user->mtype, ['h','m'])) {
             $writer_type = $request->input('type');
             $rs = Notice::with('files')
                 ->where('status', 'Y')
-                ->where('view_type', 'like', "%" . json_encode($user->user_type) . "%")
-                ->when($user->user_type === 'm', function($query) use($user) {
-                    return $query->whereIn('hidx', [0, $user->branch_id])
-                        ->whereIn('midx', [0, $user->id]);
+                ->where('view_type', 'like', "%" . json_encode($user->mtype) . "%")
+                ->when($user->mtype === 'm', function($query) use($user) {
+                    return $query->whereIn('hidx', [0, $user->hidx])
+                        ->whereIn('midx', [0, $user->idx]);
                 })
                 ->when($writer_type, function($query) use($writer_type) {
                     if ($writer_type == "a") {
@@ -72,8 +72,8 @@ class NoticeController extends Controller
                         $query->where('writer_type', $writer_type);
                     }
                 })
-                ->when($user->user_type === 'h', function($query) use($user) {
-                    return $query->whereIn('hidx', [0, $user->id]);
+                ->when($user->mtype === 'h', function($query) use($user) {
+                    return $query->whereIn('hidx', [0, $user->idx]);
                 })
                 ->when($year, function($query) use($year) {
                     return $query->where('year', $year);
@@ -89,12 +89,12 @@ class NoticeController extends Controller
                 })
                 ->orderByDesc('created_at')
                 ->get();
-        } else if (in_array($user->user_type, ['s'])) {
+        } else if (in_array($user->mtype, ['s'])) {
             $writer_type = $request->input('type');
             $rs = Notice::with('files')
                 ->where('status', 'Y')
-                ->whereIn('midx', [$user->center_id, 0])
-                ->where('view_type', 'like', "%" . json_encode($user->user_type) . "%")
+                ->whereIn('midx', [$user->midx, 0])
+                ->where('view_type', 'like', "%" . json_encode($user->mtype) . "%")
                 ->when($writer_type, function($query) use($writer_type) {
                     if ($writer_type == "a") {
                         $query->whereRaw(' (writer_type = "a" or writer_type = "admin") ');
@@ -196,32 +196,32 @@ class NoticeController extends Controller
             }
         }
 
-        if ($user->user_type == 's') {
-            if ($row->histories->where('sidx', $user->id)->count() === 0) {
+        if ($user->mtype == 's') {
+            if ($row->histories->where('sidx', $user->idx)->count() === 0) {
                 $row->histories()->create(
                     [
-                        'hidx' => $user->branch_id,
-                        'midx' => $user->center_id,
+                        'hidx' => $user->hidx,
+                        'midx' => $user->midx,
                         'sidx' => $user->id
                     ]
                 );
             }
         } else {
-            if ($user->user_type == 'm') {
-                if ($row->histories->where('midx', $user->id)->count() === 0) {
+            if ($user->mtype == 'm') {
+                if ($row->histories->where('midx', $user->idx)->count() === 0) {
                     $row->histories()->create(
                         [
-                            'hidx' => $user->branch_id,
-                            'midx' => $user->center_id
+                            'hidx' => $user->hidx,
+                            'midx' => $user->midx
                         ]
                     );
                 }
             } else {
-                if ($user->user_type == 'h') {
-                    if ($row->histories->where('hidx', $user->id)->count() === 0) {
+                if ($user->mtype == 'h') {
+                    if ($row->histories->where('hidx', $user->idx)->count() === 0) {
                         $row->histories()->create(
                             [
-                                'hidx' => $user->branch_id
+                                'hidx' => $user->hidx
                             ]
                         );
                     }
@@ -229,7 +229,7 @@ class NoticeController extends Controller
             }
         }
 
-        if ($user->user_type == 'm') {
+        if ($user->mtype == 'm') {
             $readed_students = NoticeHistory::select(
                 'users.id',
                 'users.user_id',
@@ -237,8 +237,8 @@ class NoticeController extends Controller
             )
             ->join('users', 'users.id', '=', 'notice_histories.sidx')
             ->where('notice_histories.notice_id', $notice_id)
-            ->where('notice_histories.hidx', $user->branch_id)
-            ->where('notice_histories.midx', $user->id)
+            ->where('notice_histories.hidx', $user->hidx)
+            ->where('notice_histories.midx', $user->idx)
             ->whereNotNull('notice_histories.sidx')
             ->get();
 
@@ -253,7 +253,7 @@ class NoticeController extends Controller
                 'user_id',
                 'name'
             )
-            ->where('midx', $user->id)
+            ->where('midx', $user->idx)
             ->where('mtype', 's')
             ->where('status', 'Y')
             ->when(count($readed_students_array) > 0, function($query) use($readed_students_array) {
@@ -313,7 +313,7 @@ class NoticeController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['a','m'])) {
+        if (!in_array($user->mtype, ['a','m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -324,15 +324,15 @@ class NoticeController extends Controller
 
         //권한 설정
         // @20200103 지사 공지사항 일 경우 해당 지사의 교육원만 볼 수 있다.
-        if ($user->user_type === 'h') {
+        if ($user->mtype === 'h') {
             $arr_view_type = array('m');
         } else {
             $arr_view_type = array();
             $arr_view_type[0] = "s";
-            if ($user->user_type == 'a') {
+            if ($user->mtype == 'a') {
                 $arr_view_type[1] = "m";
                 //$arr_view_type[2] = "h";
-            } else if ($user->user_type == "m") {
+            } else if ($user->mtype == "m") {
                 $arr_view_type[1] = "m";
             }
         }
@@ -343,14 +343,14 @@ class NoticeController extends Controller
         $day = $request->input('day') ? sprintf('%02d', $request->input('day')) : $now->format('d');
 
         $midx = 0;
-        if ($user->user_type === 'm' ) {
-            $midx = $user->id;
+        if ($user->mtype === 'm' ) {
+            $midx = $user->idx;
         }
 
         $payload = [
-            'hidx' => $user->user_type == 'h' ? $user->id : $user->branch_id,
+            'hidx' => $user->mtype == 'h' ? $user->idx : $user->hidx,
             'midx' => $midx,
-            'writer_type' => $user->user_type,
+            'writer_type' => $user->mtype,
             'view_type' => json_encode($arr_view_type),
             'title' => $title,
             'content' => $content,
@@ -358,7 +358,7 @@ class NoticeController extends Controller
             'month' => $month,
             'day' => $day,
             'status' => 'Y',
-            'user_id' => $user->id
+            'user_id' => $user->idx
         ];
         $notice = new Notice($payload);
         $notice->save();
@@ -455,13 +455,13 @@ class NoticeController extends Controller
             return response()->json($result);
         }
 
-        if (in_array($user->user_type, ['s'])) {
+        if (in_array($user->mtype, ['s'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
         }
 
-        $notice = Notice::whereId($notice_id)->where('status', 'Y')->where('writer_type', $user->user_type)->first();
+        $notice = Notice::whereId($notice_id)->where('status', 'Y')->where('writer_type', $user->mtype)->first();
         if (empty($notice)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '잘못된 요청입니다.');
@@ -525,16 +525,16 @@ class NoticeController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['a','m'])) {
+        if (!in_array($user->mtype, ['a','m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
         }
 
-        if ($user->user_type === 'a') {
+        if ($user->mtype === 'a') {
             $notice = Notice::whereId($notice_id)->first();
         } else {
-            $notice = Notice::whereId($notice_id)->where('midx', $user->id)->first();
+            $notice = Notice::whereId($notice_id)->where('midx', $user->idx)->first();
         }
         if (empty($notice)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -596,7 +596,7 @@ class NoticeController extends Controller
             return response()->json($result);
         }
 
-        $notice = Notice::whereId($file->notice_id)->where('status', 'Y')->where('writer_type', $user->user_type)->first();
+        $notice = Notice::whereId($file->notice_id)->where('status', 'Y')->where('writer_type', $user->mtype)->first();
         if (empty($notice)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');

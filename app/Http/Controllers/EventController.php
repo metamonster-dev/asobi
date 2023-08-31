@@ -35,7 +35,7 @@ class EventController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['a'])) {
+        if (!in_array($user->mtype, ['a'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -225,7 +225,7 @@ class EventController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['a'])) {
+        if (!in_array($user->mtype, ['a'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -323,7 +323,7 @@ class EventController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['a'])) {
+        if (!in_array($user->mtype, ['a'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -587,35 +587,35 @@ class EventController extends Controller
             return response()->json($result);
         }
 
-        if ($user->user_type == 's') {
-            if (CommonHistory::where('type','=','2')->where('type_id','=',$id)->where('sidx', $user->id)->count() === 0) {
+        if ($user->mtype == 's') {
+            if (CommonHistory::where('type','=','2')->where('type_id','=',$id)->where('sidx', $user->idx)->count() === 0) {
                 $commonHistory = new CommonHistory([
                     'type' => '2',
                     'type_id' => $id,
-                    'hidx' => $user->branch_id,
-                    'midx' => $user->center_id,
-                    'sidx' => $user->id
+                    'hidx' => $user->hidx,
+                    'midx' => $user->midx,
+                    'sidx' => $user->idx
                 ]);
                 $commonHistory->save();
             }
         } else {
-            if ($user->user_type == 'm') {
-                if (CommonHistory::where('type','=','2')->where('type_id','=',$id)->where('midx', $user->id)->count() === 0) {
+            if ($user->mtype == 'm') {
+                if (CommonHistory::where('type','=','2')->where('type_id','=',$id)->where('midx', $user->idx)->count() === 0) {
                     $commonHistory = new CommonHistory([
                         'type' => '2',
                         'type_id' => $id,
-                        'hidx' => $user->branch_id,
-                        'midx' => $user->center_id,
+                        'hidx' => $user->hidx,
+                        'midx' => $user->midx,
                     ]);
                     $commonHistory->save();
                 }
             } else {
-                if ($user->user_type == 'h') {
-                    if (CommonHistory::where('type','=','2')->where('type_id','=',$id)->where('hidx', $user->id)->count() === 0) {
+                if ($user->mtype == 'h') {
+                    if (CommonHistory::where('type','=','2')->where('type_id','=',$id)->where('hidx', $user->idx)->count() === 0) {
                         $commonHistory = new CommonHistory([
                             'type' => '2',
                             'type_id' => $id,
-                            'hidx' => $user->branch_id,
+                            'hidx' => $user->hidx,
                         ]);
                         $commonHistory->save();
                     }
@@ -734,7 +734,7 @@ class EventController extends Controller
             ->leftJoin('files', function ($q) {
                 $q->on('events.id', '=', 'files.type_id')->on('files.type',DB::raw(2));
             })
-            ->when($user->user_type != 'a', function ($q) {
+            ->when($user->mtype != 'a', function ($q) {
                 $q->where('events.start', '<=', date('Y-m-d'));
                 $q->where('events.end', '>', date('Y-m-d'));
                 $q->where('events.status', '1');

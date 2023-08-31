@@ -56,7 +56,7 @@ class AdviceNoteController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m'])) {
+        if (!in_array($user->mtype, ['m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -70,7 +70,7 @@ class AdviceNoteController extends Controller
         $search_user_id = $request->input('search_user_id') ?? "";
 
 
-        $rs = RaonMember::where('midx', $user->id)
+        $rs = RaonMember::where('midx', $user->idx)
             ->where('mtype', 's')
             ->where('status', 'Y')
             ->when($search_user_id != "", function ($q) use ($search_user_id) {
@@ -163,7 +163,7 @@ class AdviceNoteController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['s'])) {
+        if (!in_array($user->mtype, ['s'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -176,7 +176,7 @@ class AdviceNoteController extends Controller
         $search_text = trim($search_text);
 
         $rs = AdviceNote::with('files')
-            ->where($user->user_type . 'idx', $user->id)
+            ->where($user->mtype . 'idx', $user->id)
             ->where('status', 'Y')
             ->where('year', $year)
             ->where('month', $month)
@@ -232,16 +232,16 @@ class AdviceNoteController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m','s'])) {
+        if (!in_array($user->mtype, ['m','s'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
         }
 
-        if ($user->user_type == 's') {
-            $children_rs = RaonMember::where('phone', $user->phone)->where(
+        if ($user->mtype == 's') {
+            $children_rs = RaonMember::where('phone', $user->mobilephone)->where(
                 'pw',
-                $user->password
+                $user->pw
             )->where('mtype', 's')->where('status', 'Y')->get();
             if (sizeof($children_rs) > 1) {
                 $check_row = AdviceNote::find($adviceNote_id);
@@ -256,7 +256,7 @@ class AdviceNoteController extends Controller
         }
 
         $row = AdviceNote::with('files')
-            ->where($user->user_type . 'idx', $user->id)
+            ->where($user->mtype . 'idx', $user->idx)
             ->where('status', 'Y')
             ->whereId($adviceNote_id)
             ->first();
@@ -292,31 +292,31 @@ class AdviceNoteController extends Controller
             }
 
             $this_course = DB::table('orders AS o')
-                ->join('order_member_details AS omd', 'omd.order_id', '=', 'o.idx')
-                ->join('shop_products AS sp', 'sp.idx', '=', 'omd.product_id')
+                ->join('order_member_details AS omd', 'omd.order_idx', '=', 'o.idx')
+                ->join('shop_products AS sp', 'sp.idx', '=', 'omd.product_idx')
                 ->select('sp.name', 'sp.content')
                 ->where('o.course', $row->this_month)
                 ->where('o.status', '33')
-                ->where('omd.member_id', $row->sidx)
+                ->where('omd.sidx', $row->sidx)
                 ->where('omd.order_type', 'B')
                 ->where('omd.status', '33')
-                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.id)"), '=', 0)
-                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_details` WHERE `order_member_id` = omd.id AND `status` = '99')"), '=', 0)
-                ->orderBy('omd.id', 'ASC')
+                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.idx)"), '=', 0)
+                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_details` WHERE `order_member_id` = omd.idx AND `status` = '99')"), '=', 0)
+                ->orderBy('omd.idx', 'ASC')
                 ->get();
 
             $next_course = DB::table('orders AS o')
-                ->join('order_member_details AS omd', 'omd.order_id', '=', 'o.idx')
+                ->join('order_member_details AS omd', 'omd.order_idx', '=', 'o.idx')
                 ->join('shop_products AS sp', 'sp.idx', '=', 'omd.product_id')
                 ->select('sp.name', 'sp.content')
                 ->where('o.course', $row->next_month)
                 ->where('o.status', '33')
-                ->where('omd.member_id', $row->sidx)
+                ->where('omd.sidx', $row->sidx)
                 ->where('omd.order_type', 'B')
                 ->where('omd.status', '33')
-                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.id)"), '=', 0)
-                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_details` WHERE `order_member_id` = omd.id AND `status` = '99')"), '=', 0)
-                ->orderBy('omd.id', 'ASC')
+                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.idx)"), '=', 0)
+                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_details` WHERE `order_member_id` = omd.idx AND `status` = '99')"), '=', 0)
+                ->orderBy('omd.idx', 'ASC')
                 ->get();
 
             if ($this_course->count()) {
@@ -377,32 +377,32 @@ class AdviceNoteController extends Controller
             }
         }
 
-        if ($user->user_type == 's') {
-            if ($row->histories->where('sidx', $user->id)->count() === 0) {
+        if ($user->mtype == 's') {
+            if ($row->histories->where('sidx', $user->idx)->count() === 0) {
                 $row->histories()->create(
                     [
-                        'hidx' => $user->branch_id,
-                        'midx' => $user->center_id,
-                        'sidx' => $user->id
+                        'hidx' => $user->hidx,
+                        'midx' => $user->midx,
+                        'sidx' => $user->idx
                     ]
                 );
             }
         } else {
-            if ($user->user_type == 'm') {
-                if ($row->histories->where('midx', $user->id)->count() === 0) {
+            if ($user->mtype == 'm') {
+                if ($row->histories->where('midx', $user->idx)->count() === 0) {
                     $row->histories()->create(
                         [
-                            'hidx' => $user->branch_id,
-                            'midx' => $user->center_id
+                            'hidx' => $user->hidx,
+                            'midx' => $user->midx
                         ]
                     );
                 }
             } else {
-                if ($user->user_type == 'h') {
-                    if ($row->histories->where('hidx', $user->id)->count() === 0) {
+                if ($user->mtype == 'h') {
+                    if ($row->histories->where('hidx', $user->idx)->count() === 0) {
                         $row->histories()->create(
                             [
-                                'hidx' => $user->branch_id
+                                'hidx' => $user->hidx
                             ]
                         );
                     }
@@ -410,10 +410,10 @@ class AdviceNoteController extends Controller
             }
         }
 
-        if ($user->user_type == 'm') {
-            $adviceNoteHistory = AdviceNoteHistory::where('hidx', $user->branch_id)
-                ->where('midx', $user->id)
-                ->where('sidx', $student->id)
+        if ($user->mtype == 'm') {
+            $adviceNoteHistory = AdviceNoteHistory::where('hidx', $user->hidx)
+                ->where('midx', $user->midx)
+                ->where('sidx', $student->idx)
                 ->where('advice_note_id', $row->id)
                 ->first();
 
@@ -469,31 +469,31 @@ class AdviceNoteController extends Controller
         }
 
         $this_course = DB::table('orders AS o')
-            ->join('order_member_details AS omd', 'omd.order_id', '=', 'o.idx')
-            ->join('shop_products AS sp', 'sp.idx', '=', 'omd.product_id')
+            ->join('order_member_details AS omd', 'omd.order_idx', '=', 'o.idx')
+            ->join('shop_products AS sp', 'sp.idx', '=', 'omd.product_idx')
             ->select('sp.name', 'sp.content')
             ->where('o.course', $this_month)
             ->where('o.status', '33')
-            ->where('omd.member_id', $student)
+            ->where('omd.sidx', $student)
             ->where('omd.order_type', 'B')
             ->where('omd.status', '33')
-            ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.id)"), '=', 0)
-            ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_details` WHERE `order_member_id` = omd.id AND `status` = '99')"), '=', 0)
-            ->orderBy('omd.id', 'ASC')
+            ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.idx)"), '=', 0)
+            ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_details` WHERE `order_member_id` = omd.idx AND `status` = '99')"), '=', 0)
+            ->orderBy('omd.idx', 'ASC')
             ->get();
 
         $next_course = DB::table('orders AS o')
-            ->join('order_member_details AS omd', 'omd.order_id', '=', 'o.idx')
-            ->join('shop_products AS sp', 'sp.idx', '=', 'omd.product_id')
+            ->join('order_member_details AS omd', 'omd.order_idx', '=', 'o.idx')
+            ->join('shop_products AS sp', 'sp.idx', '=', 'omd.product_idx')
             ->select('sp.name', 'sp.content')
             ->where('o.course', $next_month)
             ->where('o.status', '33')
-            ->where('omd.member_id', $student)
+            ->where('omd.sidx', $student)
             ->where('omd.order_type', 'B')
             ->where('omd.status', '33')
-            ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.id)"), '=', 0)
-            ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_details` WHERE `order_member_id` = omd.id AND `status` = '99')"), '=', 0)
-            ->orderBy('omd.id', 'ASC')
+            ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.idx)"), '=', 0)
+            ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_details` WHERE `order_member_id` = omd.idx AND `status` = '99')"), '=', 0)
+            ->orderBy('omd.idx', 'ASC')
             ->get();
 
         if ($this_course->count()) {
@@ -860,7 +860,7 @@ class AdviceNoteController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m'])) {
+        if (!in_array($user->mtype, ['m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -876,7 +876,7 @@ class AdviceNoteController extends Controller
         $content = $request->input('content');
         $class_content = $request->input('class_content');
         $student = $request->input('student');
-        $adviceNote = AdviceNote::whereId($adviceNote_id)->where('midx', $user->id)->where('sidx', $student)->first();
+        $adviceNote = AdviceNote::whereId($adviceNote_id)->where('midx', $user->idx)->where('sidx', $student)->first();
         if (empty($adviceNote)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '잘못된 요청입니다.');
@@ -959,7 +959,7 @@ class AdviceNoteController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m'])) {
+        if (!in_array($user->mtype, ['m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -982,13 +982,13 @@ class AdviceNoteController extends Controller
         $debug_write = $request->input('debug_write') ? true : false;
         if (env('APP_ENV') != 'development') $debug_write = false;
 
-        $studentCount = RaonMember::where('midx', $user->id)
+        $studentCount = RaonMember::where('midx', $user->idx)
             ->where('mtype', 's')
             ->where('status', 'Y')
             ->count();
 
         $advice_note_count = AdviceNote::where('type', $type)
-            ->where('midx', $user->id)
+            ->where('midx', $user->idx)
             ->where('this_month', $this_month)
             ->where('status', 'Y')
             ->count();
@@ -1032,12 +1032,12 @@ class AdviceNoteController extends Controller
             return response()->json($result);
         }
 
-        $students = RaonMember::where('midx', $user->id)
+        $students = RaonMember::where('midx', $user->idx)
             ->where('mtype', 's')
             ->where('status', 'Y')
             ->whereRaw("`id` NOT IN (
                 SELECT `sidx` FROM advice_notes
-                WHERE advice_notes.type = '{$type}' and advice_notes.midx = {$user->id} AND advice_notes.deleted_at IS NULL
+                WHERE advice_notes.type = '{$type}' and advice_notes.midx = {$user->idx} AND advice_notes.deleted_at IS NULL
                     AND advice_notes.year = '{$year}' AND advice_notes.month = '{$month}'
                 )")
             ->get();
@@ -1069,7 +1069,7 @@ class AdviceNoteController extends Controller
                 'type' => $params['type'],
                 'hidx' => $params['user']->branch_id,
                 'midx' => $params['user']->center_id,
-                'sidx' => $student->id,
+                'sidx' => $student->idx,
                 'title' => $params['title'],
                 'content' => $params['content'],
                 'class_content' => $params['class_content'],
@@ -1153,7 +1153,7 @@ class AdviceNoteController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m'])) {
+        if (!in_array($user->mtype, ['m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -1174,13 +1174,13 @@ class AdviceNoteController extends Controller
         $batch_exec = 'N';
         $write_not_possible = false;
 
-        $studentCount = RaonMember::where('midx', $user->id)
+        $studentCount = RaonMember::where('midx', $user->idx)
             ->where('mtype', 's')
             ->where('status', 'Y')
             ->count();
 
         $advice_note_count = AdviceNote::where('type', $type)
-            ->where('midx', $user->id)
+            ->where('midx', $user->idx)
             ->where('this_month', $this_month)
             ->where('status', 'Y')
             ->count();
@@ -1246,16 +1246,16 @@ class AdviceNoteController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['a','m'])) {
+        if (!in_array($user->mtype, ['a','m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
         }
 
-        if ($user->user_type === 'a') {
+        if ($user->mtype === 'a') {
             $adviceNote = AdviceNote::with('files')->whereId($adviceNote_id)->first();
         } else {
-            $adviceNote = AdviceNote::with('files')->whereId($adviceNote_id)->where('midx', $user->id)->first();
+            $adviceNote = AdviceNote::with('files')->whereId($adviceNote_id)->where('midx', $user->idx)->first();
         }
 
         if (empty($adviceNote)) {
@@ -1320,7 +1320,7 @@ class AdviceNoteController extends Controller
             return response()->json($result);
         }
 
-        $adviceNote = AdviceNote::whereMidx($user->id)->whereId($file->advice_note_id)->first();
+        $adviceNote = AdviceNote::whereMidx($user->idx)->whereId($file->advice_note_id)->first();
         if (empty($adviceNote)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
@@ -1355,7 +1355,7 @@ class AdviceNoteController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m'])) {
+        if (!in_array($user->mtype, ['m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);

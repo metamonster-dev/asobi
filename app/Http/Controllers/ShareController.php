@@ -40,7 +40,7 @@ class ShareController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m','s'])) {
+        if (!in_array($user->mtype, ['m','s'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -48,13 +48,13 @@ class ShareController extends Controller
 
         $advice_note = null;
 
-        if ($user->user_type == 'm') {
+        if ($user->mtype == 'm') {
             $advice_note = AdviceNote::where('id', $id)
                 ->where('type', $type)
                 ->where('midx', $user_id)
                 ->where('status', 'Y')
                 ->first();
-        } else if ($user->user_type == 's') {
+        } else if ($user->mtype == 's') {
             $advice_note = AdviceNote::where('id', $id)
                 ->where('type', $type)
                 ->where('sidx', $user_id)
@@ -70,7 +70,7 @@ class ShareController extends Controller
             $result = Arr::add($result, 'share_url', $share_url);
             $result = Arr::add($result, 'error', '');
 
-            if ($user->user_type == 'm') {
+            if ($user->mtype == 'm') {
                 $nowDate = date('Y-m-d H:i:s', time());
 
                 $advice_note_share_history = AdviceNoteShareHistory::where('advice_note_id', $id)->first();

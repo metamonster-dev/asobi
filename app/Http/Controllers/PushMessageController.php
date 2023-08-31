@@ -51,7 +51,7 @@ class PushMessageController extends Controller
                 $student = RaonMember::where('id', $row->sidx)->first();
 
                 if ($student) {
-                    $arr_push = UserAppInfo::where('user_id', $student->id)
+                    $arr_push = UserAppInfo::where('user_id', $student->idx)
                         ->where('advice_alarm', 'Y')
                         ->whereNotNull('push_key')
                         ->pluck('push_key')

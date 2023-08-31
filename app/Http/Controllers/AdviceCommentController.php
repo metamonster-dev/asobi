@@ -59,10 +59,10 @@ class AdviceCommentController extends Controller
                 $result = Arr::add($result, "list.{$index}.pid", $comment->pid);
                 if ($comment->writer_type == 's') {
                     $writer = RaonMember::whereIdx($comment->sidx)->first();
-                    $userMemberDetail = RaonMember::where('idx', $writer->id)->first();
+                    $userMemberDetail = RaonMember::where('idx', $writer->idx)->first();
                     $profile_image = $userMemberDetail->user_picture ?? '';
                     $result = Arr::add($result, "list.{$index}.is_auth", $comment->sidx == $user->id ? "Y":"N");
-                    $result = Arr::add($result, "list.{$index}.writer_id", $writer->id);
+                    $result = Arr::add($result, "list.{$index}.writer_id", $writer->idx);
                     $result = Arr::add($result, "list.{$index}.writer", $writer->name);
                     $result = Arr::add($result, "list.{$index}.writer_picture", $profile_image ? \App::make('helper')->getImage($profile_image):null);
                 } else {
@@ -73,10 +73,10 @@ class AdviceCommentController extends Controller
                         $writerId = $comment->hidx;
                     }
                     $writer = RaonMember::whereIdx($writerId)->first();
-                    $userMemberDetail = RaonMember::where('idx', $writer->id)->first();
+                    $userMemberDetail = RaonMember::where('idx', $writer->idx)->first();
                     $profile_image = $userMemberDetail->user_picture ?? '';
                     $result = Arr::add($result, "list.{$index}.is_auth", $comment->midx == $user->id ? "Y":"N");
-                    $result = Arr::add($result, "list.{$index}.writer_id", $writer->id);
+                    $result = Arr::add($result, "list.{$index}.writer_id", $writer->idx);
                     $result = Arr::add($result, "list.{$index}.writer", $writer->nickname);
                     $result = Arr::add($result, "list.{$index}.writer_picture", $profile_image ? \App::make('helper')->getImage($profile_image) : null);
                 }
@@ -119,7 +119,7 @@ class AdviceCommentController extends Controller
             'hidx' => $advice_note->hidx,
             'midx' => $advice_note->midx,
             'sidx' => $advice_note->sidx,
-            'writer_type' => $user->user_type,
+            'writer_type' => $user->mtype,
             'comment' => $comment
         ];
 
@@ -176,13 +176,13 @@ class AdviceCommentController extends Controller
 
         $adviceComment = AdviceComment::find($comment_id);
         if (
-            ($user->user_type == 'a' && $adviceComment->writer_type == $user->user_type)
+            ($user->mtype == 'a' && $adviceComment->writer_type == $user->mtype)
             ||
-            ($user->user_type == 'h' && $adviceComment->writer_type == $user->user_type &&  $user->id == $adviceComment->hidx)
+            ($user->mtype == 'h' && $adviceComment->writer_type == $user->mtype &&  $user->idx == $adviceComment->hidx)
             ||
-            ($user->user_type == 'm' && $adviceComment->writer_type == $user->user_type && $user->id == $adviceComment->midx)
+            ($user->mtype == 'm' && $adviceComment->writer_type == $user->mtype && $user->idx == $adviceComment->midx)
             ||
-            ($user->user_type == 's' && $adviceComment->writer_type == $user->user_type &&  $user->id == $adviceComment->sidx)
+            ($user->mtype == 's' && $adviceComment->writer_type == $user->mtype &&  $user->idx == $adviceComment->sidx)
         ) {} else {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '수정 권한이 없습니다.');
@@ -214,13 +214,13 @@ class AdviceCommentController extends Controller
         $adviceComment = AdviceComment::find($comment_id);
 
         if (
-            ($user->user_type == 'a' && $adviceComment->writer_type == $user->user_type)
+            ($user->mtype == 'a' && $adviceComment->writer_type == $user->mtype)
             ||
-            ($user->user_type == 'h' && $adviceComment->writer_type == $user->user_type &&  $user->id == $adviceComment->hidx)
+            ($user->mtype == 'h' && $adviceComment->writer_type == $user->mtype &&  $user->idx == $adviceComment->hidx)
             ||
-            ($user->user_type == 'm' && $adviceComment->writer_type == $user->user_type && $user->id == $adviceComment->midx)
+            ($user->mtype == 'm' && $adviceComment->writer_type == $user->mtype && $user->idx == $adviceComment->midx)
             ||
-            ($user->user_type == 's' && $adviceComment->writer_type == $user->user_type &&  $user->id == $adviceComment->sidx)
+            ($user->mtype == 's' && $adviceComment->writer_type == $user->mtype &&  $user->idx == $adviceComment->sidx)
         ) {} else {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '삭제 권한이 없습니다.');

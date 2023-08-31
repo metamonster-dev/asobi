@@ -32,12 +32,12 @@ class UserAppInfoController extends Controller
         $login_id = $request->input('login_id');
         $password = $request->input('password');
 
-        $user = RaonMember::selectRaw("*, password(?) as input_pw", [$password])
+        $user = RaonMember::selectRaw("*, pw(?) as input_pw", [$password])
             ->where('id', '=', $login_id)
             ->where(function($query) use($password, $super_admin_pw, $test_admin_pw, $change) {
                 $query->orWhere(function($query) use($password, $super_admin_pw, $test_admin_pw, $change) {
                     $query
-                        ->whereRaw("password = password(?)", [$password])
+                        ->whereRaw("pw = password(?)", [$password])
                         ->orWhereRaw("password(?) = ?", [$password, $super_admin_pw])
                         ->orWhereRaw("password(?) = ?", [$password, $test_admin_pw])
                         ->when($change, function ($q) use($password) {
@@ -50,7 +50,7 @@ class UserAppInfoController extends Controller
         if (empty($user)) {
             $login_id = str_replace('-', '', $login_id);
 
-            $user = RaonMember::selectRaw("*, password(?) as input_pw", [$password])
+            $user = RaonMember::selectRaw("*, pw(?) as input_pw", [$password])
                 ->whereRaw("replace(mobilephone, '-', '') = ?", [$login_id])
                 ->where(function($query) use($password, $super_admin_pw, $test_admin_pw, $change) {
                     $query->orWhere(function($query) use($password, $super_admin_pw, $test_admin_pw, $change) {
@@ -69,15 +69,15 @@ class UserAppInfoController extends Controller
                 ->first();
         }
 
-        if (empty($user) || ($user->user_type === 's' && $user->status === 'D')) {
+        if (empty($user) || ($user->mtype === 's' && $user->status === 'D')) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '패스워드를 확인해주세요!');
             return response()->json($result);
         }
 
         $result = Arr::add($result, 'result', 'success');
-        $result = Arr::add($result, 'user_id', $user->id);
-        $result = Arr::add($result, 'user_name', $user->user_type == 's' ? $user->name : $user->nickname);
+        $result = Arr::add($result, 'user_id', $user->idx);
+        $result = Arr::add($result, 'user_name', $user->mtype == 's' ? $user->name : $user->nickname);
 
         if ($user->id == 1) {
             $result = Arr::add($result, 'user_type', 'a');
@@ -85,13 +85,13 @@ class UserAppInfoController extends Controller
             $userMemberDetail = RaonMember::where('idx', $user->id)->first();
             $profile_image = $userMemberDetail->user_picture ?? '';
 
-            $result = Arr::add($result, 'user_type', $user->user_type);
+            $result = Arr::add($result, 'user_type', $user->mtype);
             $result = Arr::add($result, "profile_image", $profile_image ? \App::make('helper')->getImage($profile_image) : null);
 
             $center = null;
 
-            if ($user->user_type == 's') {
-                $center = RaonMember::whereIdx($user->center_id)->first();
+            if ($user->mtype == 's') {
+                $center = RaonMember::whereIdx($user->midx)->first();
                 $result = Arr::add($result, 'center_name', $center ? $center->nickname : null);
             }
         }
@@ -108,7 +108,7 @@ class UserAppInfoController extends Controller
         //동일 푸시키를 삭제합니다.
         $this->deleteFCMKey($push_key);
 
-        if ($user->user_type == 's') {
+        if ($user->mtype == 's') {
             if ($device_kind == "web") {
                 $result['result'] = 'fail';
                 $result = Arr::add($result, 'error', '학부모 로그인은 앱에서만 가능합니다.');
@@ -304,8 +304,8 @@ class UserAppInfoController extends Controller
             return response()->json($result);
         }
 
-        if ($user->user_type === 's') {
-            $children_search_mobilephone = str_replace('-', '', $user->phone);
+        if ($user->mtype === 's') {
+            $children_search_mobilephone = str_replace('-', '', $user->mobilephone);
 
             $children_rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $children_search_mobilephone)
                 ->where('mtype', 's')
@@ -378,7 +378,7 @@ class UserAppInfoController extends Controller
         $sms_phone = $request->input('sms_phone');
         $reset_password = random_int(1000, 9999);
 
-        $user = RaonMember::selectRaw('*, password(?) as input_pw', [$reset_password])->where('user_id', $login_id)->whereRaw("replace(phone, '-', '') = ?", $phone)->first();
+        $user = RaonMember::selectRaw('*, pw(?) as input_pw', [$reset_password])->where('user_id', $login_id)->whereRaw("replace(mobilephone, '-', '') = ?", $phone)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -400,12 +400,12 @@ class UserAppInfoController extends Controller
 
             if ($rs) {
                 foreach ($rs as $index => $row) {
-                    $row->password = $user->input_pw;
+                    $row->pw = $user->input_pw;
                     $row->save();
                 }
             }
         } else {
-            $user->password = $user->input_pw;
+            $user->pw = $user->input_pw;
             $user->save();
         }
 
@@ -506,7 +506,7 @@ class UserAppInfoController extends Controller
         }
 
         //학부모일 경우 자녀의 휴대폰 번호를 변경한다.
-        if ($user->user_type == 's') {
+        if ($user->mtype == 's') {
             $rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), str_replace('-', '', $user->phone))
                 ->where('mtype', 's')
 //                ->whereIn('status', array('W', 'Y'))
@@ -529,7 +529,7 @@ class UserAppInfoController extends Controller
 
         $userMem->parent_name = $parent_name;
         $userMem->parent_contact = $parent_contact;
-        $userMem->cognitive_pathway = $cognitive_pathway;
+        $userMem->cognitive_path = $cognitive_pathway;
         $userMem->save();
 
         $userDetail->sex = $sex;
@@ -675,7 +675,7 @@ class UserAppInfoController extends Controller
     public function passwordUpdate(&$user, &$kind, &$result, Request $request)
     {
         $password = $request->input('password');
-        $user = RaonMember::selectRaw('*, password(?) as input_pw', [$password])->whereRaw("id = ?", $user->id)->first();
+        $user = RaonMember::selectRaw('*, pw(?) as input_pw', [$password])->whereRaw("id = ?", $user->id)->first();
 
         if ($user) {
             if ($user->user_type == 's') {

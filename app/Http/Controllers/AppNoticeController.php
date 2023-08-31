@@ -25,7 +25,7 @@ class AppNoticeController extends Controller
             $result = Arr::add($result, 'error', '사용자 정보가 없습니다.');
             return response()->json($result);
         }
-        if (!in_array($user->user_type, ['a','h','m'])) {
+        if (!in_array($user->mtype, ['a','h','m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -53,16 +53,16 @@ class AppNoticeController extends Controller
             }
         }
 
-        if ($user->user_type == 'a') {
+        if ($user->mtype == 'a') {
             $rso = AppNotice::orderByDesc('created_at')->limit($list_limit);
-        } else if ($user->user_type == 'h') {
+        } else if ($user->mtype == 'h') {
             $rso = AppNotice::where(function ($q) use ($user){
                 $q->where("read_branch", 'Y');
-                $q->orWhere('user_id', $user->id);
+                $q->orWhere('user_id', $user->idx);
             })->orderByDesc('created_at')->limit($list_limit);
-        } else if ($user->user_type == 'm') {
+        } else if ($user->mtype == 'm') {
             $rso = AppNotice::where("read_center", 'Y')->where(function ($q) use ($user){
-                $q->where('hidx', $user->branch_id);
+                $q->where('hidx', $user->hidx);
                 $q->orWhere('hidx', null);
             })->orderByDesc('created_at')->limit($list_limit);
         }
@@ -151,7 +151,7 @@ class AppNoticeController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['a', 'h'])) {
+        if (!in_array($user->mtype, ['a', 'h'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -175,11 +175,11 @@ class AppNoticeController extends Controller
             return response()->json($result);
         }
 
-        if ($user->user_type == 'a') {
+        if ($user->mtype == 'a') {
             $payload = array_merge($request->only(['title', 'content']), [
                 'read_branch' => 'Y',
                 'read_center' => 'Y',
-                'user_id' => $user->id,
+                'user_id' => $user->idx,
                 'created_at' => $ymd." ".date('H:i:s'),
             ]);
             $appNotice = new AppNotice($payload);
@@ -191,12 +191,12 @@ class AppNoticeController extends Controller
 
 //            $push = new PushMessageController('appNotice', $appNotice->id);
 //            $push->push();
-        } else if ($user->user_type == 'h') {
+        } else if ($user->mtype == 'h') {
             $payload = array_merge($request->only(['title', 'content']), [
-                'hidx' => $user->id,
+                'hidx' => $user->idx,
                 'read_branch' => 'N',
                 'read_center' => 'Y',
-                'user_id' => $user->id,
+                'user_id' => $user->idx,
                 'created_at' => $year."-".$month."-".$day." ".date('H:i:s'),
             ]);
             $appNotice = new AppNotice($payload);
@@ -228,7 +228,7 @@ class AppNoticeController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['a', 'h'])) {
+        if (!in_array($user->mtype, ['a', 'h'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -260,7 +260,7 @@ class AppNoticeController extends Controller
             return response()->json($result);
         }
 
-        if (!($user->id == $appNotice->user_id || $user->user_type == 'a')) {
+        if (!($user->idx == $appNotice->user_id || $user->mtype == 'a')) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
         }
@@ -290,7 +290,7 @@ class AppNoticeController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['a', 'h'])) {
+        if (!in_array($user->mtype, ['a', 'h'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -303,7 +303,7 @@ class AppNoticeController extends Controller
             return response()->json($result);
         }
 
-        if (!($user->id == $appNotice->user_id || $user->user_type == 'a')) {
+        if (!($user->idx == $appNotice->user_id || $user->mtype == 'a')) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
         }

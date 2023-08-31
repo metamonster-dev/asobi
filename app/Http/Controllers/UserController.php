@@ -72,8 +72,8 @@ class UserController extends Controller
         $user->name = $name;
         $user->phone = $phone;
         $user->user_type = 's';
-        $user->branch_id = $center->branch_id;
-        $user->center_id = $center->center_id;
+        $user->branch_id = $center->hidx;
+        $user->center_id = $center->midx;
         // todo: 입회신청 api가 완료되면 N으로 변경해야할듯.
         $user->status = 'Y';
 //        $user->login_time = date('Y-m-d H:i:s');
@@ -120,7 +120,7 @@ class UserController extends Controller
 
         if ($rs) {
             foreach ($rs as $index => $row) {
-                $result = Arr::add($result, "list.{$index}.id", $row->id);
+                $result = Arr::add($result, "list.{$index}.id", $row->idx);
                 $result = Arr::add($result, "list.{$index}.name", $row->nickname);
             }
         }
@@ -141,20 +141,20 @@ class UserController extends Controller
             return response()->json($result);
         }
 
-        if ($user->user_type != 'h') {
+        if ($user->mtype != 'h') {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
         }
 
         // Todo: status
-        $rs = RaonMember::where('mtype', 'm')->where('status', 'Y')->where('hidx', $user->id)->orderBy('nickname')->get();
+        $rs = RaonMember::where('mtype', 'm')->where('status', 'Y')->where('hidx', $user->idx)->orderBy('nickname')->get();
         $result = Arr::add($result, 'result', 'success');
         $result = Arr::add($result, 'count', $rs->count());
 
         if ($rs) {
             foreach ($rs as $index => $row) {
-                $result = Arr::add($result, "list.{$index}.id", $row->id);
+                $result = Arr::add($result, "list.{$index}.id", $row->idx);
                 $result = Arr::add($result, "list.{$index}.name", $row->nickname);
             }
         }
@@ -175,7 +175,7 @@ class UserController extends Controller
             return response()->json($result);
         }
 
-        if ($user->user_id != 'admin') {
+        if ($user->id != 'admin') {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -187,7 +187,7 @@ class UserController extends Controller
 
         if ($rs) {
             foreach ($rs as $index => $row) {
-                $result = Arr::add($result, "list.{$index}.id", $row->id);
+                $result = Arr::add($result, "list.{$index}.id", $row->idx);
                 $result = Arr::add($result, "list.{$index}.name", $row->nickname);
             }
         }
@@ -208,13 +208,13 @@ class UserController extends Controller
             return response()->json($result);
         }
 
-        if ($user->user_type != 'm') {
+        if ($user->mtype != 'm') {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
         }
 
-        $rs = RaonMember::where('midx', $user->id)
+        $rs = RaonMember::where('midx', $user->idx)
             ->where('mtype', 's')
             ->where('status', 'Y')
             ->orderBy('name', 'asc')
@@ -224,10 +224,10 @@ class UserController extends Controller
 
         if ($rs) {
             foreach ($rs as $index => $row) {
-                $userMemberDetail = RaonMember::where('idx', $row->id)->first();
+                $userMemberDetail = RaonMember::where('idx', $row->idx)->first();
                 $profile_image = $userMemberDetail->user_picture ?? '';
 
-                $result = Arr::add($result, "list.{$index}.id", $row->id);
+                $result = Arr::add($result, "list.{$index}.id", $row->idx);
                 $result = Arr::add($result, "list.{$index}.name", $row->name);
                 $result = Arr::add($result, "list.{$index}.profile_image", $profile_image ? \App::make('helper')->getImage($profile_image) : null);
             }
@@ -248,14 +248,14 @@ class UserController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['s', 'm'])) {
+        if (!in_array($user->mtype, ['s', 'm'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
         }
 
-        if ($user->user_type == 's') {
-            $phone = str_replace('-', '', $user->phone);
+        if ($user->mtype == 's') {
+            $phone = str_replace('-', '', $user->mobilephone);
 
             // ToDo: status
             $rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $phone)
@@ -268,9 +268,9 @@ class UserController extends Controller
             $result = Arr::add($result, 'count', $rs->count());
             if ($rs) {
                 foreach ($rs as $index => $row) {
-                    $userMemberDetail = RaonMember::where('idx', $row->id)->first();
+                    $userMemberDetail = RaonMember::where('idx', $row->idx)->first();
                     $profile_image = $userMemberDetail->user_picture ?? '';
-                    $userDetail = RaonMember::where('idx', $row->id)->first();
+                    $userDetail = RaonMember::where('idx', $row->idx)->first();
 
                     $birth_day = null;
                     if ($userDetail->birthday) {
@@ -284,20 +284,20 @@ class UserController extends Controller
                         }
                     }
 
-                    $result = Arr::add($result, "list.{$index}.id", $row->id);
+                    $result = Arr::add($result, "list.{$index}.id", $row->idx);
                     $result = Arr::add($result, "list.{$index}.name", $row->name);
                     $result = Arr::add($result, "list.{$index}.profile_image", $profile_image ? \App::make('helper')->getImage($profile_image) : null);
                     $result = Arr::add($result, "list.{$index}.birthday", $birth_day);
 
-                    $center = RaonMember::whereIdx($row->center_id)->first();
+                    $center = RaonMember::whereIdx($row->midx)->first();
                     $result = Arr::add($result, "list.{$index}.branch_name", "아소비 공부방");
                     $result = Arr::add($result, "list.{$index}.center_name", $center ? $center->nickname : null);
                 }
             }
-        } else if ($user->user_type == 'm') {
+        } else if ($user->mtype == 'm') {
 
             // ToDo: status
-            $rs = RaonMember::where('midx', $user->id)
+            $rs = RaonMember::where('midx', $user->idx)
                 ->where('mtype', 's')
                 ->where('status', 'Y')
                 ->orderBy('name', 'asc')
@@ -308,7 +308,7 @@ class UserController extends Controller
 
             if ($rs) {
                 foreach ($rs as $index => $row) {
-                    $userMemberDetail = RaonMember::where('idx', $row->id)->first();
+                    $userMemberDetail = RaonMember::where('idx', $row->idx)->first();
                     $profile_image = $userMemberDetail->user_picture ?? '';
 //                    $userDetail = RaonMember::where('idx', $row->id)->first();
 
@@ -326,7 +326,7 @@ class UserController extends Controller
                         }
                     }
 
-                    $result = Arr::add($result, "list.{$index}.id", $row->id);
+                    $result = Arr::add($result, "list.{$index}.id", $row->idx);
                     $result = Arr::add($result, "list.{$index}.name", $row->name);
                     $result = Arr::add($result, "list.{$index}.profile_image", $profile_image ? \App::make('helper')->getImage($profile_image) : null);
                     $result = Arr::add($result, "list.{$index}.birthday", $birth_day);
@@ -352,21 +352,21 @@ class UserController extends Controller
         }
 
         $result = Arr::add($result, 'result', 'success');
-        $result = Arr::add($result, 'user_id', $user->id);
-        $result = Arr::add($result, 'user_name', $user->user_type == 's' ? $user->name : $user->nickname);
-        if ($user->id == 1) {
+        $result = Arr::add($result, 'user_id', $user->idx);
+        $result = Arr::add($result, 'user_name', $user->mtype == 's' ? $user->name : $user->nickname);
+        if ($user->idx == 1) {
             $result = Arr::add($result, 'user_type', 'admin');
         } else {
-            $userMemberDetail = RaonMember::where('idx', $user->id)->first();
+            $userMemberDetail = RaonMember::where('idx', $user->idx)->first();
             $profile_image = $userMemberDetail->user_picture ?? '';
-            $result = Arr::add($result, 'user_type', $user->user_type);
+            $result = Arr::add($result, 'user_type', $user->mtype);
             $result = Arr::add($result, "user_picture", $profile_image ? \App::make('helper')->getImage($profile_image) : null);
-            if ($user->user_type == 's') {
-                $center = RaonMember::whereIdx($user->center_id)->first();
+            if ($user->mtype == 's') {
+                $center = RaonMember::whereIdx($user->midx)->first();
                 $result = Arr::add($result, 'center_name', $center ? $center->nickname : null);
             }
         }
-        $result = Arr::add($result, 'login_id', $user->id);
+        $result = Arr::add($result, 'login_id', $user->idx);
 
         return response()->json($result);
     }
@@ -384,21 +384,21 @@ class UserController extends Controller
         }
 
         $result = Arr::add($result, 'result', 'success');
-        $result = Arr::add($result, 'login_id', $user->user_id);
-        $result = Arr::add($result, 'user_name', $user->user_type == 's' ? $user->name : $user->nickname);
+        $result = Arr::add($result, 'login_id', $user->id);
+        $result = Arr::add($result, 'user_name', $user->mtype == 's' ? $user->name : $user->nickname);
         $result = Arr::add($result, 'email', $user->email);
-        $result = Arr::add($result, 'phone', $user->phone);
+        $result = Arr::add($result, 'phone', $user->mobilephone);
 
-        $userMemberDetail = RaonMember::where('idx', $user->id)->first();
+        $userMemberDetail = RaonMember::where('idx', $user->idx)->first();
         $profile_image = $userMemberDetail->user_picture ?? '';
-        $result = Arr::add($result, 'user_type', $user->user_type);
+        $result = Arr::add($result, 'user_type', $user->mtype);
         $result = Arr::add($result, "user_picture", $profile_image ? \App::make('helper')->getImage($profile_image) : null);
-        if ($user->user_type == 's') {
-            $center = RaonMember::whereIdx($user->center_id)->first();
+        if ($user->mtype == 's') {
+            $center = RaonMember::whereIdx($user->midx)->first();
             $result = Arr::add($result, 'center_name', $center ? $center->nickname : null);
         }
 
-        $userDetail = RaonMember::where('idx', $user->id)->first();
+        $userDetail = RaonMember::where('idx', $user->idx)->first();
         $result = Arr::add($result, 'gender', $userDetail->sex);
         $result = Arr::add($result, 'birthday', $userDetail->birthday);
         $result = Arr::add($result, 'address', $userDetail->address1);

@@ -85,9 +85,9 @@ class CheckLogin
             $arr = array_merge([
                 'user_id' => $rs->user_id,
                 'user_name' => $user->name,
-                'account_id' => $user->user_id,
-                'user_type' => $user->user_type,
-                'login_id' => ($user->user_type == 's') ? str_replace('-', '', $rs->phone ?? '') : $rs->user_id,
+                'account_id' => $user->id,
+                'user_type' => $user->mtype,
+                'login_id' => ($user->mtype == 's') ? str_replace('-', '', $rs->phone ?? '') : $rs->user_id,
 //                'login_id' => \App::make('helper')->hypenPhone($rs->phone ?? ''),
                 'push_alarm' => $rs->push_alarm,
                 'notice_alarm' => $rs->notice_alarm,
@@ -98,7 +98,7 @@ class CheckLogin
                 'event_alarm' => $rs->event_alarm,
                 'auto_login' => 1
             ], [
-                'user_type_ko' => \App::make('helper')->getUserType($user->user_type),
+                'user_type_ko' => \App::make('helper')->getUserType($user->mtype),
                 'device_kind' => $deviceKind,
                 'device_type' => $deviceType,
                 'device_id' => $deviceId,
