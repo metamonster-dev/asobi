@@ -16,6 +16,7 @@ class BoardController extends Controller
 
         $result = [];
 //        $rs = Board::where('board_id', 7)->orderBy('id', 'desc')->get();
+        // ToDo: 구조 더 파악 후 작업
         $rso = DB::table('board_data as a')
             ->select('a.title', 'a.content', 'b.name')
             ->leftJoin('board_categories as b', 'a.category_id', '=', 'b.id')
@@ -40,7 +41,7 @@ class BoardController extends Controller
                 $result = Arr::add($result, "list.{$index}.title", "[{$row->name}]{$row->title}");
                 $result = Arr::add($result, "list.{$index}.content", $row->content);
             }
-        }else{
+        } else {
 //      $result = Arr::add($result, 'result', 'fail');
 //        $result = Arr::add($result, 'error', '등록된 내용이 없습니다.');
         }
