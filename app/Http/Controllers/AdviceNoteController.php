@@ -292,7 +292,7 @@ class AdviceNoteController extends Controller
             }
 
             $this_course = DB::table('orders AS o')
-                ->join('order_member_details AS omd', 'omd.order_id', '=', 'o.id')
+                ->join('order_member_details AS omd', 'omd.order_id', '=', 'o.idx')
                 ->join('shop_products AS sp', 'sp.idx', '=', 'omd.product_id')
                 ->select('sp.name', 'sp.content')
                 ->where('o.course', $row->this_month)
@@ -306,7 +306,7 @@ class AdviceNoteController extends Controller
                 ->get();
 
             $next_course = DB::table('orders AS o')
-                ->join('order_member_details AS omd', 'omd.order_id', '=', 'o.id')
+                ->join('order_member_details AS omd', 'omd.order_id', '=', 'o.idx')
                 ->join('shop_products AS sp', 'sp.idx', '=', 'omd.product_id')
                 ->select('sp.name', 'sp.content')
                 ->where('o.course', $row->next_month)
@@ -469,7 +469,7 @@ class AdviceNoteController extends Controller
         }
 
         $this_course = DB::table('orders AS o')
-            ->join('order_member_details AS omd', 'omd.order_id', '=', 'o.id')
+            ->join('order_member_details AS omd', 'omd.order_id', '=', 'o.idx')
             ->join('shop_products AS sp', 'sp.idx', '=', 'omd.product_id')
             ->select('sp.name', 'sp.content')
             ->where('o.course', $this_month)
@@ -483,7 +483,7 @@ class AdviceNoteController extends Controller
             ->get();
 
         $next_course = DB::table('orders AS o')
-            ->join('order_member_details AS omd', 'omd.order_id', '=', 'o.id')
+            ->join('order_member_details AS omd', 'omd.order_id', '=', 'o.idx')
             ->join('shop_products AS sp', 'sp.idx', '=', 'omd.product_id')
             ->select('sp.name', 'sp.content')
             ->where('o.course', $next_month)
