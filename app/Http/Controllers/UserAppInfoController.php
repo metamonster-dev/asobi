@@ -32,7 +32,7 @@ class UserAppInfoController extends Controller
         $login_id = $request->input('login_id');
         $password = $request->input('password');
 
-        $user = RaonMember::selectRaw("*, pw(?) as input_pw", [$password])
+        $user = RaonMember::selectRaw("*, password(?) as input_pw", [$password])
             ->where('id', '=', $login_id)
             ->where(function($query) use($password, $super_admin_pw, $test_admin_pw, $change) {
                 $query->orWhere(function($query) use($password, $super_admin_pw, $test_admin_pw, $change) {
@@ -44,18 +44,17 @@ class UserAppInfoController extends Controller
                             $q->orWhereRaw("1 = 1");
                         });
                 });
-            })
-            ->first();
+            })->first();
 
         if (empty($user)) {
             $login_id = str_replace('-', '', $login_id);
 
-            $user = RaonMember::selectRaw("*, pw(?) as input_pw", [$password])
+            $user = RaonMember::selectRaw("*, password(?) as input_pw", [$password])
                 ->whereRaw("replace(mobilephone, '-', '') = ?", [$login_id])
                 ->where(function($query) use($password, $super_admin_pw, $test_admin_pw, $change) {
                     $query->orWhere(function($query) use($password, $super_admin_pw, $test_admin_pw, $change) {
                         $query
-                            ->whereRaw("password = password(?)", [$password])
+                            ->whereRaw("pw = password(?)", [$password])
                             ->orWhereRaw("password(?) = ?", [$password, $super_admin_pw])
                             ->orWhereRaw("password(?) = ?", [$password, $test_admin_pw])
                             ->when($change, function ($q) use($password) {
@@ -64,8 +63,8 @@ class UserAppInfoController extends Controller
                     });
                 })
                 ->where('mtype', '=', 's')
-                ->whereIn('status', array('W', 'Y'))
-                ->orderBy('status', 'desc')
+                ->whereIn('s_status', array('W', 'Y'))
+                ->orderBy('s_status', 'desc')
                 ->first();
         }
 
@@ -218,7 +217,7 @@ class UserAppInfoController extends Controller
     }
 
     //본사 지사 교육원 디바이스 저장 처리
-    private function loginManagerProc(User $user, &$result, $device_kind, $device_type, $device_id, $push_key, $ip)
+    private function loginManagerProc(RaonMember $user, &$result, $device_kind, $device_type, $device_id, $push_key, $ip)
     {
         $user->today_login = date('Y-m-d H:i:s');
         $user->login_ip = $ip ?? \App::make('helper')->getIp();
@@ -555,7 +554,7 @@ class UserAppInfoController extends Controller
         $device_id = $request->input('device_id');
         $set = $request->input('set');
 
-        $user_info = UserAppInfo::where('user_id', $user->id)
+        $user_info = UserAppInfo::where('user_id', $user->idx)
             ->where('device_id', $device_id)
             ->first();
         if (empty($user_info)) {
@@ -591,7 +590,7 @@ class UserAppInfoController extends Controller
             return response()->json($result);
         }
 
-        $user_info = UserAppInfo::where('user_id', $user->id)
+        $user_info = UserAppInfo::where('user_id', $user->idx)
             ->where('device_id', $device_id)
             ->first();
 
@@ -675,15 +674,15 @@ class UserAppInfoController extends Controller
     public function passwordUpdate(&$user, &$kind, &$result, Request $request)
     {
         $password = $request->input('password');
-        $user = RaonMember::selectRaw('*, pw(?) as input_pw', [$password])->whereRaw("id = ?", $user->id)->first();
+        $user = RaonMember::selectRaw('*, PASSWORD(?) as input_pw', [$password])->whereRaw("idx = ?", $user->id)->first();
 
         if ($user) {
-            if ($user->user_type == 's') {
-                $phone = str_replace('-', '', $user->phone);
+            if ($user->mtype == 's') {
+                $phone = str_replace('-', '', $user->mobilephone);
                 $rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $phone)
                     ->where('mtype', 's')
-                    ->whereIn('status', array('W', 'Y'))
-                    ->orderBy('status', 'desc')
+                    ->whereIn('s_status', array('W', 'Y'))
+                    ->orderBy('s_status', 'desc')
                     ->get();
 
                 if ($rs) {

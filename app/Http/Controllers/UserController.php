@@ -148,7 +148,7 @@ class UserController extends Controller
         }
 
         // Todo: status
-        $rs = RaonMember::where('mtype', 'm')->where('status', 'Y')->where('hidx', $user->idx)->orderBy('nickname')->get();
+        $rs = RaonMember::where('mtype', 'm')->where('m_status', 'Y')->where('hidx', $user->idx)->orderBy('nickname')->get();
         $result = Arr::add($result, 'result', 'success');
         $result = Arr::add($result, 'count', $rs->count());
 
@@ -167,6 +167,7 @@ class UserController extends Controller
         $result = array();
 
         $user_id = $request->input('user');
+
         $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
@@ -181,7 +182,7 @@ class UserController extends Controller
             return response()->json($result);
         }
 
-        $rs = RaonMember::where('mtype', 'h')->where('status', 'Y')->orderBy('nickname')->get();
+        $rs = RaonMember::where('mtype', 'h')->where('h_status', 'Y')->orderBy('nickname')->get();
         $result = Arr::add($result, 'result', 'success');
         $result = Arr::add($result, 'count', $rs->count());
 
@@ -257,10 +258,9 @@ class UserController extends Controller
         if ($user->mtype == 's') {
             $phone = str_replace('-', '', $user->mobilephone);
 
-            // ToDo: status
             $rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $phone)
                 ->where('mtype', 's')
-                ->whereIn('status', array('W', 'Y'))
+                ->whereIn('s_status', array('W', 'Y'))
                 ->orderBy('status', 'desc')
                 ->get();
 
@@ -295,11 +295,9 @@ class UserController extends Controller
                 }
             }
         } else if ($user->mtype == 'm') {
-
-            // ToDo: status
             $rs = RaonMember::where('midx', $user->idx)
                 ->where('mtype', 's')
-                ->where('status', 'Y')
+                ->where('s_status', 'Y')
                 ->orderBy('name', 'asc')
                 ->get();
 
@@ -310,13 +308,13 @@ class UserController extends Controller
                 foreach ($rs as $index => $row) {
                     $userMemberDetail = RaonMember::where('idx', $row->idx)->first();
                     $profile_image = $userMemberDetail->user_picture ?? '';
-//                    $userDetail = RaonMember::where('idx', $row->id)->first();
+                    $userDetail = RaonMember::where('idx', $row->id)->first();
 
-                    $shopCategory = ShopCategory::where('cd_lev', 1)->where('cd_year', $userMemberDetail->course_year)->first();
+                    $shopCategory = ShopCategory::where('cd_lev', 1)->where('cd_year', $userDetail->course_year)->first();
 
                     $birth_day = null;
-                    if ($userMemberDetail->birthday) {
-                        $birth_str = str_replace("NaN","", $userMemberDetail->birthday);
+                    if ($userDetail->birthday) {
+                        $birth_str = str_replace("NaN","", $userDetail->birthday);
                         $birth_str = str_replace("-","", $birth_str);
                         if ($birth_str != "") {
                             $birth = Carbon::createFromFormat('Ymd', $birth_str);
@@ -415,6 +413,7 @@ class UserController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
+
         $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
