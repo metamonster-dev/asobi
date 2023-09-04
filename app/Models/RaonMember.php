@@ -8,4 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class RaonMember extends Model
 {
     use HasFactory;
+
+    protected $primaryKey = 'idx';
 }

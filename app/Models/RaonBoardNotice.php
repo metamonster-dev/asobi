@@ -10,6 +10,7 @@ class RaonBoardNotice extends Model
 {
     use HasFactory;
 
+    protected $primaryKey = 'idx';
 //    public function categories()
 //    {
 //        return $this->hasOne(BoardCategorie::class);
