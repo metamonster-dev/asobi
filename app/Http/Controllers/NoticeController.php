@@ -231,11 +231,11 @@ class NoticeController extends Controller
 
         if ($user->mtype == 'm') {
             $readed_students = NoticeHistory::select(
-                'users.id',
-                'users.user_id',
-                'users.name'
+                'raon_members.idx',
+                'raon_members.id',
+                'raon_members.name'
             )
-            ->join('users', 'users.id', '=', 'notice_histories.sidx')
+            ->join('raon_members', 'raon_members.idx', '=', 'notice_histories.sidx')
             ->where('notice_histories.notice_id', $notice_id)
             ->where('notice_histories.hidx', $user->hidx)
             ->where('notice_histories.midx', $user->idx)
@@ -249,15 +249,15 @@ class NoticeController extends Controller
             }
 
             $not_readed_students = RaonMember::select(
+                'idx',
                 'id',
-                'user_id',
                 'name'
             )
             ->where('midx', $user->idx)
             ->where('mtype', 's')
-            ->where('status', 'Y')
+            ->where('s_status', 'Y')
             ->when(count($readed_students_array) > 0, function($query) use($readed_students_array) {
-                return $query->whereNotIn('id', $readed_students_array->toArray());
+                return $query->whereNotIn('idx', $readed_students_array->toArray());
             })
             ->get();
 

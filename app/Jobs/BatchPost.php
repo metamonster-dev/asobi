@@ -70,9 +70,9 @@ class BatchPost implements ShouldQueue
                 }
             }
             $payload = [
-                'type' => $this->type,
-                'hidx' => $this->user->branch_id,
-                'midx' => $this->user->id,
+                'type' => $this->mtype,
+                'hidx' => $this->user->hidx,
+                'midx' => $this->user->idx,
                 'sidx' => $l,
                 'title' => $this->title,
                 'content' => $this->content,

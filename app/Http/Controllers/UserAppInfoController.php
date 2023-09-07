@@ -674,7 +674,8 @@ class UserAppInfoController extends Controller
     public function passwordUpdate(&$user, &$kind, &$result, Request $request)
     {
         $password = $request->input('password');
-        $user = RaonMember::selectRaw('*, PASSWORD(?) as input_pw', [$password])->whereRaw("idx = ?", $user->id)->first();
+
+        $user = RaonMember::selectRaw('*, PASSWORD(?) as input_pw', [$password])->whereRaw("idx = ?", $user->idx)->first();
 
         if ($user) {
             if ($user->mtype == 's') {
@@ -687,12 +688,12 @@ class UserAppInfoController extends Controller
 
                 if ($rs) {
                     foreach ($rs as $index => $row) {
-                        $row->password = $user->input_pw;
+                        $row->pw = $user->input_pw;
                         $row->save();
                     }
                 }
             } else {
-                $user->password = $user->input_pw;
+                $user->pw = $user->input_pw;
                 $user->save();
             }
 

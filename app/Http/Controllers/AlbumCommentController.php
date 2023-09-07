@@ -64,7 +64,7 @@ class AlbumCommentController extends Controller
                     $userMemberDetail = RaonMember::where('idx', $writer->id)->first();
                     $profile_image = $userMemberDetail->user_picture ?? '';
                     $result = Arr::add($result, "list.{$index}.is_auth", $comment->sid == $user->idx ? "Y":"N");
-                    $result = Arr::add($result, "list.{$index}.writer_id", $writer->id);
+                    $result = Arr::add($result, "list.{$index}.writer_id", $writer->idx);
                     $result = Arr::add($result, "list.{$index}.writer", $writer->name);
                     $result = Arr::add($result, "list.{$index}.writer_picture", $profile_image ? \App::make('helper')->getImage($profile_image):null);
                 } else {
@@ -78,7 +78,7 @@ class AlbumCommentController extends Controller
                     $userMemberDetail = RaonMember::where('idx', $writer->id)->first();
                     $profile_image = $userMemberDetail->user_picture ?? '';
                     $result = Arr::add($result, "list.{$index}.is_auth", $comment->midx == $user->idx ? "Y":"N");
-                    $result = Arr::add($result, "list.{$index}.writer_id", $writer->id);
+                    $result = Arr::add($result, "list.{$index}.writer_id", $writer->idx);
                     $result = Arr::add($result, "list.{$index}.writer", $writer->nickname);
                     $result = Arr::add($result, "list.{$index}.writer_picture", $profile_image ? \App::make('helper')->getImage($profile_image):null);
                 }

@@ -47,23 +47,23 @@ class CounselingController extends Controller
 
 //        \App::make('helper')->log('search_user_id', ['search_user_id' => $search_user_id], 'search_user_id');
 
-        $rs = DB::table('users')
-            ->select('users.id as uid', 'users.name as uname', 'cls.created_at as ccreated_at')
+        $rs = DB::table('raon_members')
+            ->select('raon_members.idx as uid', 'raon_members.name as uname', 'cls.created_at as ccreated_at')
             ->leftJoin(DB::raw('(select max(created_at) created_at, sidx, year, month from counselings group by sidx) as cls'),function ($join) {
-                $join->on('users.id','=','cls.sidx');
+                $join->on('raon_members.idx','=','cls.sidx');
             })
-            ->where('midx', $user->id)
-            ->where('users.user_type','s')
-            ->where('users.status','Y')
+            ->where('midx', $user->idx)
+            ->where('raon_members.mtype','s')
+            ->where('raon_members.s_status','Y')
 //            ->whereRaw("users.user_type = 's'")
 //            ->whereRaw("users.status = 'Y'")
             ->when($year_month, function ($q) use ($year_month) {
                 $q->whereRaw("date_format(cls.created_at, '%Y-%m') = '{$year_month}'");
             })
             ->when($search_user_id != "", function ($q) use ($search_user_id) {
-                $q->where('users.id', $search_user_id);
+                $q->where('raon_members.idx', $search_user_id);
             })
-            ->orderBy('users.name')
+            ->orderBy('raon_members.name')
             ->get();
 
         $result = Arr::add($result, 'result', 'success');
@@ -119,8 +119,8 @@ class CounselingController extends Controller
         $result = Arr::add($result, 'count', $rs->count());
         if ($rs) {
             foreach ($rs as $index => $row) {
-                $result = Arr::add($result, "list.{$index}.id", $row->idx);
-                $result = Arr::add($result, "list.{$index}.date", $row->regdate->format(Counseling::DATE_FORMAT));
+                $result = Arr::add($result, "list.{$index}.id", $row->id);
+                $result = Arr::add($result, "list.{$index}.date", $row->created_at->format(Counseling::DATE_FORMAT));
                 $result = Arr::add($result, "list.{$index}.content", $row->content);
             }
         }
@@ -152,7 +152,7 @@ class CounselingController extends Controller
             $result = Arr::add($result, 'result', 'success');
             $result = Arr::add($result, "id", $row->idx);
             $result = Arr::add($result, "content", $row->content);
-            $result = Arr::add($result, "date", $row->regdate->format(Counseling::DATE_FORMAT));
+            $result = Arr::add($result, "date", $row->created_at->format(Counseling::DATE_FORMAT));
             $result = Arr::add($result, "sidx", $row->sidx);
             $result = Arr::add($result, "name", $student->name ?? "");
 

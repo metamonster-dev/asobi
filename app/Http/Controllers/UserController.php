@@ -70,12 +70,12 @@ class UserController extends Controller
 
         $user = new User();
         $user->name = $name;
-        $user->phone = $phone;
-        $user->user_type = 's';
-        $user->branch_id = $center->hidx;
-        $user->center_id = $center->midx;
+        $user->mobilephone = $phone;
+        $user->mtype = 's';
+        $user->hidx = $center->hidx;
+        $user->midx = $center->midx;
         // todo: 입회신청 api가 완료되면 N으로 변경해야할듯.
-        $user->status = 'Y';
+        $user->s_status = 'Y';
 //        $user->login_time = date('Y-m-d H:i:s');
         $user->user_id = "st_".time();
         $user->save();
@@ -308,7 +308,7 @@ class UserController extends Controller
                 foreach ($rs as $index => $row) {
                     $userMemberDetail = RaonMember::where('idx', $row->idx)->first();
                     $profile_image = $userMemberDetail->user_picture ?? '';
-                    $userDetail = RaonMember::where('idx', $row->id)->first();
+                    $userDetail = RaonMember::where('idx', $row->idx)->first();
 
                     $shopCategory = ShopCategory::where('cd_lev', 1)->where('cd_year', $userDetail->course_year)->first();
 

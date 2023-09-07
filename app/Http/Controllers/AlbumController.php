@@ -137,7 +137,7 @@ class AlbumController extends Controller
             $children_rs = RaonMember::where('mobilephone', $user->mobilephone)
                 ->where('pw', $user->pw)
                 ->where('mtype', 's')
-                ->where('status', 'Y')
+                ->where('s_status', 'Y')
                 ->get();
 
             if (sizeof($children_rs) > 1) {
@@ -184,10 +184,10 @@ class AlbumController extends Controller
             $students = RaonMember::whereIn('idx', json_decode($row->sidx))->get();
             if ($students) {
                 foreach ($students as $student_index => $student) {
-                    $userMemberDetail = RaonMember::where('user_id', $student->idx)->first();
+                    $userMemberDetail = RaonMember::where('id', $student->idx)->first();
                     $profile_image = $userMemberDetail->user_picture ?? '';
 
-                    $result = Arr::add($result, "student.{$student_index}.id", $student->idx);
+                    $result = Arr::add($result, "student.{$student_index}.idx", $student->idx);
                     $result = Arr::add($result, "student.{$student_index}.name", $student->name);
                     $result = Arr::add($result, "student.{$student_index}.user_picture", $profile_image ? \App::make('helper')->getImage($profile_image) : null);
 
@@ -221,9 +221,9 @@ class AlbumController extends Controller
             if ($row->histories->where('sidx', $user->id)->count() === 0) {
                 $row->histories()->create(
                     [
-                        'hidx' => $user->branch_id,
-                        'midx' => $user->center_id,
-                        'sidx' => $user->id
+                        'hidx' => $user->hidx,
+                        'midx' => $user->midx,
+                        'sidx' => $user->idx
                     ]
                 );
             }
@@ -232,8 +232,8 @@ class AlbumController extends Controller
                 if ($row->histories->where('midx', $user->id)->count() === 0) {
                     $row->histories()->create(
                         [
-                            'hidx' => $user->branch_id,
-                            'midx' => $user->center_id
+                            'hidx' => $user->hidx,
+                            'midx' => $user->midx
                         ]
                     );
                 }
@@ -242,7 +242,7 @@ class AlbumController extends Controller
                     if ($row->histories->where('hidx', $user->id)->count() === 0) {
                         $row->histories()->create(
                             [
-                                'hidx' => $user->branch_id
+                                'hidx' => $user->hidx
                             ]
                         );
                     }
@@ -442,7 +442,8 @@ class AlbumController extends Controller
             $student = json_encode($student);
         }
 
-        $album = Album::whereId($album_id)->where('midx', $user->id)->first();
+        $album = Album::whereId($album_id)->where('midx', $user->idx)->first();
+
         if (empty($album)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '잘못된 요청입니다.');

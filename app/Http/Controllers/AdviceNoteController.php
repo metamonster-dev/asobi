@@ -69,12 +69,11 @@ class AdviceNoteController extends Controller
 
         $search_user_id = $request->input('search_user_id') ?? "";
 
-
         $rs = RaonMember::where('midx', $user->idx)
             ->where('mtype', 's')
-            ->where('status', 'Y')
+            ->where('s_status', 'Y')
             ->when($search_user_id != "", function ($q) use ($search_user_id) {
-                $q->where('id', $search_user_id);
+                $q->where('idx', $search_user_id);
             })
             ->orderBy('name', 'asc')
             ->get();
@@ -83,7 +82,7 @@ class AdviceNoteController extends Controller
         $result = Arr::add($result, 'count', $rs->count());
 
         if ($rs) {
-            $users = $rs->pluck('id')->toArray();
+            $users = $rs->pluck('idx')->toArray();
 //            $result = Arr::add($result, 'users', $users);
             $adviceObj = AdviceNote::where('type', AdviceNote::ADVICE_TYPE)
                 ->whereIn('sidx', $users)
@@ -129,12 +128,12 @@ class AdviceNoteController extends Controller
                 $userMemberDetail = RaonMember::where('idx', $row->id)->first();
                 $profile_image = $userMemberDetail->user_picture ?? '';
 
-                $result = Arr::add($result, "list.{$index}.id", $row->id);
+                $result = Arr::add($result, "list.{$index}.id", $row->idx);
                 $result = Arr::add($result, "list.{$index}.name", $row->name);
                 $result = Arr::add($result, "list.{$index}.profile_image", $profile_image ? \App::make('helper')->getImage($profile_image) : null);
 
-                $advice = $adviceArr[$row->id] ?? [];
-                $letter = $letterArr[$row->id] ?? [];
+                $advice = $adviceArr[$row->idx] ?? [];
+                $letter = $letterArr[$row->idx] ?? [];
                 if ($day) {
                     $result = Arr::add($result, "list.{$index}.advice", $advice['id'] ?? null);
                     $result = Arr::add($result, "list.{$index}.letter", $letter['id'] ?? null);
@@ -176,7 +175,7 @@ class AdviceNoteController extends Controller
         $search_text = trim($search_text);
 
         $rs = AdviceNote::with('files')
-            ->where($user->mtype . 'idx', $user->id)
+            ->where($user->mtype . 'idx', $user->idx)
             ->where('status', 'Y')
             ->where('year', $year)
             ->where('month', $month)
@@ -239,10 +238,10 @@ class AdviceNoteController extends Controller
         }
 
         if ($user->mtype == 's') {
-            $children_rs = RaonMember::where('phone', $user->mobilephone)->where(
+            $children_rs = RaonMember::where('mobilephone', $user->mobilephone)->where(
                 'pw',
                 $user->pw
-            )->where('mtype', 's')->where('status', 'Y')->get();
+            )->where('mtype', 's')->where('s_status', 'Y')->get();
             if (sizeof($children_rs) > 1) {
                 $check_row = AdviceNote::find($adviceNote_id);
                 if ($check_row) {
@@ -627,7 +626,7 @@ class AdviceNoteController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m'])) {
+        if (!in_array($user->mtype, ['m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -747,8 +746,8 @@ class AdviceNoteController extends Controller
             }
             $payload = [
                 'type' => $type,
-                'hidx' => $user->branch_id,
-                'midx' => $user->id,
+                'hidx' => $user->hidx,
+                'midx' => $user->idx,
                 'sidx' => $l,
                 'title' => $title,
                 'content' => $content,
@@ -1067,8 +1066,8 @@ class AdviceNoteController extends Controller
         $students->map(function($student) use($params, $request) {
             $payload = [
                 'type' => $params['type'],
-                'hidx' => $params['user']->branch_id,
-                'midx' => $params['user']->center_id,
+                'hidx' => $params['user']->hidx,
+                'midx' => $params['user']->midx,
                 'sidx' => $student->idx,
                 'title' => $params['title'],
                 'content' => $params['content'],
@@ -1445,7 +1444,6 @@ class AdviceNoteController extends Controller
                 'month' => $month,
                 'search_user_id' => $search_user_id,
             ]);
-
             $res = $this->student($req);
             $list = $res->original['list'] ?? [];
             $count = $res->original['count'] ?? 0;

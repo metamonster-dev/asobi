@@ -17,17 +17,16 @@ class BoardController extends Controller
         $result = [];
 //        $rs = Board::where('board_id', 7)->orderBy('id', 'desc')->get();
         // ToDo: 구조 더 파악 후 작업
-        $rso = DB::table('board_data as a')
-            ->select('a.title', 'a.content', 'b.name')
-            ->leftJoin('board_categories as b', 'a.category_id', '=', 'b.id')
-            ->where('a.board_id', 7)
-            ->orderBy('a.id', 'desc');
+        $rso = DB::table('raon_board_faq')
+            ->select('title', 'content', 'category')
+//            ->leftJoin('board_categories as b', 'a.category_id', '=', 'b.id')
+            ->orderBy('idx', 'desc');
 
         if ($search_text) {
             $rso->where(function($q) use ($search_text) {
                 $q
-                ->where('a.title','like','%'.$search_text.'%')
-                ->orWhere('a.content','like','%'.$search_text.'%');
+                ->where('title','like','%'.$search_text.'%')
+                ->orWhere('content','like','%'.$search_text.'%');
             });
             $rso->where('title','like','%'.$search_text.'%');
         }
@@ -38,7 +37,7 @@ class BoardController extends Controller
         $result = Arr::add($result, 'count', $rs->count());
         if ($rs) {
             foreach ($rs as $index => $row) {
-                $result = Arr::add($result, "list.{$index}.title", "[{$row->name}]{$row->title}");
+                $result = Arr::add($result, "list.{$index}.title", "[{$row->category}]{$row->title}");
                 $result = Arr::add($result, "list.{$index}.content", $row->content);
             }
         } else {

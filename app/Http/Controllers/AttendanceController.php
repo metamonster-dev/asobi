@@ -42,8 +42,7 @@ class AttendanceController extends Controller
 
         $rs = RaonMember::where('midx', $user->idx)
             ->where('mtype', 's')
-            // ToDo: status 종합적으로 변경 필요
-            ->where('status', 'Y')
+            ->where('s_status', 'Y')
             ->orderBy('name', 'asc')
             ->get();
 

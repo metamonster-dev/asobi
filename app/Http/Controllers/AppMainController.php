@@ -305,8 +305,8 @@ class AppMainController extends Controller
                 })->orderBy('date', 'asc')->get();
             } else {
                 if ($user->mtype == 's') {
-                    $center = RaonMember::select('idx')->whereId($user->midx)->first();
-                    $centerCenterDetail = RaonMember::where('idx', $center->id)->first();
+                    $center = RaonMember::select('idx')->whereIdx($user->midx)->first();
+                    $centerCenterDetail = RaonMember::where('idx', $center->idx)->first();
                     $center->franchisetype = $centerCenterDetail->franchisetype ?? '';
 
                     if ($center && $center->franchisetype == 'C') {

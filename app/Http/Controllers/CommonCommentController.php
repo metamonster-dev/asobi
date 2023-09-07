@@ -147,8 +147,8 @@ class CommonCommentController extends Controller
                 $userMemberDetail = RaonMember::where('idx', $writer->id)->first();
                 $profile_image = $userMemberDetail->user_picture ?? '';
                 $result = Arr::add($result, "list.{$index}.is_auth", $comment->writer_id == $user->idx ? "Y":"N");
-                $result = Arr::add($result, "list.{$index}.writer_id", $writer->id);
-                $result = Arr::add($result, "list.{$index}.writer", $writer->user_type == 's' ? $writer->name : $writer->nickname);
+                $result = Arr::add($result, "list.{$index}.writer_id", $writer->idx);
+                $result = Arr::add($result, "list.{$index}.writer", $writer->mtype == 's' ? $writer->name : $writer->nickname);
                 $result = Arr::add($result, "list.{$index}.writer_picture", $profile_image ? \App::make('helper')->getImage($profile_image):null);
 
                 $index++;
