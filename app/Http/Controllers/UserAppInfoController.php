@@ -377,7 +377,7 @@ class UserAppInfoController extends Controller
         $sms_phone = $request->input('sms_phone');
         $reset_password = random_int(1000, 9999);
 
-        $user = RaonMember::selectRaw('*, pw(?) as input_pw', [$reset_password])->where('user_id', $login_id)->whereRaw("replace(mobilephone, '-', '') = ?", $phone)->first();
+        $user = RaonMember::selectRaw('*, pw(?) as input_pw', [$reset_password])->where('id', $login_id)->whereRaw("replace(mobilephone, '-', '') = ?", $phone)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
