@@ -84,9 +84,6 @@ $back_link = "/event";
                 let commentListHtml = '';
                 let replyListHtml = '';
                 data?.map(e => {
-
-                    console.log(e.writer_id);
-
                     let commentHtml = '';
                     if (!e.pid) {
                         commentHtml = `

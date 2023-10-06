@@ -26,7 +26,7 @@ class="body"
                 <input type="checkbox" name="auto_login" checked="checked" value="1">
                 <span class="ic_box"></span>
                 <div class="chk_p">
-                  <p class="text-light">자동 로그인22/p>
+                  <p class="text-light">자동 로그인</p>
                 </div>
               </label>
             </div>

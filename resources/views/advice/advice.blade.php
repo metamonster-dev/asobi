@@ -92,7 +92,7 @@ $back_link = "/";
                     @endforeach
                 @else
                 <li>
-                    <div class="d-flex align-items어-center">
+                    <div class="d-flex align-items-center">
                         <div class="rect rounded-circle">
                             <img src="/img/profile_default.png">
                         </div>
