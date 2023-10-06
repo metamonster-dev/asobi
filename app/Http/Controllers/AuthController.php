@@ -10,6 +10,7 @@ class AuthController extends Controller
     {
         $fcmToken = ($request->input('fcmToken')) ? $request->input('fcmToken') : "web";
         $deviceId = ($request->input('deviceId')) ? $request->input('deviceId') : "web";
+
         $os = ($request->input('os')) ? $request->input('os') : "web";
         $deviceType = ($request->input('deviceType')) ? $request->input('deviceType') : "web";
 

@@ -10,4 +10,6 @@ class ShopCategory extends Model
     use HasFactory;
 
     protected $primaryKey = 'cd_ix';
+
+    protected $table = 'shopCategory';
 }

@@ -61,7 +61,7 @@ class AlbumCommentController extends Controller
 
                 if ($comment->writer_type == 's') {
                     $writer = RaonMember::whereIdx($comment->sid)->first();
-                    $userMemberDetail = RaonMember::where('idx', $writer->id)->first();
+                    $userMemberDetail = RaonMember::where('idx', $writer->idx)->first();
                     $profile_image = $userMemberDetail->user_picture ?? '';
                     $result = Arr::add($result, "list.{$index}.is_auth", $comment->sid == $user->idx ? "Y":"N");
                     $result = Arr::add($result, "list.{$index}.writer_id", $writer->idx);
@@ -75,7 +75,7 @@ class AlbumCommentController extends Controller
                         $writerId = $comment->hidx;
                     }
                     $writer = RaonMember::whereIdx($writerId)->first();
-                    $userMemberDetail = RaonMember::where('idx', $writer->id)->first();
+                    $userMemberDetail = RaonMember::where('idx', $writer->idx)->first();
                     $profile_image = $userMemberDetail->user_picture ?? '';
                     $result = Arr::add($result, "list.{$index}.is_auth", $comment->midx == $user->idx ? "Y":"N");
                     $result = Arr::add($result, "list.{$index}.writer_id", $writer->idx);

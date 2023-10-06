@@ -44,16 +44,18 @@ class StudentController extends Controller
 //        echo "</pre>";
 
         $sessionUserId = $auth['account_id'] ?? '';
+
         $sessionUser = RaonMember::where('id','=',$sessionUserId)->first();
         if (empty($sessionUser)) \App::make('helper')->alert("잘못된 접근입니다.3");
 
         //학부모 자녀의 계정인지 체크
-        $children_rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), str_replace('-','',$sessionUser->phone))
+        $children_rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), str_replace('-','',$sessionUser->mobilephone))
             ->where('mtype', 's')
             ->where('idx','=',$userId)
-            ->whereIn('status', array('W', 'Y'))
-            ->orderBy('status', 'desc')
+            ->whereIn('s_status', array('W', 'Y'))
+            ->orderBy('s_status', 'desc')
             ->get();
+
         if ($children_rs->count() == 0) \App::make('helper')->alert("잘못된 접근입니다.4");
 
         $req = Request::create('/api/logout', 'GET', [
@@ -72,7 +74,7 @@ class StudentController extends Controller
 
         $ip = \App::make('helper')->getClientIp();
         $req = Request::create('/api/login', 'GET', [
-            'login_id' => $user->user_id,
+            'login_id' => $user->id,
             'password' => '1',
             'device_kind' => $auth['device_kind'],
             'device_type' => $auth['device_type'],

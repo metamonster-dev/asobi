@@ -26,19 +26,19 @@ class="body"
                 <input type="checkbox" name="auto_login" checked="checked" value="1">
                 <span class="ic_box"></span>
                 <div class="chk_p">
-                  <p class="text-light">자동 로그인</p>
+                  <p class="text-light">자동 로그인22/p>
                 </div>
               </label>
             </div>
           </div>
           <div class="pt-5">
             <button type="submit" class="btn btn-primary btn-lg btn-block">로그인</button>
-            <button type="button" class="d-none d-lg-block btn btn-blue btn-lg btn-block" onclick="location.href='/auth/join'">입회신청</button>
+{{--            <button type="button" class="d-none d-lg-block btn btn-blue btn-lg btn-block" onclick="location.href='/auth/join'">입회신청</button>--}}
           </div>
           <div class="pt-5 d-flex d-lg-none align-items-center justify-content-center">
             <p class="border-right"><a href="/auth/findId" class="text-light mx-3">아이디 찾기</a></p>
             <p class="border-right"><a href="/auth/findPw" class="text-light mx-3">비밀번호 찾기</a></p>
-            <p class=""><a href="/auth/join" class="text-light mx-3">입회신청</a></p>
+{{--            <p class=""><a href="/auth/join" class="text-light mx-3">입회신청</a></p>--}}
           </div>
         </form>
     </div>

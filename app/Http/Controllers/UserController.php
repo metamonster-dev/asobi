@@ -58,8 +58,7 @@ class UserController extends Controller
         $marketing = $request->input('marketing');
 
         //교육원 있는지 확인.
-        // ToDo: status
-        $center = RaonMember::where('mtype', 'm')->where('status', 'Y')->whereId($center_id)->first();
+        $center = RaonMember::where('mtype', 'm')->where('m_status', 'Y')->whereIdx($center_id)->first();
         if (empty($center)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '교육원이 올바르지 않습니다.');
@@ -68,7 +67,7 @@ class UserController extends Controller
 
         $phone = \App::make('helper')->hypenPhone($parent_contact);
 
-        $user = new User();
+        $user = new RaonMember();
         $user->name = $name;
         $user->mobilephone = $phone;
         $user->mtype = 's';
@@ -77,30 +76,30 @@ class UserController extends Controller
         // todo: 입회신청 api가 완료되면 N으로 변경해야할듯.
         $user->s_status = 'Y';
 //        $user->login_time = date('Y-m-d H:i:s');
-        $user->user_id = "st_".time();
-        $user->save();
+        $user->id = "st_".time();
+//        $user->save();
 
-        $user->user_id = 'st_'.$user->id;
-        $user->save();
+//        $user->id = 'st_'.$user->id;
+//        $user->save();
 
 //        $userMem = new UserMemberDetail();
 //        $userMem->user_id = $user->id;
-//        $userMem->parent_name = $parent_name;
-//        $userMem->parent_contact = $parent_contact;
-//        $userMem->cognitive_pathway = $cognitive_pathway;
-//        $userMem->save();
+        $user->parent_name = $parent_name;
+        $user->parent_contact = $parent_contact;
+        $user->cognitive_path = $cognitive_pathway;
+//        $user->save();
 
-        $userDetail = new RaonMember();
+//        $userDetail = new RaonMember();
 //        $userDetail->idx = $user->id;
-        $userDetail->sex = $sex;
-        $userDetail->birthday = $birth;
-        $userDetail->address1 = $adress;
-        $userDetail->address2 = $adress_desc;
-        $userDetail->mailling = $marketing;
+        $user->sex = $sex;
+        $user->birthday = $birth;
+        $user->address1 = $adress;
+        $user->address2 = $adress_desc;
+        $user->mailling = $marketing;
         if ($marketing == 'Y') {
-            $userDetail->mailling_date = date('Y-m-d H:i:s');
+            $user->mailling_date = date('Y-m-d H:i:s');
         }
-        $userDetail->save();
+        $user->save();
 
         $result = Arr::add($result, 'result', 'success');
         $result = Arr::add($result, 'error', '신청 완료 되었습니다.');
@@ -114,7 +113,7 @@ class UserController extends Controller
         $result = array();
 
         // Todo: status
-        $rs = RaonMember::where('mtype', 'm')->where('status', 'Y')->orderBy('nickname')->get();
+        $rs = RaonMember::where('mtype', 'm')->where('m_status', 'Y')->orderBy('nickname')->get();
         $result = Arr::add($result, 'result', 'success');
         $result = Arr::add($result, 'count', $rs->count());
 
@@ -217,7 +216,7 @@ class UserController extends Controller
 
         $rs = RaonMember::where('midx', $user->idx)
             ->where('mtype', 's')
-            ->where('status', 'Y')
+            ->where('s_status', 'Y')
             ->orderBy('name', 'asc')
             ->get();
         $result = Arr::add($result, 'result', 'success');
@@ -261,7 +260,7 @@ class UserController extends Controller
             $rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $phone)
                 ->where('mtype', 's')
                 ->whereIn('s_status', array('W', 'Y'))
-                ->orderBy('status', 'desc')
+                ->orderBy('s_status', 'desc')
                 ->get();
 
             $result = Arr::add($result, 'result', 'success');

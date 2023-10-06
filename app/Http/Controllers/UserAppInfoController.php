@@ -78,10 +78,10 @@ class UserAppInfoController extends Controller
         $result = Arr::add($result, 'user_id', $user->idx);
         $result = Arr::add($result, 'user_name', $user->mtype == 's' ? $user->name : $user->nickname);
 
-        if ($user->id == 1) {
+        if ($user->idx == 1) {
             $result = Arr::add($result, 'user_type', 'a');
         } else {
-            $userMemberDetail = RaonMember::where('idx', $user->id)->first();
+            $userMemberDetail = RaonMember::where('idx', $user->idx)->first();
             $profile_image = $userMemberDetail->user_picture ?? '';
 
             $result = Arr::add($result, 'user_type', $user->mtype);
@@ -96,7 +96,7 @@ class UserAppInfoController extends Controller
         }
 
         $result = Arr::add($result, 'login_id', $login_id);
-        $result = Arr::add($result, 'account_id', $user->user_id);
+        $result = Arr::add($result, 'account_id', $user->id);
 
         $device_kind = $request->input('device_kind');
         $device_type = $request->input('device_type');
@@ -137,14 +137,14 @@ class UserAppInfoController extends Controller
     }
 
     //학부모 디바이스 저장 처리
-    private function loginUserProc(User $user, &$result, $device_kind, $device_type, $device_id, $push_key, $ip) {
-        $children_search_mobilephone = str_replace('-', '', $user->phone);
+    private function loginUserProc(RaonMember $user, &$result, $device_kind, $device_type, $device_id, $push_key, $ip) {
+
+        $children_search_mobilephone = str_replace('-', '', $user->mobilephone);
 
         $children_rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $children_search_mobilephone)
             ->where('mtype', 's')
-            // Todo: status
-            ->whereIn('status', array('W', 'Y'))
-            ->orderBy('status', 'desc')
+            ->whereIn('s_status', array('W', 'Y'))
+            ->orderBy('s_status', 'desc')
             ->get();
 
         if ($children_rs) {
@@ -154,7 +154,7 @@ class UserAppInfoController extends Controller
                 $children_row->save();
 
                 $payload = [
-                    'user_id' => $children_row->id,
+                    'user_id' => $children_row->idx,
                     'device_kind' => $device_kind,
                     'device_type' => $device_type,
                     'device_id' => $device_id,
@@ -169,7 +169,7 @@ class UserAppInfoController extends Controller
                     'wifi' => 'N',
                 ];
 
-                $userAppInfo = UserAppInfo::where('user_id', $children_row->id)
+                $userAppInfo = UserAppInfo::where('user_id', $children_row->idx)
                     ->where('device_kind', $device_kind)
                     ->where('device_type', $device_type)
                     ->where('device_id', $device_id)
@@ -181,7 +181,7 @@ class UserAppInfoController extends Controller
                         $userAppInfo->save();
                     }
                 } else {
-                    $userAppInfo = UserAppInfo::where('user_id', $children_row->id)
+                    $userAppInfo = UserAppInfo::where('user_id', $children_row->idx)
                         ->whereNull('device_kind')
                         ->whereNull('device_type')
                         ->whereNull('device_id')
@@ -239,7 +239,7 @@ class UserAppInfoController extends Controller
             'wifi' => 'N',
         ];
 
-        $userAppInfo = UserAppInfo::where('user_id', $user->id)
+        $userAppInfo = UserAppInfo::where('user_id', $user->idx)
             ->where('device_kind', $device_kind)
             ->where('device_type', $device_type)
             ->where('device_id', $device_id)
@@ -251,7 +251,7 @@ class UserAppInfoController extends Controller
                 $userAppInfo->save();
             }
         } else {
-            $userAppInfo = UserAppInfo::where('user_id', $user->id)
+            $userAppInfo = UserAppInfo::where('user_id', $user->idx)
                 ->whereNull('device_kind')
                 ->whereNull('device_type')
                 ->whereNull('device_id')
@@ -308,8 +308,8 @@ class UserAppInfoController extends Controller
 
             $children_rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $children_search_mobilephone)
                 ->where('mtype', 's')
-                ->whereIn('status', array('W', 'Y'))
-                ->orderBy('status', 'desc')
+                ->whereIn('s_status', array('W', 'Y'))
+                ->orderBy('s_status', 'desc')
                 ->get();
 
             if ($children_rs->count() == 0) {
@@ -333,7 +333,7 @@ class UserAppInfoController extends Controller
                     );
             } // foreach End
         } else {
-            UserAppInfo::where('user_id', $user->id)
+            UserAppInfo::where('user_id', $user->idx)
                 ->where('device_kind', $device_kind)
                 ->where('device_type', $device_type)
                 ->where('device_id', $device_id)
@@ -390,11 +390,11 @@ class UserAppInfoController extends Controller
         $msg = "아소비 임시비밀번호입니다.\n로그인 후 비밀번호를 변경해주세요.\n임시비밀번호: [{$reset_password}]";
         $bool = \App::make('helper')->sendSms($sms_phone, $msg);
 
-        if ($user->user_type == 's') {
+        if ($user->m_type == 's') {
             $rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $phone)
                 ->where('mtype', 's')
-                ->whereIn('status', array('W', 'Y'))
-                ->orderBy('status', 'desc')
+                ->whereIn('s_status', array('W', 'Y'))
+                ->orderBy('s_status', 'desc')
                 ->get();
 
             if ($rs) {
@@ -464,7 +464,7 @@ class UserAppInfoController extends Controller
             ]);
         }
 
-        $userMem = RaonMember::where('idx', $user->id)->first();
+        $userMem = RaonMember::where('idx', $user->idx)->first();
         if (empty($userMem)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '조회된 유저정보가 없습니다.(1)');
@@ -473,7 +473,7 @@ class UserAppInfoController extends Controller
 //            $userMem->user_id = $user->id;
         }
 
-        $userDetail = RaonMember::where('idx', $user->id)->first();
+        $userDetail = RaonMember::where('idx', $user->idx)->first();
         if (empty($userDetail)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '조회된 유저정보가 없습니다.(2)');
@@ -495,7 +495,7 @@ class UserAppInfoController extends Controller
         $phone = \App::make('helper')->hypenPhone($parent_contact);
 
         //변경하려는 같은 폰이 있을 경우에 에러
-        if (str_replace('-', '', $phone) != str_replace('-', '', $user->phone)) {
+        if (str_replace('-', '', $phone) != str_replace('-', '', $user->mobilephone)) {
             $isUser = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), str_replace('-', '', $phone))->get();
             if ($isUser->count() > 0) {
                 $result = Arr::add($result, 'result', 'fail');
@@ -506,15 +506,15 @@ class UserAppInfoController extends Controller
 
         //학부모일 경우 자녀의 휴대폰 번호를 변경한다.
         if ($user->mtype == 's') {
-            $rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), str_replace('-', '', $user->phone))
+            $rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), str_replace('-', '', $user->mobilephone))
                 ->where('mtype', 's')
 //                ->whereIn('status', array('W', 'Y'))
-                ->orderBy('status', 'desc')
+                ->orderBy('s_status', 'desc')
                 ->get();
 
             if ($rs) {
                 foreach ($rs as $index => $row) {
-                    $row->phone = $phone;
+                    $row->mobilephone = $phone;
                     $row->save();
                 }
             }
@@ -522,7 +522,7 @@ class UserAppInfoController extends Controller
             $user->save();
         } else {
             $user->name = $name;
-            $user->phone = $phone;
+            $user->mobilephone = $phone;
             $user->save();
         }
 
@@ -545,7 +545,7 @@ class UserAppInfoController extends Controller
         $userDetail->save();
 
         $result = Arr::add($result, 'result', 'success');
-        $result = Arr::add($result, 'login_id', ($user->user_type == 's') ? str_replace('-', '', $phone) : $user->user_id);
+        $result = Arr::add($result, 'login_id', ($user->m_type == 's') ? str_replace('-', '', $phone) : $user->user_id);
         $result = Arr::add($result, 'error', '수정 되었습니다.');
     }
 
@@ -607,8 +607,8 @@ class UserAppInfoController extends Controller
 
         // @20210928 한명이상 입회한 학부모 경우 나머지 학생도 출석알림 동기화
         if ($kind === 'attendance') {
-            if ($user->phone) {
-                $child_users = RaonMember::where('mobilephone', $user->phone)
+            if ($user->mobilephone) {
+                $child_users = RaonMember::where('mobilephone', $user->mobilephone)
                     ->where('mtype', 's')
                     ->whereNotIn('id', array($user->id))
                     ->get();
@@ -652,7 +652,7 @@ class UserAppInfoController extends Controller
         }
 
         if ($file && $user) {
-            $userMemberDetail = RaonMember::where('idx', $user->id)->first();
+            $userMemberDetail = RaonMember::where('idx', $user->idx)->first();
             $profile_image = $userMemberDetail->user_picture ?? '';
 
             $file_path = \App::make('helper')->putResizeS3(UserAppInfo::FILE_DIR, $file);

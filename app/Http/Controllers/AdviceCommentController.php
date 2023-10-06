@@ -61,7 +61,7 @@ class AdviceCommentController extends Controller
                     $writer = RaonMember::whereIdx($comment->sidx)->first();
                     $userMemberDetail = RaonMember::where('idx', $writer->idx)->first();
                     $profile_image = $userMemberDetail->user_picture ?? '';
-                    $result = Arr::add($result, "list.{$index}.is_auth", $comment->sidx == $user->id ? "Y":"N");
+                    $result = Arr::add($result, "list.{$index}.is_auth", $comment->sidx == $user->idx ? "Y":"N");
                     $result = Arr::add($result, "list.{$index}.writer_id", $writer->idx);
                     $result = Arr::add($result, "list.{$index}.writer", $writer->name);
                     $result = Arr::add($result, "list.{$index}.writer_picture", $profile_image ? \App::make('helper')->getImage($profile_image):null);
@@ -75,7 +75,7 @@ class AdviceCommentController extends Controller
                     $writer = RaonMember::whereIdx($writerId)->first();
                     $userMemberDetail = RaonMember::where('idx', $writer->idx)->first();
                     $profile_image = $userMemberDetail->user_picture ?? '';
-                    $result = Arr::add($result, "list.{$index}.is_auth", $comment->midx == $user->id ? "Y":"N");
+                    $result = Arr::add($result, "list.{$index}.is_auth", $comment->midx == $user->idx ? "Y":"N");
                     $result = Arr::add($result, "list.{$index}.writer_id", $writer->idx);
                     $result = Arr::add($result, "list.{$index}.writer", $writer->nickname);
                     $result = Arr::add($result, "list.{$index}.writer_picture", $profile_image ? \App::make('helper')->getImage($profile_image) : null);
@@ -131,7 +131,7 @@ class AdviceCommentController extends Controller
                 return response()->json($result);
             }
 //            if (
-//                $user->id != $adviceComment->midx && $user->id != $adviceComment->sidx
+//                $user->idx != $adviceComment->midx && $user->id != $adviceComment->sidx
 //            ) {
 //                $result = Arr::add($result, 'result', 'fail');
 //                $result = Arr::add($result, 'error', '권한이 없습니다.');

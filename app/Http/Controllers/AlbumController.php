@@ -184,7 +184,7 @@ class AlbumController extends Controller
             $students = RaonMember::whereIn('idx', json_decode($row->sidx))->get();
             if ($students) {
                 foreach ($students as $student_index => $student) {
-                    $userMemberDetail = RaonMember::where('id', $student->idx)->first();
+                    $userMemberDetail = RaonMember::where('idx', $student->idx)->first();
                     $profile_image = $userMemberDetail->user_picture ?? '';
 
                     $result = Arr::add($result, "student.{$student_index}.idx", $student->idx);
@@ -217,8 +217,8 @@ class AlbumController extends Controller
             }
         }
 
-        if ($user->user_type == 's') {
-            if ($row->histories->where('sidx', $user->id)->count() === 0) {
+        if ($user->mtype == 's') {
+            if ($row->histories->where('sidx', $user->idx)->count() === 0) {
                 $row->histories()->create(
                     [
                         'hidx' => $user->hidx,
@@ -228,8 +228,8 @@ class AlbumController extends Controller
                 );
             }
         } else {
-            if ($user->user_type == 'm') {
-                if ($row->histories->where('midx', $user->id)->count() === 0) {
+            if ($user->mtype == 'm') {
+                if ($row->histories->where('midx', $user->idx)->count() === 0) {
                     $row->histories()->create(
                         [
                             'hidx' => $user->hidx,
@@ -238,8 +238,8 @@ class AlbumController extends Controller
                     );
                 }
             } else {
-                if ($user->user_type == 'h') {
-                    if ($row->histories->where('hidx', $user->id)->count() === 0) {
+                if ($user->mtype == 'h') {
+                    if ($row->histories->where('hidx', $user->idx)->count() === 0) {
                         $row->histories()->create(
                             [
                                 'hidx' => $user->hidx

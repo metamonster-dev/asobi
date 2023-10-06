@@ -48,7 +48,7 @@ class PushMessageController extends Controller
             $row = AdviceNote::find($this->type_id);
 
             if ($row) {
-                $student = RaonMember::where('id', $row->sidx)->first();
+                $student = RaonMember::where('idx', $row->sidx)->first();
 
                 if ($student) {
                     $arr_push = UserAppInfo::where('user_id', $student->idx)
@@ -113,7 +113,7 @@ class PushMessageController extends Controller
                         ->toArray();
                     $body = "교육원 댓글이 작성되었습니다.";
                 } else if ($row->writer_type == 's') {
-                    $student = RaonMember::where('id', $row->sidx)->first();
+                    $student = RaonMember::where('idx', $row->sidx)->first();
 
                     if($student){
                         $arr_push = UserAppInfo::where('user_id', $row->midx)->where('advice_alarm', 'Y')->whereNotNull('push_key')->pluck('push_key')->toArray();
@@ -153,16 +153,16 @@ class PushMessageController extends Controller
                         $rs = RaonMember::where('midx', $row->midx)
                             ->where('mtype', 's')
                             ->where(function($query) use($row) {
-                                $query->where('status', 'Y')
+                                $query->where('s_status', 'Y')
                                     ->orWhereRaw("id IN (SELECT `sidx` FROM `asobi_log` WHERE `midx` = ? AND `log_type` = 'M2' AND date(`acceptDate`) between '2022-01-24' and '2022-01-28')", [$row->midx]);
                             })
-                            ->pluck('id')
+                            ->pluck('idx')
                             ->toArray();
                     } else {
                         $rs = RaonMember::where('midx', $row->midx)
                             ->where('mtype', 's')
-                            ->where('status', 'Y')
-                            ->pluck('id')
+                            ->where('s_status', 'Y')
+                            ->pluck('idx')
                             ->toArray();
                     }
 
@@ -176,8 +176,8 @@ class PushMessageController extends Controller
                 } else if ($row->writer_type == 'h') {
                     $rs = RaonMember::where('hidx', $row->midx)
                         ->where('mtype', 'm')
-                        ->where('status', 'Y')
-                        ->pluck('id')
+                        ->where('m_status', 'Y')
+                        ->pluck('idx')
                         ->toArray();
 
                     $arr_push = UserAppInfo::whereIn('user_id', $rs)
@@ -190,15 +190,15 @@ class PushMessageController extends Controller
                     if ($nowTime < $diffTime) {
                         $rs = RaonMember::where('midx', 's')
                             ->where(function($query) use($row) {
-                                $query->where('status', 'Y')
+                                $query->where('s_status', 'Y')
                                     ->orWhereRaw("idx IN (SELECT `student_id` FROM `logs` WHERE `log_type` = 'M2' AND date(`accepted_at`) between '2022-01-24' and '2022-01-28')");
                             })
                             ->pluck('idx')
                             ->toArray();
                     } else {
                         $rs = RaonMember::where('mtype', 's')
-                            ->where('status', 'Y')
-                            ->pluck('id')
+                            ->where('s_status', 'Y')
+                            ->pluck('idx')
                             ->toArray();
                     }
 
@@ -232,20 +232,20 @@ class PushMessageController extends Controller
                 }
             }
         }
-        else if ($this->type == "appNotice")
+        else if ($this->type == "appNotice") // 어드민으로 테스트
         {
             $row = AppNotice::find($this->type_id);
 
             if ($row) {
                 if ($row->read_branch == 'Y') {
                     $branch_rs = RaonMember::where('mtype', 'h')
-                        ->where('status', 'Y')
-                        ->pluck('id')
+                        ->where('h_status', 'Y')
+                        ->pluck('idx')
                         ->toArray();
 
                     $center_rs = RaonMember::where('mtype', 'm')
-                        ->where('status', 'Y')
-                        ->pluck('id')
+                        ->where('m_status', 'Y')
+                        ->pluck('idx')
                         ->toArray();
 
                     $rs = array_merge($branch_rs, $center_rs);
@@ -258,8 +258,8 @@ class PushMessageController extends Controller
                 } else if ($row->read_center == 'Y') {
                     $rs = RaonMember::where('hidx', $row->hidx)
                         ->where('mtype', 'm')
-                        ->where('status', 'Y')
-                        ->pluck('id')
+                        ->where('m_status', 'Y')
+                        ->pluck('idx')
                         ->toArray();
 
                     $arr_push = UserAppInfo::whereIn('user_id', $rs)
@@ -371,7 +371,7 @@ class PushMessageController extends Controller
                     $body = "교육원 댓글이 작성되었습니다.";
                 } else if ($row->writer_type == 's') {
                     if (is_array($rs) && count($rs)) {
-                        $student = RaonMember::whereIn('id', $rs)->first();
+                        $student = RaonMember::whereIn('idx', $rs)->first();
 
                         if ($student) {
                             $arr_push = UserAppInfo::where('user_id', $row->midx)
@@ -413,7 +413,7 @@ class PushMessageController extends Controller
 
             if ($row) {
                 if ($row->sidx) {
-                    $user = RaonMember::where('id', $row->sidx)->first();
+                    $user = RaonMember::where('idx', $row->sidx)->first();
 
                     if ($user) {
                         $arr_push = UserAppInfo::where('user_id', $row->sidx)
@@ -465,7 +465,7 @@ class PushMessageController extends Controller
                 }
             }
         }
-        else if ($this->type == 'educatonInfo')
+        else if ($this->type == 'educatonInfo') // 어드민으로 테스트
         {
             $row = EducatonInfo::find($this->type_id);
             if ($row) {
@@ -501,7 +501,7 @@ class PushMessageController extends Controller
         else if ($this->type == 'educatonInfoComment')
         {
         }
-        else if ($this->type == 'event')
+        else if ($this->type == 'event') // 어드민으로 테스트
         {
             $row = Event::find($this->type_id);
             if ($row) {
@@ -551,7 +551,7 @@ class PushMessageController extends Controller
         if ($this->type == AdviceNote::ADVICE_TYPE || $this->type == AdviceNote::LETTER_TYPE) {
             $row = AdviceNote::find($this->type_id);
             if ($row) {
-                $student = RaonMember::where('id', $row->sidx)->first();
+                $student = RaonMember::where('idx', $row->sidx)->first();
                 if ($student) {
                     if ($row->type == AdviceNote::ADVICE_TYPE) {
                         $body = "{$student->name}의 알림장이 작성되었습니다.";
@@ -579,7 +579,7 @@ class PushMessageController extends Controller
                 } else if($row->writer_type == 'm'){
                     $body = "교육원 댓글이 작성되었습니다.";
                 } else if($row->writer_type == 's'){
-                    $student = RaonMember::where('id', $row->sidx)->first();
+                    $student = RaonMember::where('idx', $row->sidx)->first();
                     if($student){
                         $body = "{$student->name} 학부모 댓글이 작성되었습니다.";
                     }
@@ -597,13 +597,13 @@ class PushMessageController extends Controller
             $row = Notice::find($this->type_id);
             if ($row) {
                 if ($row->writer_type == 'm') {
-                    $rs = RaonMember::where('midx', $row->midx)->where('mtype', 's')->where('status', 'Y')->pluck('id')->toArray();
+                    $rs = RaonMember::where('midx', $row->midx)->where('mtype', 's')->where('s_status', 'Y')->pluck('idx')->toArray();
                     $body = "[공지] 교육원 공지사항이 작성되었습니다.";
                 } else if ($row->writer_type == 'h') {
-                    $rs = RaonMember::where('hidx', $row->midx)->where('mtype', 'm')->where('status', 'Y')->pluck('id')->toArray();
+                    $rs = RaonMember::where('hidx', $row->midx)->where('mtype', 'm')->where('m_status', 'Y')->pluck('idx')->toArray();
                     $body = "[공지] 지사 공지사항이 작성되었습니다.";
                 } else if ($row->writer_type == 'a') {
-                    $rs = RaonMember::where('mtype', 's')->where('status', 'Y')->pluck('id')->toArray();
+                    $rs = RaonMember::where('mtype', 's')->where('s_status', 'Y')->pluck('idx')->toArray();
                     $body = "[공지] 공지사항이 작성되었습니다.";
                 }
                 if ($push_key) {
@@ -618,11 +618,11 @@ class PushMessageController extends Controller
             $row = AppNotice::find($this->type_id);
             if ($row) {
                 if ($row->read_branch == 'Y') {
-                    $branch_rs = RaonMember::where('mtype', 'h')->where('status', 'Y')->pluck('id')->toArray();
-                    $center_rs = RaonMember::where('mtype', 'm')->where('status', 'Y')->pluck('id')->toArray();
+                    $branch_rs = RaonMember::where('mtype', 'h')->where('h_status', 'Y')->pluck('idx')->toArray();
+                    $center_rs = RaonMember::where('mtype', 'm')->where('m_status', 'Y')->pluck('idx')->toArray();
                     $rs = array_merge($branch_rs, $center_rs);
                 } else if ($row->read_center == 'Y') {
-                    $rs = RaonMember::where('hidx', $row->hidx)->where('mtype', 'm')->where('status', 'Y')->pluck('id')->toArray();
+                    $rs = RaonMember::where('hidx', $row->hidx)->where('mtype', 'm')->where('m_status', 'Y')->pluck('idx')->toArray();
                 }
                 if ($push_key) {
                     $body = "[공지] 아소비교육 공지사항이 작성되었습니다.";
@@ -660,7 +660,7 @@ class PushMessageController extends Controller
                 } else if($row->writer_type == 'm'){
                     $body = "교육원 댓글이 작성되었습니다.";
                 } else if($row->writer_type == 's'){
-                    $student = RaonMember::where('id', $row->sidx)->first();
+                    $student = RaonMember::where('idx', $row->sidx)->first();
                     if($student){
                         $body = "{$student->name} 학부모 댓글이 작성되었습니다.";
                     }

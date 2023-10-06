@@ -73,7 +73,7 @@ class AdviceNoteController extends Controller
             ->where('mtype', 's')
             ->where('s_status', 'Y')
             ->when($search_user_id != "", function ($q) use ($search_user_id) {
-                $q->where('idx', $search_user_id);
+                $q->where('id', $search_user_id);
             })
             ->orderBy('name', 'asc')
             ->get();
@@ -290,31 +290,31 @@ class AdviceNoteController extends Controller
                 $result = Arr::add($result, "this_month_education_info", null);
             }
 
-            $this_course = DB::table('orders AS o')
-                ->join('order_member_details AS omd', 'omd.order_idx', '=', 'o.idx')
-                ->join('shop_products AS sp', 'sp.idx', '=', 'omd.product_idx')
+            $this_course = DB::table('order AS o')
+                ->join('order_member_detail AS omd', 'omd.order_idx', '=', 'o.idx')
+                ->join('shopProduct AS sp', 'sp.idx', '=', 'omd.product_idx')
                 ->select('sp.name', 'sp.content')
                 ->where('o.course', $row->this_month)
                 ->where('o.status', '33')
                 ->where('omd.sidx', $row->sidx)
                 ->where('omd.order_type', 'B')
                 ->where('omd.status', '33')
-                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.idx)"), '=', 0)
-                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_details` WHERE `order_member_id` = omd.idx AND `status` = '99')"), '=', 0)
+//                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.idx)"), '=', 0)
+                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail` WHERE `order_member_idx` = omd.idx AND `status` = '99')"), '=', 0)
                 ->orderBy('omd.idx', 'ASC')
                 ->get();
 
-            $next_course = DB::table('orders AS o')
-                ->join('order_member_details AS omd', 'omd.order_idx', '=', 'o.idx')
-                ->join('shop_products AS sp', 'sp.idx', '=', 'omd.product_id')
+            $next_course = DB::table('order AS o')
+                ->join('order_member_detail AS omd', 'omd.order_idx', '=', 'o.idx')
+                ->join('shopProduct AS sp', 'sp.idx', '=', 'omd.product_idx')
                 ->select('sp.name', 'sp.content')
                 ->where('o.course', $row->next_month)
                 ->where('o.status', '33')
                 ->where('omd.sidx', $row->sidx)
                 ->where('omd.order_type', 'B')
                 ->where('omd.status', '33')
-                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.idx)"), '=', 0)
-                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_details` WHERE `order_member_id` = omd.idx AND `status` = '99')"), '=', 0)
+//                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.idx)"), '=', 0)
+                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail` WHERE `order_member_idx` = omd.idx AND `status` = '99')"), '=', 0)
                 ->orderBy('omd.idx', 'ASC')
                 ->get();
 
@@ -438,7 +438,7 @@ class AdviceNoteController extends Controller
 
         $student = $request->input('student');
 
-        if (!($user->user_type == 'm' && $student)) {
+        if (!($user->m_type == 'm' && $student)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -467,31 +467,31 @@ class AdviceNoteController extends Controller
             $result = Arr::add($result, "this_month_education_info", null);
         }
 
-        $this_course = DB::table('orders AS o')
-            ->join('order_member_details AS omd', 'omd.order_idx', '=', 'o.idx')
-            ->join('shop_products AS sp', 'sp.idx', '=', 'omd.product_idx')
+        $this_course = DB::table('order AS o')
+            ->join('order_member_detail AS omd', 'omd.order_idx', '=', 'o.idx')
+            ->join('shopProduct AS sp', 'sp.idx', '=', 'omd.product_idx')
             ->select('sp.name', 'sp.content')
             ->where('o.course', $this_month)
             ->where('o.status', '33')
             ->where('omd.sidx', $student)
             ->where('omd.order_type', 'B')
             ->where('omd.status', '33')
-            ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.idx)"), '=', 0)
-            ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_details` WHERE `order_member_id` = omd.idx AND `status` = '99')"), '=', 0)
+//            ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.idx)"), '=', 0)
+            ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail` WHERE `order_member_id` = omd.idx AND `status` = '99')"), '=', 0)
             ->orderBy('omd.idx', 'ASC')
             ->get();
 
-        $next_course = DB::table('orders AS o')
-            ->join('order_member_details AS omd', 'omd.order_idx', '=', 'o.idx')
-            ->join('shop_products AS sp', 'sp.idx', '=', 'omd.product_idx')
+        $next_course = DB::table('order AS o')
+            ->join('order_member_detail AS omd', 'omd.order_idx', '=', 'o.idx')
+            ->join('shopProduct AS sp', 'sp.idx', '=', 'omd.product_idx')
             ->select('sp.name', 'sp.content')
             ->where('o.course', $next_month)
             ->where('o.status', '33')
             ->where('omd.sidx', $student)
             ->where('omd.order_type', 'B')
             ->where('omd.status', '33')
-            ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.idx)"), '=', 0)
-            ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_details` WHERE `order_member_id` = omd.idx AND `status` = '99')"), '=', 0)
+//            ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.idx)"), '=', 0)
+            ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail` WHERE `order_member_id` = omd.idx AND `status` = '99')"), '=', 0)
             ->orderBy('omd.idx', 'ASC')
             ->get();
 
@@ -513,7 +513,7 @@ class AdviceNoteController extends Controller
             $result = Arr::add($result, "next_schedule", null);
         }
 
-        $advice_note_letter = AdviceNote::where('midx', $user->id)
+        $advice_note_letter = AdviceNote::where('midx', $user->idx)
             ->where('sidx', $student)
             ->where('type', AdviceNote::LETTER_TYPE)
             ->where('year', $year)
@@ -555,7 +555,7 @@ class AdviceNoteController extends Controller
             return response()->json($result);
         }
 
-        if ($user->user_type != 'm') {
+        if ($user->m_type != 'm') {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -983,7 +983,7 @@ class AdviceNoteController extends Controller
 
         $studentCount = RaonMember::where('midx', $user->idx)
             ->where('mtype', 's')
-            ->where('status', 'Y')
+            ->where('s_status', 'Y')
             ->count();
 
         $advice_note_count = AdviceNote::where('type', $type)
@@ -1033,7 +1033,7 @@ class AdviceNoteController extends Controller
 
         $students = RaonMember::where('midx', $user->idx)
             ->where('mtype', 's')
-            ->where('status', 'Y')
+            ->where('s_status', 'Y')
             ->whereRaw("`id` NOT IN (
                 SELECT `sidx` FROM advice_notes
                 WHERE advice_notes.type = '{$type}' and advice_notes.midx = {$user->idx} AND advice_notes.deleted_at IS NULL
@@ -1175,7 +1175,7 @@ class AdviceNoteController extends Controller
 
         $studentCount = RaonMember::where('midx', $user->idx)
             ->where('mtype', 's')
-            ->where('status', 'Y')
+            ->where('s_status', 'Y')
             ->count();
 
         $advice_note_count = AdviceNote::where('type', $type)
@@ -1611,6 +1611,7 @@ class AdviceNoteController extends Controller
             'user' => $user
         ]);
         $res = $this->show($req, $id);
+
         // \App::make('helper')->vardump($res->original);
 
         if ($res->original['result'] != 'success') {

@@ -144,7 +144,7 @@ class CommonCommentController extends Controller
                 $result = Arr::add($result, "list.{$index}.pid", $comment->pid);
 
                 $writer = RaonMember::whereIdx($comment->writer_id)->first();
-                $userMemberDetail = RaonMember::where('idx', $writer->id)->first();
+                $userMemberDetail = RaonMember::where('idx', $writer->idx)->first();
                 $profile_image = $userMemberDetail->user_picture ?? '';
                 $result = Arr::add($result, "list.{$index}.is_auth", $comment->writer_id == $user->idx ? "Y":"N");
                 $result = Arr::add($result, "list.{$index}.writer_id", $writer->idx);

@@ -47,23 +47,23 @@ class CounselingController extends Controller
 
 //        \App::make('helper')->log('search_user_id', ['search_user_id' => $search_user_id], 'search_user_id');
 
-        $rs = DB::table('raon_members')
-            ->select('raon_members.idx as uid', 'raon_members.name as uname', 'cls.created_at as ccreated_at')
+        $rs = DB::table('raon_member')
+            ->select('raon_member.idx as uid', 'raon_member.name as uname', 'cls.created_at as ccreated_at')
             ->leftJoin(DB::raw('(select max(created_at) created_at, sidx, year, month from counselings group by sidx) as cls'),function ($join) {
-                $join->on('raon_members.idx','=','cls.sidx');
+                $join->on('raon_member.idx','=','cls.sidx');
             })
             ->where('midx', $user->idx)
-            ->where('raon_members.mtype','s')
-            ->where('raon_members.s_status','Y')
+            ->where('raon_member.mtype','s')
+            ->where('raon_member.s_status','Y')
 //            ->whereRaw("users.user_type = 's'")
 //            ->whereRaw("users.status = 'Y'")
             ->when($year_month, function ($q) use ($year_month) {
                 $q->whereRaw("date_format(cls.created_at, '%Y-%m') = '{$year_month}'");
             })
             ->when($search_user_id != "", function ($q) use ($search_user_id) {
-                $q->where('raon_members.idx', $search_user_id);
+                $q->where('raon_member.idx', $search_user_id);
             })
-            ->orderBy('raon_members.name')
+            ->orderBy('raon_member.name')
             ->get();
 
         $result = Arr::add($result, 'result', 'success');

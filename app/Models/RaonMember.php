@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class RaonMember extends Model
 {
     use HasFactory;
-
     protected $primaryKey = 'idx';
+
+    protected $table = 'raon_member';
+    public $timestamps = false;
 }

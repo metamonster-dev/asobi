@@ -23,7 +23,7 @@ class AdviceNoteAdminController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['a'])) {
+        if (!in_array($user->m_type, ['a'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);

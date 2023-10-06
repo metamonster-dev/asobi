@@ -32,7 +32,7 @@ todo:
 1. .env - APP_ENV=production
 2. .env - APP_DEBUG=false
 3. AppServiceProvider - boot 쿼리 로그 남기는부분 삭제
-4. 웹에서 학부모 로그인 시 주석 해제해야함. (UserAppInfoController.login)
+4. 웹에서 학부모 로그인 시 주석 해제해야함. (UserAppInfoController.login)ㅇ
 5. 임시비밀번호 발송 내역: 5/17 - 18:02분 1건
 
 6. 알림장, 앨범에 지사, 본사 댓글

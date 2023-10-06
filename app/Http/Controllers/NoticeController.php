@@ -166,6 +166,7 @@ class NoticeController extends Controller
         }
 
         $row = Notice::with('files')->whereId($notice_id)->where('status', 'Y')->first();
+
         if (empty($row)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '잘못된 요청입니다.');
@@ -202,7 +203,7 @@ class NoticeController extends Controller
                     [
                         'hidx' => $user->hidx,
                         'midx' => $user->midx,
-                        'sidx' => $user->id
+                        'sidx' => $user->idx
                     ]
                 );
             }
@@ -231,11 +232,11 @@ class NoticeController extends Controller
 
         if ($user->mtype == 'm') {
             $readed_students = NoticeHistory::select(
-                'raon_members.idx',
-                'raon_members.id',
-                'raon_members.name'
+                'raon_member.idx',
+                'raon_member.id',
+                'raon_member.name'
             )
-            ->join('raon_members', 'raon_members.idx', '=', 'notice_histories.sidx')
+            ->join('raon_member', 'raon_member.idx', '=', 'notice_histories.sidx')
             ->where('notice_histories.notice_id', $notice_id)
             ->where('notice_histories.hidx', $user->hidx)
             ->where('notice_histories.midx', $user->idx)

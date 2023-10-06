@@ -87,7 +87,7 @@ class CheckLogin
                 'user_name' => $user->name,
                 'account_id' => $user->id,
                 'user_type' => $user->mtype,
-                'login_id' => ($user->mtype == 's') ? str_replace('-', '', $rs->phone ?? '') : $rs->user_id,
+                'login_id' => ($user->mtype == 's') ? str_replace('-', '', $rs->mobilephone ?? '') : $rs->user_id,
 //                'login_id' => \App::make('helper')->hypenPhone($rs->phone ?? ''),
                 'push_alarm' => $rs->push_alarm,
                 'notice_alarm' => $rs->notice_alarm,
