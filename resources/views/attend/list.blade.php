@@ -7,6 +7,10 @@ class="body sub_bg4"
 $title = "출석부 관리";
 $hd_bg = "4";
 $back_link = "/";
+$twoYearsAgo = date('Y-m', strtotime('-2 years', mktime(0, 0, 0, 1, 1, date('Y'))));
+$thisYear = date(date('Y').'-12');
+$thisYear = date(date('Y').'-12');
+$device_type = session('auth')['device_type'] ?? '';
 ?>
 @include('common.headm02')
 
@@ -26,7 +30,13 @@ $back_link = "/";
                 <form name="attendForm" id="attendForm" method="GET" action="/attend" class="col-lg-6 px-0">
                     <div class="m_top mb-0 mt-0 mt-lg-3 mt-lg-0 pt-3 pt-lg-0">
                         <div class="input-group justify-content-start justify-content-lg-end">
-                            <input type="month" name="ym" id="ym" value="{{ $ym }}" class="form-control form-control-lg col-lg-6" onchange="form_ym_change()">
+                            <input type="month" name="ym" id="ym" value="{{ $ym }}" min="{{ $twoYearsAgo }}" max="{{ $thisYear }}" class="form-control form-control-lg col-lg-6"
+                                   @if ($device_type === 'iPhone' || $device_type === 'iPad')
+                                       onBlur="this.form.submit()"
+                                   @else
+                                       onchange="this.form.submit()"
+                                   @endif
+                            >
                             @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='m')
                             <!-- ※ 아래의 select, 교육원일 때만 노출 -->
                             <div class="position-relative gr_r">
@@ -203,6 +213,7 @@ $back_link = "/";
     // 등,하원 선택
     function inoutChange(_this) {
         // alert()
+
         const f = $("#attendAction");
 
         const userId = '{{ session('auth')['user_id'] ?? "" }}';
@@ -224,7 +235,15 @@ $back_link = "/";
             attendIn = f.find(`input[name=in${id}]`).is(':checked') ? 1 : 0;
             attendOut = f.find(`input[name=out${id}]`).is(':checked') ? 1 : 0;
 
+            console.log(type);
+
             if(type == 'in') {
+                if (attendOut == 1) {
+                    f.find(`input[name=in${id}]`).prop("checked", true);
+                    jalert('하원 후에는 등원 취소 처리하실 수 없습니다.');
+                    return false;
+                }
+
                 check = attendIn;
             } else {
                 if (attendIn == 0) {
@@ -256,6 +275,28 @@ $back_link = "/";
         @if($day !== '')
             $("#dateSelect").val({{ $day }}).prop("selected", true);
         @endif
+    });
+
+    const dateInput = document.getElementById('ym');
+
+    const minDate = new Date();
+    const maxDate = new Date();
+
+    minDate.setFullYear(minDate.getFullYear() - 2);
+    maxDate.setMonth(11);
+
+    const minYear = minDate.getFullYear();
+    const minMonth = String(minDate.getMonth() + 1).padStart(2, '0');
+
+    dateInput.addEventListener('input', function() {
+        const selectedDate = new Date(this.value);
+
+        if (selectedDate < minDate) {
+            this.value = `${minYear}-${minMonth}`;
+        } else if (selectedDate > maxDate) {
+            const maxYear = maxDate.getFullYear();
+            this.value = `${maxYear}-12`;
+        }
     });
 </script>
 

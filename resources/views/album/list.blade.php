@@ -7,6 +7,9 @@ class="body"
 $title = "앨범관리";
 $hd_bg = "2";
 $back_link = "/";
+$twoYearsAgo = date('Y-m', strtotime('-2 years', mktime(0, 0, 0, 1, 1, date('Y'))));
+$thisYear = date(date('Y').'-12');
+$device_type = session('auth')['device_type'] ?? '';
 ?>
 @include('common.headm02')
 
@@ -26,7 +29,13 @@ $back_link = "/";
                     <div class="d-block d-lg-flex mt-0 mt-lg-3 mt-lg-0">
                         <div class="m_top mb-0">
                             <div class="input-group">
-                                <input type="month" name="ym" id="ym" value="{{ $ym }}" class="form-control form-control-lg col-6 col-lg-5" onchange="this.form.submit()">
+                                <input type="month" name="ym" id="ym" value="{{ $ym }}" min="{{ $twoYearsAgo }}" max="{{ $thisYear }}" class="form-control form-control-lg col-6 col-lg-5"
+                                       @if ($device_type === 'iPhone' || $device_type === 'iPad')
+                                           onBlur="this.form.submit()"
+                                       @else
+                                           onchange="this.form.submit()"
+                                       @endif
+                                >
                                 <div class="ip_sch_wr col-6 col-lg-7 px-0">
                                     <input type="search" name="search_text" id="search_text" value="{{ $search_text }}" class="form-control ip_search">
                                     <button type="submit" class="btn btn_sch btn_sch2"></button>
@@ -140,6 +149,28 @@ $back_link = "/";
 <script>
     $(window).on("load", function() {
         getVimeoThumbs();
+    });
+
+    const dateInput = document.getElementById('ym');
+
+    const minDate = new Date();
+    const maxDate = new Date();
+
+    minDate.setFullYear(minDate.getFullYear() - 2);
+    maxDate.setMonth(11);
+
+    const minYear = minDate.getFullYear();
+    const minMonth = String(minDate.getMonth() + 1).padStart(2, '0');
+
+    dateInput.addEventListener('input', function() {
+        const selectedDate = new Date(this.value);
+
+        if (selectedDate < minDate) {
+            this.value = `${minYear}-${minMonth}`;
+        } else if (selectedDate > maxDate) {
+            const maxYear = maxDate.getFullYear();
+            this.value = `${maxYear}-12`;
+        }
     });
 </script>
 

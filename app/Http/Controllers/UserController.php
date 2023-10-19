@@ -349,21 +349,29 @@ class UserController extends Controller
         }
 
         $result = Arr::add($result, 'result', 'success');
-        $result = Arr::add($result, 'user_id', $user->idx);
-        $result = Arr::add($result, 'user_name', $user->mtype == 's' ? $user->name : $user->nickname);
-        if ($user->idx == 1) {
-            $result = Arr::add($result, 'user_type', 'admin');
-        } else {
-            $userMemberDetail = RaonMember::where('idx', $user->idx)->first();
-            $profile_image = $userMemberDetail->user_picture ?? '';
-            $result = Arr::add($result, 'user_type', $user->mtype);
-            $result = Arr::add($result, "user_picture", $profile_image ? \App::make('helper')->getImage($profile_image) : null);
-            if ($user->mtype == 's') {
-                $center = RaonMember::whereIdx($user->midx)->first();
-                $result = Arr::add($result, 'center_name', $center ? $center->nickname : null);
-            }
-        }
-        $result = Arr::add($result, 'login_id', $user->idx);
+//        $result = Arr::add($result, 'user_id', $user->idx);
+//        $result = Arr::add($result, 'user_name', $user->mtype == 's' ? $user->name : $user->nickname);
+//        if ($user->idx == 1) {
+//            $result = Arr::add($result, 'user_type', 'admin');
+//        } else {
+//            $userMemberDetail = RaonMember::where('idx', $user->idx)->first();
+//            $profile_image = $userMemberDetail->user_picture ?? '';
+//            $result = Arr::add($result, 'user_type', $user->mtype);
+//            $result = Arr::add($result, "user_picture", $profile_image ? \App::make('helper')->getImage($profile_image) : null);
+//            if ($user->mtype == 's') {
+//                $center = RaonMember::whereIdx($user->midx)->first();
+//                $result = Arr::add($result, 'center_name', $center ? $center->nickname : null);
+//            }
+//        }
+//        $result = Arr::add($result, 'login_id', $user->idx);
+
+        $profile_image = $user->user_picture ?? '';
+        $result = Arr::add($result, "list.0.id", $user->idx);
+        $result = Arr::add($result, "list.0.name", $user->name);
+        $result = Arr::add($result, "list.0.profile_image", $profile_image ? \App::make('helper')->getImage($profile_image) : null);
+//        $result = Arr::add($result, "list.0.birthday", $birth_day);
+//        $result = Arr::add($result, "list.0.branch_name", $shopCategory ? $shopCategory->cd_text : '');
+//        $result = Arr::add($result, "list.0.center_name", '');
 
         return response()->json($result);
     }

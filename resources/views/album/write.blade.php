@@ -161,6 +161,13 @@ $hd_bg = "2";
         fsubmit = true;
         $("#fsubmit").prop('disabled',true);
 
+        if (ycommon.getUploadCount(upload_cont-delete_ids.length+tmp_file_ids.length) > 20 ) {
+            fsubmit = false;
+            $("#fsubmit").prop('disabled',false);
+            jalert("사진 및 동영상을 20개 초과할 수 없습니다.");
+            return false;
+        }
+
         if (ycommon.getUploadCount(upload_cont-delete_ids.length+tmp_file_ids.length) == 0) {
             fsubmit = false;
             $("#fsubmit").prop('disabled',false);
@@ -227,6 +234,8 @@ $hd_bg = "2";
     });
 
     function tmpSave() {
+        ycommon.deleteData('file');
+
         let multiform_delete_idx2 = ycommon.getMultiformDeleteIdxs(multiform_delete_idx);
         if ($('.upload_files').length > 0 || tmp_file_delete_ids.length > 0) {
             const formData = new FormData();
@@ -254,6 +263,10 @@ $hd_bg = "2";
             ycommon.ajaxJson('post', action, formData, undefined, undefined,undefined,function (jqXHR, textStatus, errorThrown){
                 jalert("파일 임시저장에 실패하였습니다.");
             },undefined,undefined,{processData:false, contentType: false});
+
+            ycommon.setData('file', {
+                file: 'Y'
+            });
         }
 
         let title = $('#title').val();
@@ -270,6 +283,7 @@ $hd_bg = "2";
             ymd: ymd,
             student: student
         });
+
         jalert("임시저장 되었습니다.");
     }
 
@@ -284,54 +298,59 @@ $hd_bg = "2";
             }
         }
 
-        let action = `/api/tmpFiles`;
-        ycommon.ajaxJson('get', action, {user: userId, type: "4"}, undefined, function (data){
-            // console.log(data)
-            if (data.count !== undefined && data.count > 0) {
-                let privewUploade = '<div class="image-upload2 on mr-3" data-id="{i}" id="image-upload-{i}">'+
-                    '<label id="label_upload_file_{i}" for="upload_file_{i}">' +
-                    '<div class="upload-icon2">' +
-                    '<button type="button" class="btn del" data-tmpid="{image_id}"></button>' +
-                    '{image}' +
-                    '</div>' +
-                    '</label>' +
-                    '</div>';
-                let previewHtml = '<div class="att_img mb-4" id="imageVideo{i}">' +
-                    '<div class="rounded overflow-hidden">' +
-                    '{imageVideo}' +
-                    '</div>' +
-                    '</div>' ;
+        let fileData = ycommon.getData('file');
 
-                let privewUploadeTmp, previewHtmlTmp;
+        if (fileData) {
+            let action = `/api/tmpFiles`;
+            ycommon.ajaxJson('get', action, {user: userId, type: "4"}, undefined, function (data){
+                // console.log(data)
+                if (data.count !== undefined && data.count > 0) {
+                    let privewUploade = '<div class="image-upload2 on mr-3" data-id="{i}" id="image-upload-{i}">'+
+                        '<label id="label_upload_file_{i}" for="upload_file_{i}">' +
+                        '<div class="upload-icon2">' +
+                        '<button type="button" class="btn del" data-tmpid="{image_id}"></button>' +
+                        '{image}' +
+                        '</div>' +
+                        '</label>' +
+                        '</div>';
+                    let previewHtml = '<div class="att_img mb-4" id="imageVideo{i}">' +
+                        '<div class="rounded overflow-hidden">' +
+                        '{imageVideo}' +
+                        '</div>' +
+                        '</div>' ;
 
-                for(let i=0;i<data.list.length; i++) {
-                    tmp_file_ids.push(data.list[i].file_id);
+                    let privewUploadeTmp, previewHtmlTmp;
 
-                    privewUploadeTmp = privewUploade;
-                    privewUploadeTmp = privewUploadeTmp.replaceAll("{i}", data.list[i].file_id);
-                    privewUploadeTmp = privewUploadeTmp.replaceAll('{image_id}', data.list[i].file_id);
-                    if (data.list[i].vimeo_id == "video") {
-                        privewUploadeTmp = privewUploadeTmp.replaceAll('{image}', "<video><source src='"+data.list[i].file_path+"' /></video>");
-                    } else {
-                        privewUploadeTmp = privewUploadeTmp.replaceAll('{image}', "<img src='"+data.list[i].file_path+"' />");
+                    for(let i=0;i<data.list.length; i++) {
+                        tmp_file_ids.push(data.list[i].file_id);
+
+                        privewUploadeTmp = privewUploade;
+                        privewUploadeTmp = privewUploadeTmp.replaceAll("{i}", data.list[i].file_id);
+                        privewUploadeTmp = privewUploadeTmp.replaceAll('{image_id}', data.list[i].file_id);
+                        if (data.list[i].vimeo_id == "video") {
+                            privewUploadeTmp = privewUploadeTmp.replaceAll('{image}', "<video><source src='"+data.list[i].file_path+"' /></video>");
+                        } else {
+                            privewUploadeTmp = privewUploadeTmp.replaceAll('{image}', "<img src='"+data.list[i].file_path+"' />");
+                        }
+
+                        previewHtmlTmp = previewHtml;
+                        previewHtmlTmp = previewHtmlTmp.replaceAll("{i}", data.list[i].file_id);
+                        if (data.list[i].vimeo_id == "video") {
+                            previewHtmlTmp = previewHtmlTmp.replaceAll('{imageVideo}', '<video><source src="'+data.list[i].file_path+'" class="w-100"></video>');
+                        } else {
+                            previewHtmlTmp = previewHtmlTmp.replaceAll('{imageVideo}', '<img src="'+data.list[i].file_path+'" class="w-100">');
+                        }
+
+                        $('#imgUpload').append(privewUploadeTmp)
+                        $('#imageVideo').append(previewHtmlTmp)
                     }
-
-                    previewHtmlTmp = previewHtml;
-                    previewHtmlTmp = previewHtmlTmp.replaceAll("{i}", data.list[i].file_id);
-                    if (data.list[i].vimeo_id == "video") {
-                        previewHtmlTmp = previewHtmlTmp.replaceAll('{imageVideo}', '<video><source src="'+data.list[i].file_path+'" class="w-100"></video>');
-                    } else {
-                        previewHtmlTmp = previewHtmlTmp.replaceAll('{imageVideo}', '<img src="'+data.list[i].file_path+'" class="w-100">');
-                    }
-
-                    $('#imgUpload').append(privewUploadeTmp)
-                    $('#imageVideo').append(previewHtmlTmp)
+                    setTimeout(function (){
+                        ycommon.setUploadCount(tmp_file_ids.length);
+                    },100);
                 }
-                setTimeout(function (){
-                    ycommon.setUploadCount(tmp_file_ids.length);
-                },100);
-            }
-        });
+            });
+        }
+
     }
 
     function getAlbumPreview() {
@@ -369,6 +388,12 @@ $hd_bg = "2";
                 jalert("사진 동영상은 20개까지만 등록 가능합니다.");
                 return;
             }
+
+            if (document.querySelectorAll('input[name="upload_files[]"]').length > 20) {
+                jalert("사진 동영상은 20개까지만 등록 가능합니다.");
+                return;
+            }
+
             let addForm = '<div class="image-upload2 mr-3" data-id="'+i+'" id="image-upload-'+i+'">'+
                 '<label id="label_upload_file_'+i+'" for="upload_file_'+i+'">' +
                 '<div class="upload-icon2">' +
@@ -384,7 +409,9 @@ $hd_bg = "2";
             i++;
         });
 
+
         @if(isset($row['file']) && is_array($row['file']) && count($row['file']) > 0)
+
         //수정시 썸네일 이미지 처리
         let privewUploade = '<div class="image-upload2 on mr-3" data-id="{i}" id="image-upload-{i}">'+
             '<label id="label_upload_file_{i}" for="upload_file_{i}">' +

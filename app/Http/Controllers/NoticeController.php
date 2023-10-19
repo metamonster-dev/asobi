@@ -283,7 +283,7 @@ class NoticeController extends Controller
         if($validator->fails()){
             return response()->json([
                 'result' => 'fail',
-                'error' => "업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 500Mb 이하로만 가능합니다."
+                'error' => "업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 100Mb 이하로만 가능합니다."
             ]);
         }
 
@@ -425,7 +425,7 @@ class NoticeController extends Controller
         if($validator->fails()){
             return response()->json([
                 'result' => 'fail',
-                'error' => "업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 500Mb 이하로만 가능합니다."
+                'error' => "업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 100Mb 이하로만 가능합니다."
             ]);
         }
 

@@ -811,6 +811,9 @@ img.tit_img{
 .cal_date li > div.active_red{
     color: var(--secondary);
 }
+.cal_date li > div.active_black{
+    color: black !important;
+}
 .cal_date li > div.notice::after{
     content: '';
     width: 2.8rem;
@@ -820,7 +823,7 @@ img.tit_img{
     left: 50%;
     transform: translate(-50%, -50%);
     /* z-index: -1; */
-    border: 1px solid var(--primary);
+    border: 1px solid #FFC000;
     border-radius: 50%;
 }
 .cal_date.type_b li > div.notice::after{

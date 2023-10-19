@@ -193,6 +193,7 @@ $test = '/advice?ym='.$date.'&search_user_id='.$row['student'].'&search_text='.$
             $('body').append(tempInput);
             let action = `/api/share?link=${url}`;
             let data = '';
+
             ycommon.ajaxJson('get', action, data, undefined, function (res) {
                 tempInput.val(res.shortLink).select();
                 const copy = document.execCommand('copy');

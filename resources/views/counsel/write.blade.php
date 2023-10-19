@@ -77,7 +77,7 @@ $hd_bg = "7";
             jalert("작성일자를 입력해주세요.");
             return false;
         }
-        
+
         if (ymdValue > currentDate) {
             jalert('미래 날짜는 선택할 수 없습니다.');
             return false;
@@ -99,9 +99,22 @@ $hd_bg = "7";
             // console.log(res);
             let list = res.list;
 
-            let data = list?.map(function(item) {
-                return {idx: item.id,name: item.name};
-            });
+            let data = list?.reduce(function(acc, item) {
+                let found = acc.find(element => element.idx === item.id && element.name === item.name);
+
+                if (!found) {
+                    acc.push({idx: item.id, name: item.name});
+                }
+
+                return acc;
+            }, []);
+
+            // let data = list?.map(function(item) {
+            //     return {idx: item.id,name: item.name};
+            // });
+
+            // console.log(data);
+
             // let data = '';
             // list?.map(e => {
             //     let option = '';

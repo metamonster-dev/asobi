@@ -18,12 +18,28 @@ class VimeoController extends Controller
     public function upload_simple($file)
     {
         $client = new Vimeo(config('vimeo.client_id'), config('vimeo.client_secret'), config('vimeo.access_token'));
+
+//        \App::make('helper')->log('file');
+//        \App::make('helper')->log($file);
+//        var_dump('file');
+//        var_dump($file);
+
         $uri = $client->upload($file->getPathName());
+//        875000381
+//        \App::make('helper')->log('uri');
+//        var_dump('uri');
+//        \App::make('helper')->log($uri);
+//        var_dump($uri);
+
         $result = Str::replaceFirst('/videos/', '', $uri);
 
 //    $response = $client->request($uri . '?fields=transcode.status');
 //    dump($response);
-//    dump($result);
+
+//        \App::make('helper')->log('result');
+//        var_dump('result');
+//        \App::make('helper')->log($result);
+//        var_dump($result);
 
         return $result;
     }

@@ -275,6 +275,7 @@ class AdviceNoteController extends Controller
         $this_date = Carbon::create($row->year, $row->month, $row->day);
         $result = Arr::add($result, "date", $this_date->format('Y.m.d')." / ".$row->created_at->format('Y.m.d H:i'));
         $result = Arr::add($result, "date2", $this_date->format('Y-m-d'));
+        $result = Arr::add($result, "ym", $this_date->format('Y-m'));
 //        $result = Arr::add($result, "reg_date", $row->created_at->format(AdviceNote::REG_DATE_FORMAT));
         $result = Arr::add($result, "student", $row->sidx);
         $student = RaonMember::whereIdx($row->sidx)->first();
@@ -438,7 +439,7 @@ class AdviceNoteController extends Controller
 
         $student = $request->input('student');
 
-        if (!($user->m_type == 'm' && $student)) {
+        if (!($user->mtype == 'm' && $student)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -555,7 +556,7 @@ class AdviceNoteController extends Controller
             return response()->json($result);
         }
 
-        if ($user->m_type != 'm') {
+        if ($user->mtype != 'm') {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -565,7 +566,9 @@ class AdviceNoteController extends Controller
         $year = $request->input('year') ? sprintf('%04d',$request->input('year')) : $now->format('Y');
         $month = $request->input('month') ? sprintf('%02d',$request->input('month')) : $now->format('m');
 
-        // @2021-10-01 마지막주만 작성가능
+        // @2021-10-01 마지막주만 작성가능 -> 항상 작성 가능
+//        $result = Arr::add($result, "write_possible", true);
+
         $now_year_month = date('Y-m');
         $last_day = date('t', strtotime($now_year_month . '-01'));
         $write_possible_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -5 day')));
@@ -595,7 +598,7 @@ class AdviceNoteController extends Controller
         if($validator->fails()){
             return response()->json([
                 'result' => 'fail',
-                'error' => "업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 500Mb 이하로만 가능합니다."
+                'error' => "업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 100Mb 이하로만 가능합니다."
             ]);
         }
 
@@ -812,6 +815,8 @@ class AdviceNoteController extends Controller
         $result = Arr::add($result, 'error', '등록 되었습니다.');
         $result = Arr::add($result, 'ids', $adviceNoteIds);
 
+        exit;
+
         return response()->json($result);
     }
 
@@ -828,7 +833,7 @@ class AdviceNoteController extends Controller
         if($validator->fails()){
             return response()->json([
                 'result' => 'fail',
-                'error' => "업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 500Mb 이하로만 가능합니다."
+                'error' => "업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 100Mb 이하로만 가능합니다."
             ]);
         }
 
@@ -1466,7 +1471,7 @@ class AdviceNoteController extends Controller
             'month' => $month,
         ]);
         $res = $this->checkLetter($req);
-        $writeMode = $res->original['write_possible'] ?? false;
+        $writeMode = $res->original['write_possible'] || session('auth')['user_type'];
 
         return view('advice/advice', [
             'user' => $user,
@@ -1579,13 +1584,23 @@ class AdviceNoteController extends Controller
                 $ymd = $row['date2'];
             }
         } else {
-            //전체 학생리스트
-            $req = Request::create('/api/children', 'GET', [
-                'user' => $user,
-            ]);
-            $userController = new UserController();
-            $res = $userController->children($req);
-            $student = $res->original['list'] ?? [];
+            if ($search_user_id) {
+                $req = Request::create('/api/selectChild', 'GET', [
+                    'user' => $search_user_id,
+                ]);
+
+                $userController = new UserController();
+                $res = $userController->selectChild($req);
+                $student = $res->original['list'] ?? [];
+            } else {
+                //전체 학생리스트
+                $req = Request::create('/api/children', 'GET', [
+                    'user' => $user,
+                ]);
+                $userController = new UserController();
+                $res = $userController->children($req);
+                $student = $res->original['list'] ?? [];
+            }
         }
 
         return view('advice/noteWrite', [
@@ -1642,9 +1657,12 @@ class AdviceNoteController extends Controller
             $user = session()->get('center');
         }
 
+        $nextMonth = Carbon::now()->addMonthNoOverflow()->format('Y-m');
+        $minMonth = '2020-02';
+
         $row = [];
         if ($id != "") {
-            $mode = "u";
+//            $mode = "u";
 
             $req = Request::create('/api/adviceNote/view/'.$id, 'GET', [
                 'user' => $user,
@@ -1659,6 +1677,7 @@ class AdviceNoteController extends Controller
             $row = $res->original ?? [];
             if (isset($row['date2']) && $row['date2'] != "") {
                 $ymd = $row['date2'];
+                $ym = $row['ym'];
             }
         } else {
 
@@ -1672,9 +1691,12 @@ class AdviceNoteController extends Controller
                 ]);
                 $adviceNoteAdminController = new AdviceNoteAdminController();
                 $res = $adviceNoteAdminController->show($req);
+
                 if ($res->original['result'] == 'success') {
                     $row['prefix_content'] = $res->original['prefix_content'];
                     $row['this_month_education_info'] = $res->original['this_month_education_info'];
+                    $nextMonth = $res->original['nextMonth'];
+                    $minMonth = $res->original['minMonth'];
                     $ymd = $res->original['date'];
                 }
             }
@@ -1722,8 +1744,17 @@ class AdviceNoteController extends Controller
             }
         }
 
+//        if ($row) {
+//            $mode = 'u';
+//        } else {
+//            $mode = 'a';
+//        }
+
         return view('advice/letterWrite', [
+            'ym' => $ym,
             'ymd' => $ymd,
+            'nextMonth' => $nextMonth,
+            'minMonth' => $minMonth,
             'student' => $student ?? "",
             'mode' => $mode,
             'id' => $id,
@@ -1754,7 +1785,7 @@ class AdviceNoteController extends Controller
             $year = $ymdArr[0]??-1;
             $month = $ymdArr[1]??-1;
             $day = $ymdArr[2]??-1;
-            if (! checkdate((int)$month,(int)$day,(int)$year)) \App::make('helper')->alert('올바른 작성일자가 아닙니다.');
+//            if (! checkdate((int)$month,(int)$day,(int)$year)) \App::make('helper')->alert('올바른 작성일자가 아닙니다.');
             if ($content == "" && $type != "letter") \App::make('helper')->alert('내용을 입력해주세요.');
 //            if (!$upload_files) \App::make('helper')->alert('사진·동영상을 등록해주세요.');
             if ($student == "") \App::make('helper')->alert('학생을 선택해 주세요.');

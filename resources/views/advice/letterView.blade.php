@@ -49,7 +49,7 @@ $hd_bg = "1";
                 <div class="position-relative d-block d-lg-none">
                     <button type="button" class="btn p-0 btn_more h-auto"><img src="/img/ic_more.png" style="width: 1.6rem;"></button>
                     <ul class="more_cont">
-                        @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='m')
+                        @if(isset(session('auth')['user_type']) && (session('auth')['user_type'] =='m' || session('auth')['user_type'] == 'a'))
                         <li><button class="btn" onclick="UrlCopy()">공유</button></li>
                         <li><button class="btn" onclick="location.href='/advice/letter/write/{{ $id }}'">수정</button></li>
                         @endif
@@ -165,7 +165,7 @@ $hd_bg = "1";
         </div>
         <!-- ※ 삭제 버튼은 교육원, 본사일 때 노출 -->
         <div class="botton_btns d-none d-lg-flex pt_80">
-            @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='m')
+            @if(isset(session('auth')['user_type']) && (session('auth')['user_type'] =='m' || session('auth')['user_type'] == 'a'))
             <button type="button" class="btn btn-primary" onclick="location.href='/advice/letter/write/{{ $id }}'">수정</button>
             @endif
             <button type="button" class="btn btn-gray text-white" onclick="location.href='@if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='s') /advice/list @else /advice @endif'">목록</button>

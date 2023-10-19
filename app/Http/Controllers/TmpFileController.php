@@ -106,19 +106,22 @@ class TmpFileController extends Controller
         if($validator->fails()){
             return response()->json([
                 'result' => 'fail',
-                'error' => "업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 500Mb 이하로만 가능합니다."
+                'error' => "업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 100Mb 이하로만 가능합니다."
             ]);
         }
 
         $delete_files = $request->input('delete_files') ?? "";
+
         if ($delete_files) {
             $deleteFileArr = explode(",", $delete_files);
+
             //기존 파일 확인
             $files = File::where('type', $type)
                 ->where('type_id', '=', $user_id)
                 ->whereIn('id', $deleteFileArr)
                 ->orderByDesc('created_at')
                 ->get();
+
             //기존 임시등록된 파일 삭제
             if ($files) {
                 foreach ($files as $file) {
@@ -127,8 +130,22 @@ class TmpFileController extends Controller
 //                        $rs = $vimeo->delete2($file->vimeo_id);
                         $rs = \App::make('helper')->deleteImage($file->file_path);
                     } else {
+
                         $rs = \App::make('helper')->deleteImage($file->file_path);
                     }
+                    $file->delete();
+                }
+            }
+        } elseif ($type == '4') {
+            //기존 파일 확인
+            $files = File::where('type', $type)
+                ->where('type_id', '=', $user_id)
+                ->get();
+
+            //기존 임시등록된 파일 삭제
+            if ($files) {
+                foreach ($files as $file) {
+                    $rs = \App::make('helper')->deleteImage($file->file_path);
                     $file->delete();
                 }
             }

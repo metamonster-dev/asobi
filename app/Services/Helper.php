@@ -24,7 +24,16 @@ class Helper
 
     public function getImage($path)
     {
-//        Storage::disk('s3')->url($path)
+//        var_dump($path);
+//        if ($path == 'app/album/cWHL4gZwsVPUTvuHjIVlkungVb5f5sN1ffGltlhM.jpeg') {
+//            $path = 'app/album/RCRBaxCv0pI4HceAjTSpT64z0IgbLhJ8UxZpoJll.jpeg';
+//        }
+
+//        var_dump($path);
+
+//        var_dump(Storage::disk('s3')->has($path));
+//        Storage::disk('s3')->url($path);
+
         return (Storage::disk('s3')->has($path)) ? Storage::disk('s3')->temporaryUrl($path, now()->addHour(3)) : null;
     }
 

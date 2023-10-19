@@ -14,6 +14,7 @@ use App\UserMemberDetail;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
@@ -63,7 +64,11 @@ class AlbumController extends Controller
         } else {
             $rs = Album::with('files')
                 ->where('status', 'Y')
-                ->where('sidx', 'like', "%" . json_encode($user->idx) . "%")
+                ->when($search_text != "", function ($q) use ($search_text) {
+                    $q->where('title','like','%'.$search_text.'%');
+                })
+//                ->where('sidx', 'like', "%" . json_encode($user->idx) . "%")
+                ->whereJsonContains('sidx', json_encode($user->idx))
                 ->where('year', $year)
                 ->where('month', $month)
                 ->orderByDesc('created_at')
@@ -162,7 +167,8 @@ class AlbumController extends Controller
         } else {
             $row = Album::with('files')
                 ->where('status', 'Y')
-                ->where('sidx', 'like', "%" . json_encode($user->idx) . "%")
+//                ->where('sidx', 'like', "%" . json_encode($user->idx) . "%")
+//                ->whereJsonContains('sidx', json_encode($user->idx))
                 ->whereId($album_id)
                 ->first();
         }
@@ -217,6 +223,8 @@ class AlbumController extends Controller
             }
         }
 
+//        dd($result);
+
         if ($user->mtype == 's') {
             if ($row->histories->where('sidx', $user->idx)->count() === 0) {
                 $row->histories()->create(
@@ -266,7 +274,7 @@ class AlbumController extends Controller
         if($validator->fails()){
             return response()->json([
                 'result' => 'fail',
-                'error' => "업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 500Mb 이하로만 가능합니다."
+                'error' => "업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 100Mb 이하로만 가능합니다."
             ]);
         }
 
@@ -383,6 +391,8 @@ class AlbumController extends Controller
 
     public function update(Request $request, $album_id)
     {
+        $upload_files = $request->file('upload_files');
+
         $result = array();
         $user_id = $request->input('user');
         $user = RaonMember::whereIdx($user_id)->first();
@@ -394,7 +404,7 @@ class AlbumController extends Controller
         if($validator->fails()){
             return response()->json([
                 'result' => 'fail',
-                'error' => "업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 500Mb 이하로만 가능합니다."
+                'error' => "업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 100Mb 이하로만 가능합니다."
             ]);
         }
 
@@ -779,6 +789,7 @@ class AlbumController extends Controller
                 }
             }
 
+            //
             $request->merge([
                 'user' => $user,
                 'student' => $student,
@@ -802,6 +813,7 @@ class AlbumController extends Controller
             // request에 업로드 파일을 merge하도록 한다.
             if ($tmpFileIds != "") {
                 $tmpFileIdArr = explode(",",$tmpFileIds);
+//                dd($tmpFileIdArr);
                 $fileDatas = File::whereIn('id',$tmpFileIdArr)->get();
                 if ($fileDatas) {
                     foreach ($fileDatas as $fileData) {

@@ -52,7 +52,10 @@ class AppMainController extends Controller
             $advice_rs = AdviceNote::where('status', 'Y')->where('sidx', $user->idx)->where('created_at', '>', $check_date)->get();
             $adviceNoteHistoryCount = AdviceNoteHistory::whereIn('advice_note_id', $advice_rs->pluck('id')->toArray())->where('sidx', $user->idx)->count();
 
-            $album_rs = Album::where('status', 'Y')->where('sidx', 'like', "%" . json_encode($user->idx) . "%")->where('created_at', '>', $check_date)->get();
+            $album_rs = Album::where('status', 'Y')
+//                ->where('sidx', 'like', "%" . json_encode($user->idx) . "%")
+                ->whereJsonContains('sidx', json_encode($user->idx))
+                ->where('created_at', '>', $check_date)->get();
             $albumHistoryCount = AlbumHistory::whereIn('album_id', $album_rs->pluck('id')->toArray())->where('sidx', $user->idx)->count();
 
             $notice_rs = Notice::where('status', 'Y')->whereIn('midx', [$user->midx, 0])->where('view_type', 'like', "%" . json_encode($user->mtype) . "%")->where('created_at', '>', $check_date)->orderByDesc('created_at')->get();

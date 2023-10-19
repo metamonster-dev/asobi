@@ -41,6 +41,7 @@ $hd_bg = "1";
                         <h5>작성일자</h5>
                     </div>
                     <input type="date" name="ymd" id="ymd" value="{{ $ymd }}" max="<?php echo date("Y-m-d") ?>" @if($mode != "w")readonly="readonly"@endif class="form-control text-dark_gray">
+{{--                    <input type="month" name="ymd" id="ymd" value="{{ $ym }}" min="{{ $minMonth ?? ''}}" max="{{ $nextMonth ?? ''}}" class="form-control text-dark_gray">--}}
                 </div>
                 <div class="d-none d-lg-block"></div>
                 @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='m')
@@ -317,6 +318,16 @@ $hd_bg = "1";
         }
         @endif
     });
+
+    // document.querySelector('input[type="month"]').addEventListener('change', function(event) {
+    //     const selectedDate = event.target.value; // 선택한 날짜 값
+    //     const url = new URL(window.location.href);
+    //     // const url = new URL(window.location.origin + window.location.pathname);
+    //
+    //     url.searchParams.set('ym', selectedDate);
+    //
+    //     window.location.href = url;
+    // });
 </script>
 
 @endsection

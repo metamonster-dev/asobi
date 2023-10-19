@@ -67,11 +67,11 @@ $back_link = "/";
             <div class="mt-4 pb-3">
                 <button type="button" class="btn btn-block btn-outline-light border bg-white text-light" onclick="location.href='/mypage/resetPw'">비밀번호 변경</button>
             </div>
-            @if(session('auth')['user_type'] =='s' ?? '')
-            <div class="pb-3">
-                <button type="button" class="btn btn-block btn-outline-light border bg-white text-light" onclick="location.href='/mypage/editInfo'">회원정보 수정</button>
-            </div>
-            @endif
+{{--            @if(session('auth')['user_type'] =='s' ?? '')--}}
+{{--            <div class="pb-3">--}}
+{{--                <button type="button" class="btn btn-block btn-outline-light border bg-white text-light" onclick="location.href='/mypage/editInfo'">회원정보 수정</button>--}}
+{{--            </div>--}}
+{{--            @endif--}}
         </div>
     </div>
 </article>

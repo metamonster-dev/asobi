@@ -7,6 +7,9 @@ class="body sub_bg1"
 $title = "알림장 관리";
 $hd_bg = "1";
 $back_link = "/";
+$twoYearsAgo = date('Y-m', strtotime('-2 years', mktime(0, 0, 0, 1, 1, date('Y'))));
+$thisYear = date(date('Y').'-12');
+$device_type = session('auth')['device_type'] ?? '';
 ?>
 @include('common.headm02')
 
@@ -26,7 +29,13 @@ $back_link = "/";
                     <div class="d-block d-lg-flex mt-0 mt-lg-3 mt-lg-0">
                         <div class="m_top mb-0">
                             <div class="input-group">
-                                <input type="month" name="ym" id="ym" value="{{ $ym }}" class="form-control form-control-lg col-6" onchange="this.form.submit()">
+                                <input type="month" name="ym" id="ym" value="{{ $ym }}" min="{{ $twoYearsAgo }}" max="{{ $thisYear }}" class="form-control form-control-lg col-6"
+                                       @if ($device_type === 'iPhone' || $device_type === 'iPad')
+                                           onBlur="this.form.submit()"
+                                       @else
+                                           onchange="this.form.submit()"
+                                       @endif
+                                >
                                 <div class="position-relative gr_r m_select_wrap">
                                     <div class="input_wrap">
                                         <input type="hidden" name="search_user_id" value="{{ $search_user_id }}" >
@@ -172,7 +181,7 @@ $back_link = "/";
         @else
             @if(isset(session('auth')['user_type']) && session('auth')['user_type'] == "m")
         <div class="f_btn_wr d-block d-lg-none">
-            <button type="button" class="btn float_btn" onclick="location.href='/advice/note/write?ym={{ $ym }}'"><img src="/img/ic_write.png" style="width: 3rem;"></button>
+            <button type="button" class="btn float_btn" onclick="location.href='/advice/note/write?ym={{ $ym }}&search_user_id={{ $search_user_id }}&search_text={{ $search_text }}'"><img src="/img/ic_write.png" style="width: 3rem;"></button>
         </div>
             @endif
         @endif
@@ -189,9 +198,11 @@ $back_link = "/";
                 <button class="btn btn-block h-auto px-0 py-4 border-bottom" value="" onclick="location.href='/advice/letter/write?ym={{ $ym }}'">
                     <p class="py-2 fs_16 fw_400">가정통신문 작성</p>
                 </button>
+                @if(session('auth')['user_type'] != "a")
                 <button class="btn btn-block h-auto px-0 py-4 border-bottom mt-0" value="m" onclick="location.href='/advice/note/write?ym={{ $ym }}'">
                     <p class="py-2 fs_16 fw_400">알림장 작성</p>
                 </button>
+                @endif
             </div>
         </div>
     </div>
@@ -215,6 +226,28 @@ $back_link = "/";
         autoSearch(data, "searchList", "search_text", sClick, undefined, xClick);
 
         getVimeoThumbs();
+    });
+
+    const dateInput = document.getElementById('ym');
+
+    const minDate = new Date();
+    const maxDate = new Date();
+
+    minDate.setFullYear(minDate.getFullYear() - 2);
+    maxDate.setMonth(11);
+
+    const minYear = minDate.getFullYear();
+    const minMonth = String(minDate.getMonth() + 1).padStart(2, '0');
+
+    dateInput.addEventListener('input', function() {
+        const selectedDate = new Date(this.value);
+
+        if (selectedDate < minDate) {
+            this.value = `${minYear}-${minMonth}`;
+        } else if (selectedDate > maxDate) {
+            const maxYear = maxDate.getFullYear();
+            this.value = `${maxYear}-12`;
+        }
     });
 </script>
 

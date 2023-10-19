@@ -6,7 +6,8 @@ class="body"
 <?php
 $title = "공지사항 상세";
 $hd_bg = "3";
-$back_link = '/asobiNotice';
+//$back_link = '/asobiNotice';
+$back_link = $_SERVER['HTTP_REFERER'];
 ?>
 @include('common.headm03')
 

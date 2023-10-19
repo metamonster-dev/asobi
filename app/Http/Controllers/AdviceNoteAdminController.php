@@ -23,7 +23,7 @@ class AdviceNoteAdminController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->m_type, ['a'])) {
+        if (!in_array($user->mtype, ['a'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -35,6 +35,9 @@ class AdviceNoteAdminController extends Controller
         $this_date = Carbon::create($year, $month);
         $this_month = $this_date->format('Y-m');
         $adviceNoteAdmin = AdviceNoteAdmin::where('this_month', $this_month)->first();
+        $maxMonth = AdviceNoteAdmin::max('this_month');
+        $nextMonth = Carbon::createFromFormat('Y-m', $maxMonth)->addMonth()->format('Y-m');
+        $minMonth = AdviceNoteAdmin::min('this_month');
 
         if (empty($adviceNoteAdmin)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -46,6 +49,8 @@ class AdviceNoteAdminController extends Controller
         $result = Arr::add($result, 'prefix_content', $adviceNoteAdmin->prefix_content);
         $result = Arr::add($result, 'this_month_education_info', $adviceNoteAdmin->this_month_education_info);
         $result = Arr::add($result, 'date', $adviceNoteAdmin->created_at->format('Y-m-d'));
+        $result = Arr::add($result, 'nextMonth', $nextMonth);
+        $result = Arr::add($result, 'minMonth', $minMonth);
 
         return response()->json($result);
     }

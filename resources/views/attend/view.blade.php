@@ -57,23 +57,27 @@ $back_link = "/";
                                 @foreach($infoList as $k => $l)
                                 <li>
                                     <p class="fs_13 fw_300 text-light mb-3">
-                                        {{ $k }} 
+                                        {{ $k }}
                                     </p>
                                     <div class="d-flex align-items-start">
                                         <span class="dot_stat mt-1 bg-primary"></span>
                                         <p class="ml-2 fs_14 line_h1_1">
-                                            <?php $text = ''; ?>
+                                            <?php $text = ''; $firstValue = reset($l); ?>
                                             @foreach($l as $dk => $dl)
                                                 @php
-                                                    $text .= ($text ? ', ' : '') . (
+                                                    $text .= (
                                                         $dk == 'notice' ? '공지사항 '.$dl.'건' :
                                                         ($dk == 'advice' ? '알림장 '.$dl.'건' :
                                                         ($dk == 'letter' ? '가정통신문 '.$dl.'건' :
                                                         ($dk == 'album' ? '앨범 '.$dl.'건' : '')))
                                                     );
                                                 @endphp
+                                                @if ($loop->even && !$loop->last)
+                                                    @php $text .= ', '; @endphp
+                                                @endif
                                             @endforeach
-                                            <?= $text ?>
+
+                                            <a href="{{$firstValue}}"><?= $text ?></a>
                                         </p>
                                     </div>
                                 </li>
@@ -88,10 +92,11 @@ $back_link = "/";
                                 <h4 class="tit_h4 mx-3"><span id="calYear"></span>년 <span id="calMonth"></span></h4>
                                 <button class="btn btn_cal h-auto calNext" data-date="{{ $ym }}"><img src="/img/ic_cal_next.png"></button>
                             </div>
-                            <!--  
+                            <!--
                                 ※ 캘린더 내용 / div에 추가해줘야 하는 각 class명
                                 출석해야하는 날짜 (홀수 월) : active_blue
                                 출석해야하는 날짜 (짝수 월) : active_red
+                                -> 추후에 홀, 짝 상관 없이 검정, 공휴일이 빨강
                                 공지가 있는 날짜 : notice
                                 등원한 날짜 : dot1
                                 하원한 날짜 : dot2
@@ -157,7 +162,7 @@ $back_link = "/";
             attendOut: <?= json_encode($attendOut) ?>,
             infoDates: <?= json_encode($infoDates) ?>
         };
-        
+
         ycommon.ajaxJson('post', action, data, undefined, function (data) {
             $("#calList").html(data?.calHtml);
             $("#calYear").text(data?.year);

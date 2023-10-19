@@ -133,8 +133,10 @@ class AttendanceController extends Controller
             ->where('month', $month)
             ->orderByDesc('created_at')
             ->get();
+
         $album_rs = Album::where('status', 'Y')
-            ->where('sidx', 'like', "%" . json_encode($user->idx) . "%")
+//            ->where('sidx', 'like', "%" . json_encode($user->idx) . "%")
+            ->whereJsonContains('sidx', json_encode($user->idx))
             ->where('year', $year)
             ->where('month', $month)
             ->orderByDesc('created_at')
@@ -160,6 +162,7 @@ class AttendanceController extends Controller
         $result = Arr::add($result, "attendance_in", $in);
         $result = Arr::add($result, "attendance_out", $out);
 
+
         $date_info = [];
         if ($advice_rs) {
             $advice_cnt_arr = [];
@@ -168,7 +171,9 @@ class AttendanceController extends Controller
                 if (! isset($advice_cnt_arr[$this_date])) {
                     $advice_cnt_arr[$this_date] = 0;
                 }
+                $date_info[$this_date]['adviceId'] = '/advice/' . $user->idx . '/note/view/' . $row->id;
                 $date_info[$this_date]['advice'] = ++$advice_cnt_arr[$this_date];
+//                $date_info['advice'][$this_date] = ++$advice_cnt_arr[$this_date];
             }
         }
 
@@ -179,7 +184,9 @@ class AttendanceController extends Controller
                 if (! isset($letter_cnt_arr[$this_date])) {
                     $letter_cnt_arr[$this_date] = 0;
                 }
+                $date_info[$this_date]['letterId'] = '/advice/' . $user->idx . '/letter/view/' . $row->id;
                 $date_info[$this_date]['letter'] = ++$letter_cnt_arr[$this_date];
+//                $date_info['letter'][$this_date] = ++$letter_cnt_arr[$this_date];
             }
         }
 
@@ -190,7 +197,9 @@ class AttendanceController extends Controller
                 if (! isset($notice_cnt_arr[$this_date])) {
                     $notice_cnt_arr[$this_date] = 0;
                 }
+                $date_info[$this_date]['noticeId'] = '/notice/view/' . $row->id;
                 $date_info[$this_date]['notice'] = ++$notice_cnt_arr[$this_date];
+//                $date_info['notice'][$this_date] = ++$notice_cnt_arr[$this_date];
             }
         }
 
@@ -201,7 +210,9 @@ class AttendanceController extends Controller
                 if (! isset($album_cnt_arr[$this_date])) {
                     $album_cnt_arr[$this_date] = 0;
                 }
+                $date_info[$this_date]['albumId'] = '/album/view/' . $row->id;
                 $date_info[$this_date]['album'] = ++$album_cnt_arr[$this_date];
+//                $date_info['album'][$this_date] = ++$album_cnt_arr[$this_date];
             }
         }
 
@@ -214,7 +225,26 @@ class AttendanceController extends Controller
             }
 
             array_multisort($sort_keys_proc,SORT_DESC, $date_info);
+
+//            foreach ($date_info as $key => $value) {
+//                foreach ($value as $key2 => $value2) {
+//
+//                    if ($key2 === 'advice') {
+//                        $arrayValue = array(
+//                            $key => array(
+//                                'advice' => $value2
+//                            )
+//                        );
+//
+//                        $date_info = array($arrayValue) + $date_info;
+//
+//                        unset($date_info[$key]['advice']);
+//                    }
+//                }
+//            }
         }
+
+//        dd($date_info);
 
         $result = Arr::add($result, "date_info", $date_info);
 
@@ -549,6 +579,12 @@ class AttendanceController extends Controller
 
     public function attendView(Request $request, $id)
     {
+
+        if (session()->get('auth')['user_id'] != $id) {
+            return redirect('/');
+        }
+
+
         $ajax = $request->input('ajax') ?? 0;
         $list = $request->input('list') ?? 0;
         $ym = $request->input('ym') ?? date('Y-m');

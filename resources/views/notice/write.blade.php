@@ -188,7 +188,10 @@ $hd_bg = "3";
             return false;
         }
 
-        if (f.content.value == "") {
+        let contents = CKEDITOR.instances.content.getData();
+
+        // if (f.content.value == "") {
+        if (contents == "") {
             fsubmit = false;
             $("#fsubmit").prop('disabled',false);
             jalert("내용을 입력해주세요.");

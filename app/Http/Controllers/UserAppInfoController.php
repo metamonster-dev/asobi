@@ -81,8 +81,7 @@ class UserAppInfoController extends Controller
         if ($user->idx == 1) {
             $result = Arr::add($result, 'user_type', 'a');
         } else {
-            $userMemberDetail = RaonMember::where('idx', $user->idx)->first();
-            $profile_image = $userMemberDetail->user_picture ?? '';
+            $profile_image = $user->user_picture ?? '';
 
             $result = Arr::add($result, 'user_type', $user->mtype);
             $result = Arr::add($result, "profile_image", $profile_image ? \App::make('helper')->getImage($profile_image) : null);
@@ -141,7 +140,8 @@ class UserAppInfoController extends Controller
 
         $children_search_mobilephone = str_replace('-', '', $user->mobilephone);
 
-        $children_rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $children_search_mobilephone)
+//        $children_rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $children_search_mobilephone)
+        $children_rs = RaonMember::where('mobilephone', $user->mobilephone)
             ->where('mtype', 's')
             ->whereIn('s_status', array('W', 'Y'))
             ->orderBy('s_status', 'desc')
@@ -168,6 +168,8 @@ class UserAppInfoController extends Controller
                     'event_alarm' => 'Y',
                     'wifi' => 'N',
                 ];
+
+                $time3 = microtime(true);
 
                 $userAppInfo = UserAppInfo::where('user_id', $children_row->idx)
                     ->where('device_kind', $device_kind)
@@ -224,7 +226,7 @@ class UserAppInfoController extends Controller
         $user->save();
 
         $payload = [
-            'user_id' => $user->id,
+            'user_id' => $user->idx,
             'device_kind' => $device_kind,
             'device_type' => $device_type,
             'device_id' => $device_id,
@@ -295,7 +297,9 @@ class UserAppInfoController extends Controller
         $push_key = $request->input('push_key');
 //        \App::make('helper')->vardump($request->input('user'));
 //        exit;
+
         $user = RaonMember::find($user_id);
+
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -306,10 +310,11 @@ class UserAppInfoController extends Controller
         if ($user->mtype === 's') {
             $children_search_mobilephone = str_replace('-', '', $user->mobilephone);
 
-            $children_rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $children_search_mobilephone)
+//            $children_rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $children_search_mobilephone)
+            $children_rs = RaonMember::where('mobilephone', $user->mobilephone)
                 ->where('mtype', 's')
                 ->whereIn('s_status', array('W', 'Y'))
-                ->orderBy('s_status', 'desc')
+//                ->orderBy('s_status', 'desc')
                 ->get();
 
             if ($children_rs->count() == 0) {
@@ -319,7 +324,7 @@ class UserAppInfoController extends Controller
             }
 
             foreach ($children_rs as $children_index => $children_row) {
-                UserAppInfo::where('user_id', $children_row->id)
+                UserAppInfo::where('user_id', $children_row->idx)
                     ->where('device_kind', $device_kind)
                     ->where('device_type', $device_type)
                     ->where('device_id', $device_id)
@@ -390,7 +395,7 @@ class UserAppInfoController extends Controller
         $msg = "아소비 임시비밀번호입니다.\n로그인 후 비밀번호를 변경해주세요.\n임시비밀번호: [{$reset_password}]";
         $bool = \App::make('helper')->sendSms($sms_phone, $msg);
 
-        if ($user->m_type == 's') {
+        if ($user->mtype == 's') {
             $rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $phone)
                 ->where('mtype', 's')
                 ->whereIn('s_status', array('W', 'Y'))
@@ -545,7 +550,7 @@ class UserAppInfoController extends Controller
         $userDetail->save();
 
         $result = Arr::add($result, 'result', 'success');
-        $result = Arr::add($result, 'login_id', ($user->m_type == 's') ? str_replace('-', '', $phone) : $user->user_id);
+        $result = Arr::add($result, 'login_id', ($user->mtype == 's') ? str_replace('-', '', $phone) : $user->user_id);
         $result = Arr::add($result, 'error', '수정 되었습니다.');
     }
 
@@ -593,7 +598,6 @@ class UserAppInfoController extends Controller
         $user_info = UserAppInfo::where('user_id', $user->idx)
             ->where('device_id', $device_id)
             ->first();
-
 
         if (empty($user_info)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -647,7 +651,7 @@ class UserAppInfoController extends Controller
 
         if($validator->fails()){
             $result = Arr::add($result, 'result', 'fail');
-            $result = Arr::add($result, 'error', '업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 500Mb 이하로만 가능합니다.');
+            $result = Arr::add($result, 'error', '업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 100Mb 이하로만 가능합니다.');
             return response()->json($result);
         }
 

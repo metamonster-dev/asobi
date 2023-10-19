@@ -47,9 +47,15 @@ class CounselingController extends Controller
 
 //        \App::make('helper')->log('search_user_id', ['search_user_id' => $search_user_id], 'search_user_id');
 
+//        DB::enableQueryLog();
+
         $rs = DB::table('raon_member')
             ->select('raon_member.idx as uid', 'raon_member.name as uname', 'cls.created_at as ccreated_at')
-            ->leftJoin(DB::raw('(select max(created_at) created_at, sidx, year, month from counselings group by sidx) as cls'),function ($join) {
+//            ->leftJoin(DB::raw('(select max(created_at) created_at, sidx, year, month from counselings group by sidx) as cls'),function ($join) {
+            ->leftJoin(DB::raw('
+            (SELECT MAX(created_at) created_at, sidx, YEAR(created_at) AS year, MONTH(created_at) AS month
+                    FROM counselings
+                    GROUP BY sidx, YEAR(created_at), MONTH(created_at)) AS cls'),function ($join) {
                 $join->on('raon_member.idx','=','cls.sidx');
             })
             ->where('midx', $user->idx)
@@ -65,6 +71,8 @@ class CounselingController extends Controller
             })
             ->orderBy('raon_member.name')
             ->get();
+
+//        dd(DB::getQueryLog());
 
         $result = Arr::add($result, 'result', 'success');
         $result = Arr::add($result, 'count', $rs->count());

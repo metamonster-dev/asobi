@@ -5,6 +5,9 @@ class="body sub_bg3"
 @section('contents')
 <?php
 $title = "공지사항";
+$twoYearsAgo = date('Y-m', strtotime('-2 years', mktime(0, 0, 0, 1, 1, date('Y'))));
+$thisYear = date(date('Y').'-12');
+$device_type = session('auth')['device_type'] ?? '';
 ?>
 @include('common.headm07')
 
@@ -23,7 +26,13 @@ $title = "공지사항";
                             <button type="submit" class="btn btn_sch btn_sch2"></button>
                         </div>
                         <div class="input-group">
-                            <input type="month" name="ym" value="{{ $ym }}" class="form-control form-control-lg" onchange="this.form.submit()">
+                            <input type="month" name="ym" id="ym" value="{{ $ym }}" class="form-control form-control-lg" min="{{ $twoYearsAgo }}" max="{{ $thisYear }}"
+                                   @if ($device_type === 'iPhone' || $device_type === 'iPad')
+                                       onBlur="this.form.submit()"
+                                   @else
+                                       onchange="this.form.submit()"
+                                   @endif
+                            >
                             <div class="gr_r col-12 col-lg-6 px-0 d-none d-lg-block">
                                 <select name="type" id="filter_select" class="form-control bg-white custom-select m_select" onchange="filterChange(this.value)">
                                     <option value="">전체</option>
@@ -92,6 +101,28 @@ $title = "공지사항";
         @if(isset($type) && $type != "")
             filterValueChange('{{ $type }}');
         @endif
+    });
+
+    const dateInput = document.getElementById('ym');
+
+    const minDate = new Date();
+    const maxDate = new Date();
+
+    minDate.setFullYear(minDate.getFullYear() - 2);
+    maxDate.setMonth(11);
+
+    const minYear = minDate.getFullYear();
+    const minMonth = String(minDate.getMonth() + 1).padStart(2, '0');
+
+    dateInput.addEventListener('input', function() {
+        const selectedDate = new Date(this.value);
+
+        if (selectedDate < minDate) {
+            this.value = `${minYear}-01`;
+        } else if (selectedDate > maxDate) {
+            const maxYear = maxDate.getFullYear();
+            this.value = `${maxYear}-12`;
+        }
     });
 </script>
 

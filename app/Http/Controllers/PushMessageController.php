@@ -75,6 +75,8 @@ class PushMessageController extends Controller
 
                         $pushLog->save();
 
+                        // 앱코드 깃허브 주소 받기
+                        //
                         if (env('APP_ENV') != 'dev') {
                             $handler = App::make(FcmHandler::class);
                             $handler->setReceivers($arr_push);
@@ -196,8 +198,17 @@ class PushMessageController extends Controller
                             ->pluck('idx')
                             ->toArray();
                     } else {
-                        $rs = RaonMember::where('mtype', 's')
-                            ->where('s_status', 'Y')
+
+//                        $rs = RaonMember::where('mtype', 's')
+//                            ->where('s_status', 'Y')
+//                            ->pluck('idx')
+//                            ->toArray();
+
+                        $rs = RaonMember::where(function($query) {
+                            $query->where('mtype', 's')->where('s_status', 'Y');
+                                })->orWhere(function($query) {
+                            $query->where('mtype', 'h')->where('h_status', 'Y');
+                                })
                             ->pluck('idx')
                             ->toArray();
                     }
@@ -214,21 +225,42 @@ class PushMessageController extends Controller
                     $arr_push = array_unique($arr_push);
                     $arr_push = array_values($arr_push);
 
-                    $pushLog = new PushLog([
-                        'type' => $this->type,
-                        'type_id' => $this->type_id,
-                        'receivers' => json_encode($arr_push)
-                    ]);
+                    $chunks = array_chunk($arr_push, 1000);
 
-                    $pushLog->save();
+                    foreach ($chunks as $chunk) {
+                        $pushLog = new PushLog([
+                            'type' => $this->type,
+                            'type_id' => $this->type_id,
+                            'receivers' => json_encode($chunk)
+                        ]);
 
-                    if (env('APP_ENV') != 'dev') {
-                        $handler = App::make(FcmHandler::class);
-                        $handler->setReceivers($arr_push);
-                        $handler->setMessage(['title' => $title, 'body' => $body, 'type'=>$this->type, 'id'=>$row->id]);
-                        $handler->setMessageData(['title' => $title, 'message' => $body, 'type'=>$this->type, 'id'=>$row->id]);
-                        $handler->sendMessage();
+                        $pushLog->save();
+
+                        if (env('APP_ENV') != 'dev') {
+                            $handler = App::make(FcmHandler::class);
+                            $handler->setReceivers($chunk);
+                            $handler->setMessage(['title' => $title, 'body' => $body, 'type'=>$this->type, 'id'=>$row->id]);
+                            $handler->setMessageData(['title' => $title, 'message' => $body, 'type'=>$this->type, 'id'=>$row->id]);
+                            $handler->sendMessage();
+                        }
                     }
+
+//                    $pushLog = new PushLog([
+//                        'type' => $this->type,
+//                        'type_id' => $this->type_id,
+//                        'receivers' => json_encode($arr_push)
+//                    ]);
+//
+//                    $pushLog->save();
+//
+//                    if (env('APP_ENV') != 'dev') {
+//                        $handler = App::make(FcmHandler::class);
+//                        $handler->setReceivers($arr_push);
+//                        $handler->setMessage(['title' => $title, 'body' => $body, 'type'=>$this->type, 'id'=>$row->id]);
+//                        $handler->setMessageData(['title' => $title, 'message' => $body, 'type'=>$this->type, 'id'=>$row->id]);
+//                        $handler->sendMessage();
+//                    }
+
                 }
             }
         }
@@ -453,11 +485,13 @@ class PushMessageController extends Controller
 
                             $pushLog->save();
 
+                            $date = $row->year . '-' . $row->month;
+
                             if (env('APP_ENV') != 'dev') {
                                 $handler = App::make(FcmHandler::class);
                                 $handler->setReceivers($arr_push);
-                                $handler->setMessage(['title'=> $title, 'body'=> $body, 'type'=> $this->type, 'id'=> $row->id, 'userId'=>$row->sidx, 'check'=>$attendance_check]);
-                                $handler->setMessageData(['title'=> $title, 'message'=> $body, 'type'=> $this->type, 'id'=> $row->id,'userId'=>$row->sidx,'check'=>$attendance_check]);
+                                $handler->setMessage(['title'=> $title, 'body'=> $body, 'type'=> $this->type, 'id'=> $row->id, 'userId'=>$row->sidx, 'check'=>$attendance_check, 'date' => $date]);
+                                $handler->setMessageData(['title'=> $title, 'message'=> $body, 'type'=> $this->type, 'id'=> $row->id,'userId'=>$row->sidx,'check'=>$attendance_check, 'date' => $date]);
                                 $handler->sendMessage();
                             }
                         }
