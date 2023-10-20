@@ -373,8 +373,8 @@ $hd_bg = "3";
 
         var i = 0;
         $(".addBtn").on('click', function(e) {
-            if (ycommon.getUploadCount(upload_cont-delete_ids.length+tmp_file_ids.length) >= 20) {
-                jalert("사진 동영상은 20개까지만 등록 가능합니다.");
+            if (ycommon.getUploadCount(upload_cont-delete_ids.length+tmp_file_ids.length) >= 10) {
+                jalert("사진 동영상은 10개까지만 등록 가능합니다.");
                 return;
             }
             let addForm = '<div class="image-upload2 mr-3" data-id="'+i+'" id="image-upload-'+i+'">'+
@@ -427,6 +427,25 @@ $hd_bg = "3";
         @endif
 
         $(document).on('change', '.upload_files', function(e) {
+            const imageMaxSize = 10485760; // 10MB
+            const videoMaxSize = 10 * 10485760; // 10MB
+
+            for (var i = 0; i < this.files.length; i++) {
+                if (this.files[i].type.startsWith('image/')) {
+                    if (this.files[i].size > imageMaxSize) {
+                            jalert('파일 크기가 너무 큽니다. 10MB 이하의 파일을 선택하세요.');
+                            this.value = '';
+                            return;
+                    }
+                } else if (this.files[i].type.startsWith('video/')) {
+                    console.log(this.files[i].size);
+                    if (this.files[i].size > videoMaxSize) {
+                        jalert('파일 크기가 너무 큽니다. 100MB 이하의 파일을 선택하세요.');
+                        this.value = '';
+                        return;
+                    }
+                }
+            }
             let id = $(this).data('id');
             ycommon.previewImage(e, id, upload_cont-delete_ids.length+tmp_file_ids.length);
         });

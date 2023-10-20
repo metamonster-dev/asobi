@@ -815,8 +815,6 @@ class AdviceNoteController extends Controller
         $result = Arr::add($result, 'error', '등록 되었습니다.');
         $result = Arr::add($result, 'ids', $adviceNoteIds);
 
-        exit;
-
         return response()->json($result);
     }
 
@@ -1471,7 +1469,7 @@ class AdviceNoteController extends Controller
             'month' => $month,
         ]);
         $res = $this->checkLetter($req);
-        $writeMode = $res->original['write_possible'] || session('auth')['user_type'];
+        $writeMode = $res->original['write_possible'] || session('auth')['user_type'] == 'a';
 
         return view('advice/advice', [
             'user' => $user,
@@ -1633,19 +1631,24 @@ class AdviceNoteController extends Controller
             $error = \App::make('helper')->getErrorMsg($res->original['error']);
             \App::make('helper')->alert($error);
         }
+
         return view('advice/letterView',[
             'row' => $res->original ?? [],
+            'userId' => $user_id,
             'id' => $id,
         ]);
     }
 
     public function letterWrite(Request $request, $id="")
     {
+        // $id 가 있으면 편집 모드
+        // 없으면 쓰기 모드인데 날짜로 조회해서 값이 있으면 편집 모드
         $ymd = date('Y-m-d');
         $mode = "w";
 
         $ym = $request->input('ym') ?? '';
         $search_user_id = $request->input('search_user_id') ?? '';
+        $userId = $request->input('userId') ?? '';
 
         if ($ym != "" && $ym != date('Y-m')) {
             $ymd = $ym."-01";
@@ -1661,8 +1664,9 @@ class AdviceNoteController extends Controller
         $minMonth = '2020-02';
 
         $row = [];
+        // id가 있으니 편집 모드
         if ($id != "") {
-//            $mode = "u";
+            $mode = "u";
 
             $req = Request::create('/api/adviceNote/view/'.$id, 'GET', [
                 'user' => $user,
@@ -1680,7 +1684,7 @@ class AdviceNoteController extends Controller
                 $ym = $row['ym'];
             }
         } else {
-
+            // 날짜로 조회
             $ymdArr = explode('-',$ymd);
             if ($userType == 'a') {
                 $mode = 'a';
@@ -1693,6 +1697,7 @@ class AdviceNoteController extends Controller
                 $res = $adviceNoteAdminController->show($req);
 
                 if ($res->original['result'] == 'success') {
+                    $mode = "u";
                     $row['prefix_content'] = $res->original['prefix_content'];
                     $row['this_month_education_info'] = $res->original['this_month_education_info'];
                     $nextMonth = $res->original['nextMonth'];
@@ -1744,12 +1749,6 @@ class AdviceNoteController extends Controller
             }
         }
 
-//        if ($row) {
-//            $mode = 'u';
-//        } else {
-//            $mode = 'a';
-//        }
-
         return view('advice/letterWrite', [
             'ym' => $ym,
             'ymd' => $ymd,
@@ -1760,6 +1759,7 @@ class AdviceNoteController extends Controller
             'id' => $id,
             'row' => $row,
             'search_user_id' => $search_user_id,
+            'userId' => $userId
         ]);
     }
 
@@ -1767,6 +1767,7 @@ class AdviceNoteController extends Controller
     {
         $mode = $request->input('mode') ?? '';
         $id = $request->input('id') ?? '';
+        $userId = $request->input('userId') ?? '';
         $type = $request->input('type') ?? '';
         $ymd = $request->input('ymd') ?? '';
         $content = $request->input('content') ?? '';
@@ -1778,8 +1779,7 @@ class AdviceNoteController extends Controller
         $multiform_delete_idx = $request->input('multiform_delete_idx') ?? '';
         $multiform_idx = $request->input('multiform_idx') ?? '';
 
-
-        if ($mode != 'a') {
+        if ($mode != 'a' && $type != 'letter') {
             if ($ymd == "") \App::make('helper')->alert('작성일자를 입력해주세요.');
             $ymdArr = explode('-', $ymd);
             $year = $ymdArr[0]??-1;
@@ -1827,7 +1827,13 @@ class AdviceNoteController extends Controller
 //        \App::make('helper')->vardump($delete_upload_keys);
 //        return;
 
-        if ($mode == 'u') {
+        // 1. $mode = 'w' + $type = 'advice' -> 알림장 작성
+        // 2. $mode = 'u' + $type = 'advice' -> 알림장 수정
+        // 3. $mode = 'a' + $type = 'letter' -> 가정통신문 작성
+        // 4. $mode = 'u' + $type = 'letter' -> 가정통신문 수정 @@
+
+        // 알림장 수정
+        if ($mode == 'u' && $type == 'advice') {
 
             //파일 삭제
             $delete_ids = $request->input('delete_ids') ?? '';
@@ -1849,12 +1855,21 @@ class AdviceNoteController extends Controller
                 'type' => $type,
             ]);
             $res = $this->update($request, $id);
+        // 가정통신문 작성
         } else if ($mode == 'a') {
             $request->merge([
                 'user' => \App::make('helper')->getUsertId(),
             ]);
             $adviceNoteAdminController = new AdviceNoteAdminController();
             $res = $adviceNoteAdminController->store($request);
+        // 가정통신문 수정
+        } else if ($mode == 'u' && $type = 'letter') {
+            $request->merge([
+                'user' => \App::make('helper')->getUsertId(),
+            ]);
+            $adviceNoteAdminController = new AdviceNoteAdminController();
+            $res = $adviceNoteAdminController->store($request);
+        // 알림장 작성
         } else {
             $requestMergeData = [
                 'user' => $user,
@@ -1885,6 +1900,7 @@ class AdviceNoteController extends Controller
                     }
                 }
             }
+
             $request->merge($requestMergeData);
 
             $res = $this->store($request);
@@ -1903,13 +1919,28 @@ class AdviceNoteController extends Controller
             \App::make('helper')->alert($error);
         }
 
+        // 가정통신문 작성
         if ($mode == 'a') {
             \App::make('helper')->alert("가정통신문 작성이 완료 되었습니다.");
         } else {
             $typelink = ($type == 'advice') ? "note":"letter";
             $link = "/advice";
-            if ($mode == 'u') $link = "/advice/".$student."/".$typelink."/view/".$id;
-            else {
+            if ($mode == 'u') {
+                // 가정통신문 수정
+                if ($type == 'letter') {
+                    if ($userId && $id) {
+                        $link = "/advice/letter/write/".$id.'?userId='.$userId;
+                    } elseif ($id) {
+                        $link = "/advice/letter/write/".$id;
+                    } else {
+                        $link = "/advice/letter/write?ym=".$ymd;
+                    }
+                // 알림장 수정
+                } else {
+                    $link = "/advice/".$student."/".$typelink."/view/".$id;
+                }
+            // 알림장 등록
+            } else {
                 if ($type == 'letter') {
                     //전체 학생리스트
                     $req = Request::create('/adviceNote/student/list', 'GET', [

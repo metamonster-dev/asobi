@@ -107,11 +107,11 @@ class UserAppInfoController extends Controller
         $this->deleteFCMKey($push_key);
 
         if ($user->mtype == 's') {
-            if ($device_kind == "web") {
-                $result['result'] = 'fail';
-                $result = Arr::add($result, 'error', '학부모 로그인은 앱에서만 가능합니다.');
-                return response()->json($result);
-            }
+//            if ($device_kind == "web") {
+//                $result['result'] = 'fail';
+//                $result = Arr::add($result, 'error', '학부모 로그인은 앱에서만 가능합니다.');
+//                return response()->json($result);
+//            }
 
             $this->loginUserProc($user, $result, $device_kind, $device_type, $device_id, $push_key, $ip);
         } else {

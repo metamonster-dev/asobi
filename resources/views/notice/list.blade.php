@@ -8,7 +8,6 @@ class="body sub_bg3"
 // $title = "학부모 공지";
 $twoYearsAgo = date('Y-m', strtotime('-2 years', mktime(0, 0, 0, 1, 1, date('Y'))));
 $thisYear = date(date('Y').'-12');
-$thisYear = date(date('Y').'-12');
 $device_type = session('auth')['device_type'] ?? '';
 ?>
 @php

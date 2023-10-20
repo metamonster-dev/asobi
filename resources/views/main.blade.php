@@ -265,7 +265,7 @@
                             @if(isset($main['event']) && $main['event'] == 'Y')
                             <img src="/img/new_icon.png" class="new_icon">
                             @endif
-                            <a href="/event" class="">
+                            <a href="/event" class="pageMove">
                                 <div class="menu_name">
                                     <p class="fs_22 ff_lotte text-white">
                                         이벤트
@@ -313,6 +313,14 @@
             @endif
         </div>
     </div>
+
+        <div class="loading_wrap" id="loading" style="display: none">
+            <div class="loading_text">
+                <i class="loading_circle"></i>
+                <span>로딩중</span>
+            </div>
+        </div>
+
 </article>
 
     <script>
@@ -364,6 +372,18 @@
                 }
             });
         @endif
+        });
+
+        document.querySelectorAll('a').forEach(function(anchor) {
+            anchor.addEventListener('click', function(event) {
+                $('#loading').show();
+            });
+        });
+
+        document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+            element.addEventListener('click', function(event) {
+                $('#loading').show();
+            });
         });
     </script>
     <form name="selectAction" id="selectAction" method="POST" action="/main/selectAction">

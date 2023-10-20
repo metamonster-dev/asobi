@@ -51,7 +51,7 @@ $hd_bg = "1";
                     <ul class="more_cont">
                         @if(isset(session('auth')['user_type']) && (session('auth')['user_type'] =='m' || session('auth')['user_type'] == 'a'))
                         <li><button class="btn" onclick="UrlCopy()">공유</button></li>
-                        <li><button class="btn" onclick="location.href='/advice/letter/write/{{ $id }}'">수정</button></li>
+                        <li><button class="btn" onclick="location.href='/advice/letter/write/{{ $id }}?userId={{ $userId }}'">수정</button></li>
                         @endif
                         <li><button class="btn" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/advice/delete/{{ $id }}';})">삭제</button></li>
                     </ul>
@@ -179,6 +179,7 @@ $hd_bg = "1";
 <script>
     function UrlCopy(){
         var url = window.location.href;
+        const id = {{ $id }};
         if (typeof window.ReactNativeWebView !== 'undefined') {
             window.ReactNativeWebView.postMessage(
                 JSON.stringify({targetFunc: "copy",url: url})
@@ -190,7 +191,7 @@ $hd_bg = "1";
                 left: '-9999px', // 화면 영역 밖으로 이동
             });
             $('body').append(tempInput);
-            let action = `/api/share?link=${url}`;
+            let action = `/api/share?link=${url}&id=${id}`;
             let data = '';
             ycommon.ajaxJson('get', action, data, undefined, function (res) {
                 tempInput.val(res.shortLink).select();

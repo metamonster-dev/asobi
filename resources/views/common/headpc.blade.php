@@ -42,14 +42,14 @@
   </div>
 </div>
 
-<div class="loading_wrap" id="loading">
-    <div class="loading_text">
-        <i class="loading_circle"></i>
-        <span>로딩중</span>
-    </div>
-</div>
+{{--<div class="loading_wrap" id="loading">--}}
+{{--    <div class="loading_text">--}}
+{{--        <i class="loading_circle"></i>--}}
+{{--        <span>로딩중</span>--}}
+{{--    </div>--}}
+{{--</div>--}}
 <script>
-$(window).on('load',function () {
-    $("#loading").hide();
-});
+// $(window).on('load',function () {
+//     $("#loading").hide();
+// });
 </script>

@@ -110,12 +110,12 @@ $hd_bg = "3";
                 @if($modifyBtn)
                 <button type="button" class="btn btn-primary" onclick="location.href='/notice/write/{{ $id }}'">수정</button>
                 @endif
-                <button type="button" class="btn btn-gray text-white" onclick="location.href='/notice'">목록</button>
+                <button type="button" class="btn btn-gray text-white" onclick="location.href='{{ $back_link }}'">목록</button>
                 @if($deleteBtn)
                 <button type="button" class="btn btn-gray text-white" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/notice/delete/{{ $id }}';})">삭제</button>
                 @endif
             @else
-            <button type="button" class="btn btn-gray text-white" onclick="location.href='/notice'">목록</button>
+            <button type="button" class="btn btn-gray text-white" onclick="location.href='{{ $back_link }}'">목록</button>
             @endif
         </div>
     </div>

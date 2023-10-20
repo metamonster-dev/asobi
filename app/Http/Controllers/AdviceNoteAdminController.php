@@ -78,7 +78,11 @@ class AdviceNoteAdminController extends Controller
         $month = $request->input('month') ? sprintf('%02d', $request->input('month')) : $now->format('m');
         $this_date = Carbon::create($year, $month);
         $this_month = $this_date->format('Y-m');
-        $adviceNoteAdmin = AdviceNoteAdmin::where('this_month', $this_month)->first();
+//        $adviceNoteAdmin = AdviceNoteAdmin::where('this_month', $this_month)->first();
+
+        $ym = $request->input('ymd');
+        $adviceNoteAdmin = AdviceNoteAdmin::where('this_month', $ym)->first();
+
         $payload = array_merge($request->only(['prefix_content', 'this_month_education_info']), []);
 
         $result = Arr::add($result, 'result', 'success');
@@ -88,7 +92,7 @@ class AdviceNoteAdminController extends Controller
             $result = Arr::add($result, 'error', '수정 되었습니다.');
         } else {
             $adviceNoteAdmin = new AdviceNoteAdmin([
-                'this_month' => $this_month
+                'this_month' => $ym
             ]);
             $adviceNoteAdmin->fill($payload);
             $adviceNoteAdmin->save();
@@ -97,5 +101,4 @@ class AdviceNoteAdminController extends Controller
 
         return response()->json($result);
     }
-
 }

@@ -199,7 +199,7 @@ $device_type = session('auth')['device_type'] ?? '';
                     <p class="py-2 fs_16 fw_400">가정통신문 작성</p>
                 </button>
                 @if(session('auth')['user_type'] != "a")
-                <button class="btn btn-block h-auto px-0 py-4 border-bottom mt-0" value="m" onclick="location.href='/advice/note/write?ym={{ $ym }}'">
+                <button class="btn btn-block h-auto px-0 py-4 border-bottom mt-0" value="m" onclick="location.href='/advice/note/write?ym={{ $ym }}&search_user_id={{ $search_user_id }}'">
                     <p class="py-2 fs_16 fw_400">알림장 작성</p>
                 </button>
                 @endif

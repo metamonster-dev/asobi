@@ -7,8 +7,14 @@ class="body"
 $title = "앨범 상세";
 $hd_bg = "2";
 
-$date = substr($row['reg_date'],0,7);
-$back_link = '/album?ym='.$date;
+$date = substr($row['date'],0,7);
+$dateParts = explode(' ', $row['date']); // 공백을 기준으로 문자열을 나눔
+$dateArray = explode('.', $dateParts[0]); // 마침표를 기준으로 나눔
+$year = $dateArray[0];
+$month = str_pad($dateArray[1], 2, '0', STR_PAD_LEFT); // 한 자리 수인 경우 앞에 0을 붙임
+$resultDateString = $year . '-' . $month;
+
+$back_link = '/album?ym='.$resultDateString;
 // $back_link = '/album';
 ?>
 @include('common.headm03')
@@ -108,10 +114,10 @@ $back_link = '/album?ym='.$date;
         <div class="botton_btns d-none d-lg-flex pt_80 pb-4">
             @if(isset(session('auth')['user_type']) && (session('auth')['user_type'] =='m' || session('auth')['user_type'] =='a'))
             <button type="button" class="btn btn-primary" onclick="location.href='/album/write/{{ $id }}'">수정</button>
-            <button type="button" class="btn btn-gray text-white" onclick="location.href='/album'">목록</button>
+            <button type="button" class="btn btn-gray text-white" onclick="location.href='{{ $back_link }}'">목록</button>
             <button type="button" class="btn btn-gray text-white" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/album/delete/{{ $id }}';})">삭제</button>
             @else
-            <button type="button" class="btn btn-gray text-white" onclick="location.href='/album'">목록</button>
+            <button type="button" class="btn btn-gray text-white" onclick="location.href='{{ $back_link }}'">목록</button>
             @endif
         </div>
         <hr class="line mt-5 mb-3">

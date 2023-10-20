@@ -867,4 +867,9 @@ class EventController extends Controller
 
         \App::make('helper')->alert("삭제되었습니다.", "/event");
     }
+
+    public function empty()
+    {
+        return view('empty');
+    }
 }

@@ -14,8 +14,6 @@ class MainController extends Controller
     }
     public function main(Request $request)
     {
-//        dd(session()->get('auth'));
-
         $userId = \App::make('helper')->getUsertId();
         $userType = \App::make('helper')->getUsertType();
         $branch = $center = "";
@@ -46,10 +44,27 @@ class MainController extends Controller
         $appMainController = new AppMainController();
         $mainRes = $appMainController->index($mainReq);
 
+//        var_dump(session()->get('branch'));
+//        dd(session()->get('center'));
+
         // 본사면..
         if ($userType == 'a') {
-            $branch = session()->get('branch') ?? ''; // 70
-            $center = session()->get('center') ?? ''; // 86293
+//            $branch = session()->get('branch') ?? '';
+//            $center = session()->get('center') ?? '';
+
+            if (session()->get('branch')) {
+                $branch = session()->get('branch');
+            } else {
+                session(['branch' => '70']);
+                $branch = '70';
+            }
+
+            if (session()->get('center')) {
+                $center = session()->get('center');
+            } else {
+                session(['center' => '86293']);
+                $center = '86293';
+            }
         }
 
         // 지사면..

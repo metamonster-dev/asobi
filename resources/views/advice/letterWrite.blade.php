@@ -6,6 +6,14 @@ class="body"
 <?php
 $title = "가정통신문 작성";
 $hd_bg = "1";
+// /advice/letter/write?ym=2023-09
+// /advice/143205/letter/view/962603
+
+if ($id && $userId) {
+    $back_link = '/advice/'.$userId.'/letter/view/'.$id;
+} else {
+    $back_link = '/advice';
+}
 ?>
 @include('common.headm04')
 @include('advice.letterPreview')
@@ -34,14 +42,15 @@ $hd_bg = "1";
         <form name="adviceForm" id="adviceForm" class="mt-3" method="POST" action="/advice/writeAction" onsubmit="return frm_form_chk(this);" enctype="multipart/form-data">
             <input type="hidden" name="mode" value="{{ $mode }}">
             <input type="hidden" name="id" value="{{ $id }}">
+            <input type="hidden" name="userId" value="{{ $userId }}">
             <input type="hidden" name="type" value="letter" />
             <div class="grid02_list">
                 <div class="ip_wr">
                     <div class="ip_tit d-flex align-items-center justify-content-between">
                         <h5>작성일자</h5>
                     </div>
-                    <input type="date" name="ymd" id="ymd" value="{{ $ymd }}" max="<?php echo date("Y-m-d") ?>" @if($mode != "w")readonly="readonly"@endif class="form-control text-dark_gray">
-{{--                    <input type="month" name="ymd" id="ymd" value="{{ $ym }}" min="{{ $minMonth ?? ''}}" max="{{ $nextMonth ?? ''}}" class="form-control text-dark_gray">--}}
+{{--                    <input type="date" name="ymd" id="ymd" value="{{ $ymd }}" max="<?php echo date("Y-m-d") ?>" @if($mode != "w")readonly="readonly"@endif class="form-control text-dark_gray">--}}
+                    <input type="month" name="ymd" id="ymd" value="{{ $ym }}" min="{{ $minMonth ?? ''}}" max="{{ $nextMonth ?? ''}}" @if($mode != "w" && $id)readonly="readonly"@endif class="form-control text-dark_gray">
                 </div>
                 <div class="d-none d-lg-block"></div>
                 @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='m')
@@ -166,12 +175,12 @@ $hd_bg = "1";
             return false;
         }
 
-        if (ymdValue > currentDate) {
-            fsubmit = false;
-            $("#fsubmit").prop('disabled',false);
-            jalert('미래 날짜는 선택할 수 없습니다.');
-            return false;
-        }
+        // if (ymdValue > currentDate) {
+        //     fsubmit = false;
+        //     $("#fsubmit").prop('disabled',false);
+        //     jalert('미래 날짜는 선택할 수 없습니다.');
+        //     return false;
+        // }
 
         @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='m')
             // if (f.content.value == "") {
@@ -319,15 +328,15 @@ $hd_bg = "1";
         @endif
     });
 
-    // document.querySelector('input[type="month"]').addEventListener('change', function(event) {
-    //     const selectedDate = event.target.value; // 선택한 날짜 값
-    //     const url = new URL(window.location.href);
-    //     // const url = new URL(window.location.origin + window.location.pathname);
-    //
-    //     url.searchParams.set('ym', selectedDate);
-    //
-    //     window.location.href = url;
-    // });
+    document.querySelector('input[type="month"]').addEventListener('change', function(event) {
+        const selectedDate = event.target.value; // 선택한 날짜 값
+        const url = new URL(window.location.href);
+        // const url = new URL(window.location.origin + window.location.pathname);
+
+        url.searchParams.set('ym', selectedDate);
+
+        window.location.href = url;
+    });
 </script>
 
 @endsection

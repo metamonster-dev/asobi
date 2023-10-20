@@ -154,6 +154,7 @@ Route::group(['prefix' => 'education', 'middleware' => 'checkLogin'], function (
 
 // 이벤트
 Route::group(['prefix' => 'event', 'middleware' => 'checkLogin'], function () {
+//    Route::get('/', [EventController::class, 'empty']);
     Route::get('/', [EventController::class, 'event']);
     Route::get('view/{id}', [EventController::class, 'eventView']);
     Route::get('write', [EventController::class, 'eventWrite'])->middleware('enterUserType:a');
@@ -161,7 +162,6 @@ Route::group(['prefix' => 'event', 'middleware' => 'checkLogin'], function () {
     Route::post('writeAction', [EventController::class, 'eventWriteAction'])->middleware('enterUserType:a');
     Route::get('delete/{id}', [EventController::class, 'eventDelete'])->middleware('enterUserType:a');
 });
-
 
 //Route::get('/phpinfo', function () {
 //    phpinfo();
@@ -172,3 +172,7 @@ Route::group(['prefix' => 'event', 'middleware' => 'checkLogin'], function () {
 Route::fallback(function () {
     abort(404);
 });
+
+// 버튼 누를 때 세션에 웹인지 앱인지
+// 앱일 때 버튼 누를 때 네비게이션 동작하게
+// 페이지 여러개 만들어서 스택 네비게이션 적용

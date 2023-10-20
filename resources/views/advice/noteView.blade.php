@@ -87,10 +87,10 @@ $test = '/advice?ym='.$date.'&search_user_id='.$row['student'].'&search_text='.$
         <div class="botton_btns d-none d-lg-flex pt_80 pb-4">
             @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='m')
             <button type="button" class="btn btn-primary" onclick="location.href='/advice/note/write/{{ $id }}'">수정</button>
-            <button type="button" class="btn btn-gray text-white" onclick="location.href='@if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='s') /advice/list @else /advice @endif'">목록</button>
-            <button type="button" class="btn btn-gray text-white" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/advice/delete/{{ $id }}';})">삭제</button>
+            <button type="button" class="btn btn-gray text-white" onclick="location.href='@if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='s') /advice/list @else {{ $back_link }} @endif'">목록</button>
+            <button type="button" class="btn btn-gray text-white" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/advice/delete/{{ $id }}';})">삭제</button>록
             @else
-            <button type="button" class="btn btn-gray text-white" onclick="location.href='@if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='s') /advice/list @else /advice @endif'">목록</button>
+            <button type="button" class="btn btn-gray text-white" onclick="location.href='@if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='s') /advice/list @else {{ $back_link }} @endif'">목록</button>
             @endif
         </div>
         <hr class="line mt-5 mb-3">
