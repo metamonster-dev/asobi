@@ -22,6 +22,7 @@ $hd_bg = "7";
         <form action="/counsel/writeAction" id="frm" name="frm" method="POST" onsubmit="return frm_form_chk(this);" enctype="multipart/form-data" class="mt-3">
             <input type="hidden" name="mode" value="{{ $mode }}">
             <input type="hidden" name="id" value="{{ $id }}">
+            <input type="hidden" name="ymd" value="{{ $ymd }}">
             <div class="grid02_list">
                 <div class="ip_wr">
                     <div class="ip_tit d-flex align-items-center justify-content-between">
@@ -71,7 +72,7 @@ $hd_bg = "7";
         if (f.search_user_id.value == "undefined") {
             jalert("학생을 선택해주세요.");
             return false;
-        }
+        }자
 
         if (f.date.value == "") {
             jalert("작성일자를 입력해주세요.");

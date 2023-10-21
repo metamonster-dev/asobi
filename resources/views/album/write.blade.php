@@ -468,14 +468,13 @@ $hd_bg = "2";
                     }
                 }
             }
-
-            // 1장 불러오기 ->  지우고 -> 2장 추가 -> 1로 카운트
-
             let id = $(this).data('id');
             ycommon.previewImage(e, id, upload_cont-delete_ids.length+tmp_file_ids.length);
         });
 
         $(document).on('click', '.image-upload2 .del', function (e){
+            // 1장 불러오기 ->  지우고 -> 2장 추가 -> 1로 카운트
+
             let up = $(this).parents('.image-upload2');
             let id = up.data('id');
             up.remove();

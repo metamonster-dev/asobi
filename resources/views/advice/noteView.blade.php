@@ -180,6 +180,7 @@ $test = '/advice?ym='.$date.'&search_user_id='.$row['student'].'&search_text='.$
 
     function UrlCopy(){
         var url = window.location.href;
+        const id = {{ $id }};
         if (typeof window.ReactNativeWebView !== 'undefined') {
             window.ReactNativeWebView.postMessage(
                 JSON.stringify({targetFunc: "copy",url: url})
@@ -191,7 +192,7 @@ $test = '/advice?ym='.$date.'&search_user_id='.$row['student'].'&search_text='.$
                 left: '-9999px', // 화면 영역 밖으로 이동
             });
             $('body').append(tempInput);
-            let action = `/api/share?link=${url}`;
+            let action = `/api/share?link=${url}&id=${id}`;
             let data = '';
 
             ycommon.ajaxJson('get', action, data, undefined, function (res) {

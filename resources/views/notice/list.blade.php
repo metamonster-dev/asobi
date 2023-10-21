@@ -31,17 +31,32 @@ $device_type = session('auth')['device_type'] ?? '';
                 <form id="notice_form" name="notice_form" class="notice_form" method="GET" action="/notice">
                     <div class="search_wrap m_top mb-0 d-flex mt-0 mt-lg-3 mt-lg-0 w-100">
                         <div class="ip_sch_wr mr-0 mr-lg-4 col-6 col-lg-4 px-0">
-                            <input type="search" name="search_text" id="search_text" value="{{ $search_text }}" class="form-control form-control-lg ip_search">
+                            <input type="search" name="search_text" id="search_text" value="{{ $search_text }}" class="form-control form-control-lg ip_search" style="height: 100%">
                             <button type="submit" class="btn btn_sch btn_sch2"></button>
                         </div>
                         <div class="input-group">
-                            <input type="month" name="ym" id="ym" value="{{ $ym }}" min="{{ $twoYearsAgo }}" max="{{ $thisYear }}" class="form-control form-control-lg"
-                                   @if ($device_type === 'iPhone' || $device_type === 'iPad')
-                                       onBlur="this.form.submit()"
-                                   @else
-                                       onchange="this.form.submit()"
-                                   @endif
-                            >
+{{--                            <input type="month" name="ym" id="ym" value="{{ $ym }}" min="{{ $twoYearsAgo }}" max="{{ $thisYear }}" class="form-control form-control-lg"--}}
+{{--                                   @if ($device_type === 'iPhone' || $device_type === 'iPad')--}}
+{{--                                       onBlur="this.form.submit()"--}}
+{{--                                   @else--}}
+{{--                                       onchange="this.form.submit()"--}}
+{{--                                   @endif--}}
+{{--                            >--}}
+
+{{--                            @if ($device_type === 'iPhone' || $device_type === 'iPad')--}}
+                                <select name="ym" id="ym" onchange="this.form.submit()" class="form-control form-control-lg">
+                                    @php
+                                        for ($date = strtotime($twoYearsAgo); $date <= strtotime($thisYear); $date = strtotime("+1 month", $date)) {
+                                            $yearMonth = date('Y-m', $date);
+                                            $selected = ($yearMonth == $ym) ? 'selected' : ''; // $ym과 일치하는 경우 selected 속성 추가
+                                        echo "<option value='$yearMonth' $selected>$yearMonth</option>";
+                                        }
+                                    @endphp
+                                </select>
+{{--                            @else--}}
+{{--                                <input type="month" name="ym" id="ym" value="{{ $ym }}" min="{{ $twoYearsAgo }}" max="{{ $thisYear }}" class="form-control form-control-lg" onchange="this.form.submit()">--}}
+{{--                            @endif--}}
+
                             <div class="gr_r col-12 col-lg-6 px-0 d-none d-lg-block">
                                 <select name="type" id="filter_select" class="form-control bg-white custom-select m_select" onchange="filterChange(this.value)">
                                     <option value="">전체</option>

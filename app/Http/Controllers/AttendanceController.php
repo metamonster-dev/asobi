@@ -579,7 +579,7 @@ class AttendanceController extends Controller
 
     public function attendView(Request $request, $id)
     {
-
+        // 알람 통해서 이동했는데 다른 자녀일 경우 홈으로
         if (session()->get('auth')['user_id'] != $id) {
             return redirect('/');
         }

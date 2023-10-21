@@ -59,8 +59,8 @@ $back_link = "/";
                                     <p class="fs_13 fw_300 text-light mb-3">
                                         {{ $k }}
                                     </p>
-                                    <div class="d-flex align-items-start">
-                                        <span class="dot_stat mt-1 bg-primary"></span>
+                                    <div class="d-flex align-items-start dot_color">
+                                        <span class="dot_stat mt-1"></span>
                                         <p class="ml-2 fs_14 line_h1_1">
                                             <?php $text = ''; $firstValue = reset($l); ?>
                                             @foreach($l as $dk => $dl)
@@ -172,5 +172,20 @@ $back_link = "/";
 
     $(document).ready(function() {
         calendarData('{{ $ym }}');
+
+        document.querySelectorAll('.dot_color').forEach((elem) => {
+            const firstWord = elem.querySelector('a').innerText;
+
+            if (firstWord.substring(0, 2) === '알림') {
+                elem.querySelector('span').style.backgroundColor = '#6572DF';
+            } else if (firstWord.substring(0, 2) === '공지') {
+                elem.querySelector('span').style.backgroundColor = '#FF8000';
+            } else if (firstWord.substring(0, 2) === '가정') {
+                elem.querySelector('span').style.backgroundColor = '#FFD277';
+            } else if (firstWord.substring(0, 2) === '앨범') {
+                elem.querySelector('span').style.backgroundColor = '#92D050';
+            }
+        })
+
     });
 </script>

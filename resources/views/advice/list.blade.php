@@ -28,13 +28,28 @@ $device_type = session('auth')['device_type'] ?? '';
                 <div class="d-block d-lg-flex mt-0 mt-lg-3 mt-lg-0">
                     <div class="m_top mb-0">
                         <div class="input-group">
-                            <input type="month" name="ym" id="ym" value="{{ $ym }}" min="{{ $twoYearsAgo }}" max="{{ $thisYear }}" class="form-control form-control-lg col-6 col-lg-5"
-                                   @if ($device_type === 'iPhone' || $device_type === 'iPad')
-                                       onBlur="this.form.submit()"
-                                   @else
-                                       onchange="this.form.submit()"
-                                   @endif
-                            >
+{{--                            <input type="month" name="ym" id="ym" value="{{ $ym }}" min="{{ $twoYearsAgo }}" max="{{ $thisYear }}" class="form-control form-control-lg col-6 col-lg-5"--}}
+{{--                                   @if ($device_type === 'iPhone' || $device_type === 'iPad')--}}
+{{--                                       onBlur="this.form.submit()"--}}
+{{--                                   @else--}}
+{{--                                       onchange="this.form.submit()"--}}
+{{--                                   @endif--}}
+{{--                            >--}}
+
+                            @if ($device_type === 'iPhone' || $device_type === 'iPad')
+                                <select name="ym" id="ym" onchange="this.form.submit()" class="form-control form-control-lg col-6 col-lg-5">
+                                    @php
+                                        for ($date = strtotime($twoYearsAgo); $date <= strtotime($thisYear); $date = strtotime("+1 month", $date)) {
+                                            $yearMonth = date('Y-m', $date);
+                                            $selected = ($yearMonth == $ym) ? 'selected' : ''; // $ym과 일치하는 경우 selected 속성 추가
+                                        echo "<option value='$yearMonth' $selected>$yearMonth</option>";
+                                        }
+                                    @endphp
+                                </select>
+                            @else
+                                <input type="month" name="ym" id="ym" value="{{ $ym }}" min="{{ $twoYearsAgo }}" max="{{ $thisYear }}" class="form-control form-control-lg col-6 col-lg-5" onchange="this.form.submit()">
+                            @endif
+
                             <div class="ip_sch_wr col-6 col-lg-7 px-0">
                                 <input type="text" name="search_text" id="search_text" value="{{ $search_text }}" class="form-control form-control-lg ip_search" autocomplete="off" >
                                 <button type="submit" class="btn btn_sch btn_sch2"></button>

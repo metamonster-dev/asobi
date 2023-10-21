@@ -1518,6 +1518,13 @@ class AdviceNoteController extends Controller
 
     public function noteView($user_id, $id)
     {
+        // 알람 통해서 이동했는데 다른 자녀일 경우 홈으로
+        if (session()->get('auth')['user_type'] == 's') {
+            if (session()->get('auth')['user_id'] != $user_id) {
+                return redirect('/');
+            }
+        }
+
         $user = $user_id;
         $userType = \App::make('helper')->getUsertType();
 
@@ -1613,6 +1620,13 @@ class AdviceNoteController extends Controller
 
     public function letterView($user_id, $id)
     {
+        // 알람 통해서 이동했는데 다른 자녀일 경우 홈으로
+        if (session()->get('auth')['user_type'] == 's') {
+            if (session()->get('auth')['user_id'] != $user_id) {
+                return redirect('/');
+            }
+        }
+
         $user = $user_id;
         $userType = \App::make('helper')->getUsertType();
         // \App::make('helper')->vardump($userType);

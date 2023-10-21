@@ -448,7 +448,8 @@ class CounselingController extends Controller
     {
         $mode = $request->input('mode') ?? '';
         $id = $request->input('id') ?? '';
-        $date = $request->input('date') ? explode('-', $request->input('date')) : explode('-', date("Y-m-d"));
+//        $date = $request->input('date') ? explode('-', $request->input('date')) : explode('-', date("Y-m-d"));
+        $date = $request->input('ymd') ? explode('-', $request->input('ymd')) : explode('-', date("Y-m-d"));;
 
         $request->merge([
             'user' => \App::make('helper')->getUsertId(),
