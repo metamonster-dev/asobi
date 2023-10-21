@@ -37,7 +37,7 @@ $device_type = session('auth')['device_type'] ?? '';
 {{--                                       @endif--}}
 {{--                                >--}}
 
-{{--                                @if ($device_type === 'iPhone' || $device_type === 'iPad')--}}
+                                @if ($device_type === 'iPhone' || $device_type === 'iPad')
                                     <select name="ym" id="ym" onchange="this.form.submit()" class="form-control form-control-lg col-6 col-lg-5">
                                         @php
                                             for ($date = strtotime($twoYearsAgo); $date <= strtotime($thisYear); $date = strtotime("+1 month", $date)) {
@@ -47,14 +47,14 @@ $device_type = session('auth')['device_type'] ?? '';
                                             }
                                         @endphp
                                     </select>
-{{--                                @else--}}
-{{--                                    <input type="month" name="ym" id="ym" value="{{ $ym }}" min="{{ $twoYearsAgo }}" max="{{ $thisYear }}" class="form-control form-control-lg col-6 col-lg-5" onchange="this.form.submit()">--}}
-{{--                                @endif--}}
+                                @else
+                                    <input type="month" name="ym" id="ym" value="{{ $ym }}" min="{{ $twoYearsAgo }}" max="{{ $thisYear }}" class="form-control form-control-lg col-6 col-lg-5" onchange="this.form.submit()">
+                                @endif
 
                                 <div class="position-relative gr_r m_select_wrap">
                                     <div class="input_wrap">
                                         <input type="hidden" name="search_user_id" value="{{ $search_user_id }}" >
-                                        <input type="text" name="search_text" id="search_text" value="{{ $search_text }}" class="form-control bg-white custom-select m_select" autocomplete="off" placeholder="전체" style="height: var(--height_md);">
+                                        <input type="text" name="search_text" id="search_text" value="{{ $search_text }}" class="form-control bg-white custom-select m_select" autocomplete="off" placeholder="전체" @if ($device_type === 'iPhone' || $device_type === 'iPad')style="height: var(--height_md);"@endif>
                                         <button class="m_delete"><img src="/img/ic_delete_sm.png"></button>
                                     </div>
                                     <ul id="searchList" class="m_select_list none_scroll_bar"></ul>
@@ -224,6 +224,13 @@ $device_type = session('auth')['device_type'] ?? '';
 </div>
 @endif
 
+<div class="loading_wrap" id="loading" style="display: none">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
+
 <script>
     const data = {!! $studentList !!};
     function sClick(e) {
@@ -263,6 +270,18 @@ $device_type = session('auth')['device_type'] ?? '';
             const maxYear = maxDate.getFullYear();
             this.value = `${maxYear}-12`;
         }
+    });
+
+    document.querySelectorAll('a').forEach(function(anchor) {
+        anchor.addEventListener('click', function(event) {
+            $('#loading').show();
+        });
+    });
+
+    document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+        element.addEventListener('click', function(event) {
+            $('#loading').show();
+        });
     });
 </script>
 

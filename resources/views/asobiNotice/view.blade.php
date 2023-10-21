@@ -59,4 +59,25 @@ $back_link = $_SERVER['HTTP_REFERER'];
     </div>
 </article>
 
+<div class="loading_wrap" id="loading" style="display: none">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('a').forEach(function(anchor) {
+        anchor.addEventListener('click', function(event) {
+            $('#loading').show();
+        });
+    });
+
+    document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+        element.addEventListener('click', function(event) {
+            $('#loading').show();
+        });
+    });
+</script>
+
 @endsection

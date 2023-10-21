@@ -22,7 +22,7 @@ $device_type = session('auth')['device_type'] ?? '';
                 <form name="notice_form" id="notice_form" class="notice_form" method="GET" action="/asobiNotice">
                     <div class="search_wrap m_top mb-0 d-flex mt-0 mt-lg-3 mt-lg-0 w-100">
                         <div class="ip_sch_wr mr-0 mr-lg-4 col-6 col-lg-4 px-0">
-                            <input type="search" name="search_text" value="{{ $search_text }}" class="form-control form-control-lg ip_search">
+                            <input type="search" name="search_text" value="{{ $search_text }}" class="form-control form-control-lg ip_search" @if ($device_type === 'iPhone' || $device_type === 'iPad')style="height: var(--height_md);"@endif>
                             <button type="submit" class="btn btn_sch btn_sch2"></button>
                         </div>
                         <div class="input-group">
@@ -34,7 +34,7 @@ $device_type = session('auth')['device_type'] ?? '';
 {{--                                   @endif--}}
 {{--                            >--}}
                             @if ($device_type === 'iPhone' || $device_type === 'iPad')
-                                <select name="ym" id="ym" onchange="this.form.submit()" class="form-control form-control-lg col-6 col-lg-5">
+                                <select name="ym" id="ym" onchange="this.form.submit()" class="form-control form-control-lg">
                                     @php
                                         for ($date = strtotime($twoYearsAgo); $date <= strtotime($thisYear); $date = strtotime("+1 month", $date)) {
                                             $yearMonth = date('Y-m', $date);
@@ -44,7 +44,7 @@ $device_type = session('auth')['device_type'] ?? '';
                                     @endphp
                                 </select>
                             @else
-                                <input type="month" name="ym" id="ym" value="{{ $ym }}" min="{{ $twoYearsAgo }}" max="{{ $thisYear }}" class="form-control form-control-lg col-6 col-lg-5" onchange="this.form.submit()">
+                                <input type="month" name="ym" id="ym" value="{{ $ym }}" min="{{ $twoYearsAgo }}" max="{{ $thisYear }}" class="form-control form-control-lg" onchange="this.form.submit()">
                             @endif
 
                             <div class="gr_r col-12 col-lg-6 px-0 d-none d-lg-block">
@@ -99,6 +99,13 @@ $device_type = session('auth')['device_type'] ?? '';
     </div>
 </article>
 
+<div class="loading_wrap" id="loading" style="display: none">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
+
 <script>
     // 필터 선택
     function filterValueChange(val) {
@@ -137,6 +144,18 @@ $device_type = session('auth')['device_type'] ?? '';
             const maxYear = maxDate.getFullYear();
             this.value = `${maxYear}-12`;
         }
+    });
+
+    document.querySelectorAll('a').forEach(function(anchor) {
+        anchor.addEventListener('click', function(event) {
+            $('#loading').show();
+        });
+    });
+
+    document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+        element.addEventListener('click', function(event) {
+            $('#loading').show();
+        });
     });
 </script>
 

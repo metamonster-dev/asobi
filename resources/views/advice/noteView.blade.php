@@ -137,6 +137,13 @@ $test = '/advice?ym='.$date.'&search_user_id='.$row['student'].'&search_text='.$
     </div>
 </article>
 
+<div class="loading_wrap" id="loading" style="display: none">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
+
 <!-- 원본 이미지 보기 -->
 <div class="modal_bg" id="bigImgModal">
     <div class="modal_wrap md_big_img">
@@ -429,6 +436,19 @@ window.addEventListener('message', (event) => {
         jalert(data.name, data.msg);
     }
 });
+
+    document.querySelectorAll('a').forEach(function(anchor) {
+        anchor.addEventListener('click', function(event) {
+            $('#loading').show();
+        });
+    });
+
+    document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+        element.addEventListener('click', function(event) {
+            $('#loading').show();
+        });
+    });
+
 </script>
 
 @endsection

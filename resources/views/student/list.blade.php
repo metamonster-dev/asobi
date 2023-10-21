@@ -121,5 +121,17 @@ $(document).ready(function(){
 {{--    @endif--}}
     });
 });
+
+document.querySelectorAll('a').forEach(function(anchor) {
+    anchor.addEventListener('click', function(event) {
+        $('#loading').show();
+    });
+});
+
+document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+    element.addEventListener('click', function(event) {
+        $('#loading').show();
+    });
+});
 </script>
 @endsection

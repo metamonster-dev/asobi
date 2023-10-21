@@ -123,6 +123,13 @@ $back_link = "/";
     </div>
 </article>
 
+<div class="loading_wrap" id="loading" style="display: none">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
+
 <script>
     const data = {!! $studentList !!};
     function sClick(e) {
@@ -140,6 +147,18 @@ $back_link = "/";
     $(window).on("load", function() {
         // 학생검색
         autoSearch(data, "searchList", "searchText", sClick, undefined, xClick);
+    });
+
+    document.querySelectorAll('a').forEach(function(anchor) {
+        anchor.addEventListener('click', function(event) {
+            $('#loading').show();
+        });
+    });
+
+    document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+        element.addEventListener('click', function(event) {
+            $('#loading').show();
+        });
     });
 </script>
 
