@@ -176,6 +176,7 @@ class TmpFileController extends Controller
 //                    $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                     $file_path = \App::make('helper')->putVideoS3($file_dir, $file);
                 } else {
+                    $file = \App::make('helper')->rotateImage($file);
                     $file_path = \App::make('helper')->putResizeS3($file_dir, $file, 1160,180);
                 }
 

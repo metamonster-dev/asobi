@@ -642,8 +642,8 @@ img.tit_img{
     height:100%;
     background:#f5f5f5 url('../img/img_icon.png') no-repeat center center / 44px;
 }
-.btn_play{position:absolute; top:calc(50% - 3rem); left:calc(50% - 3rem); width:6rem; height:6rem; border-radius:50%; z-index:5;}
-.btn_pause{position:absolute; top:calc(50% - 3rem); left:calc(50% - 3rem); width:6rem; height:6rem; border-radius:50%; z-index:5; display: none;}
+.btn_play{position:absolute; top:calc(50% - 3rem); left:calc(50% - 3rem); width:8rem; height:8rem; border-radius:50%; z-index:5;}
+.btn_pause{position:absolute; top:calc(50% - 3rem); left:calc(50% - 3rem); width:8rem; height:8rem; border-radius:50%; z-index:5; display: none;}
 .video_area:hover .plaing + .btn_pause {display: block}
 .btn_dl{
     position: absolute;

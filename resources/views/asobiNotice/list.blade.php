@@ -8,6 +8,15 @@ $title = "공지사항";
 $twoYearsAgo = date('Y-m', strtotime('-2 years', mktime(0, 0, 0, 1, 1, date('Y'))));
 $thisYear = date(date('Y').'-12');
 $device_type = session('auth')['device_type'] ?? '';
+$device_kind = session('auth')['device_kind'] ?? '';
+
+$userAgent = $_SERVER['HTTP_USER_AGENT'];
+$phpisIOS = false;
+if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== false || strpos($userAgent, 'iPod') !== false) {
+    $phpisIOS = true;
+} else {
+    $phpisIOS = false;
+}
 ?>
 @include('common.headm07')
 
@@ -22,7 +31,7 @@ $device_type = session('auth')['device_type'] ?? '';
                 <form name="notice_form" id="notice_form" class="notice_form" method="GET" action="/asobiNotice">
                     <div class="search_wrap m_top mb-0 d-flex mt-0 mt-lg-3 mt-lg-0 w-100">
                         <div class="ip_sch_wr mr-0 mr-lg-4 col-6 col-lg-4 px-0">
-                            <input type="search" name="search_text" value="{{ $search_text }}" class="form-control form-control-lg ip_search" @if ($device_type === 'iPhone' || $device_type === 'iPad')style="height: var(--height_md);"@endif>
+                            <input type="search" name="search_text" value="{{ $search_text }}" class="form-control form-control-lg ip_search" @if ($device_kind == 'iOS' || $phpisIOS)style="height: var(--height_md);"@endif>
                             <button type="submit" class="btn btn_sch btn_sch2"></button>
                         </div>
                         <div class="input-group">
@@ -33,7 +42,7 @@ $device_type = session('auth')['device_type'] ?? '';
 {{--                                       onchange="this.form.submit()"--}}
 {{--                                   @endif--}}
 {{--                            >--}}
-                            @if ($device_type === 'iPhone' || $device_type === 'iPad')
+                            @if ($device_kind == 'iOS' || $phpisIOS)
                                 <select name="ym" id="ym" onchange="this.form.submit()" class="form-control form-control-lg">
                                     @php
                                         for ($date = strtotime($twoYearsAgo); $date <= strtotime($thisYear); $date = strtotime("+1 month", $date)) {

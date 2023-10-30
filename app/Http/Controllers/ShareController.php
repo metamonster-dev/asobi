@@ -151,7 +151,7 @@ class ShareController extends Controller
     public function webDeepLink(Request $request)
     {
         $id = $request->input('id', '');
-        $link = $request->input('link');
+        $link = $request->input('link').'?iscopy=1';
 //        $link = 'https://asobi.tenbilsoft.com/advice/138435/note/view/774509';
         $result = array();
         $arr = array();

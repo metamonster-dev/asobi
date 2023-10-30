@@ -24,16 +24,6 @@ class Helper
 
     public function getImage($path)
     {
-//        var_dump($path);
-//        if ($path == 'app/album/cWHL4gZwsVPUTvuHjIVlkungVb5f5sN1ffGltlhM.jpeg') {
-//            $path = 'app/album/RCRBaxCv0pI4HceAjTSpT64z0IgbLhJ8UxZpoJll.jpeg';
-//        }
-
-//        var_dump($path);
-
-//        var_dump(Storage::disk('s3')->has($path));
-//        Storage::disk('s3')->url($path);
-
         return (Storage::disk('s3')->has($path)) ? Storage::disk('s3')->temporaryUrl($path, now()->addHour(3)) : null;
     }
 
@@ -462,4 +452,44 @@ EEE;
         return $msg;
     }
 
+    public function rotateImage($file)
+    {
+        // 회전 된 이미지 그대로 보여주기
+        $exif = exif_read_data($file);
+
+        if($exif && isset($exif['Orientation'])) {
+            $orientation = $exif['Orientation'];
+
+            if($orientation != 1){
+                $img = imagecreatefromjpeg($file);
+
+                // 이미지를 회전시키기
+                switch($orientation){
+                    case 3:
+                        $img = imagerotate($img, 180, 0);
+                        break;
+                    case 6:
+                        $img = imagerotate($img, -90, 0);
+                        break;
+                    case 8:
+                        $img = imagerotate($img, 90, 0);
+                        break;
+                }
+
+                $tempPath = tempnam(sys_get_temp_dir(), 'rotated_image');
+                imagejpeg($img, $tempPath);
+
+                // 메모리 해제
+                imagedestroy($img);
+
+                // 임시 파일을 원본 파일로 복사 또는 이동
+                copy($tempPath, $file);
+
+                // 임시 파일 삭제
+                unlink($tempPath);
+            }
+        }
+
+        return $file;
+    }
 }

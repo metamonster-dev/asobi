@@ -7,6 +7,7 @@ use App\AdviceNote;
 use App\AdviceNoteAdmin;
 use App\AdviceComment;
 use App\AdviceNoteHistory;
+use App\AdviceNoteShareHistory;
 use App\AppendFile;
 use App\File;
 use App\Jobs\BatchPush;
@@ -73,7 +74,7 @@ class AdviceNoteController extends Controller
             ->where('mtype', 's')
             ->where('s_status', 'Y')
             ->when($search_user_id != "", function ($q) use ($search_user_id) {
-                $q->where('id', $search_user_id);
+                $q->where('idx', $search_user_id);
             })
             ->orderBy('name', 'asc')
             ->get();
@@ -272,7 +273,10 @@ class AdviceNoteController extends Controller
         $result = Arr::add($result, "type_name", ($row->type == 'advice')?"알림장":"가정통신문");
         $result = Arr::add($result, "title", $row->title);
         $result = Arr::add($result, "content", $row->content);
+//        dd($row);
         $this_date = Carbon::create($row->year, $row->month, $row->day);
+
+
         $result = Arr::add($result, "date", $this_date->format('Y.m.d')." / ".$row->created_at->format('Y.m.d H:i'));
         $result = Arr::add($result, "date2", $this_date->format('Y-m-d'));
         $result = Arr::add($result, "ym", $this_date->format('Y-m'));
@@ -291,7 +295,7 @@ class AdviceNoteController extends Controller
                 $result = Arr::add($result, "this_month_education_info", null);
             }
 
-            $this_course = DB::table('order AS o')
+            $this_course = DB::connection('mysql2')->table('order AS o')
                 ->join('order_member_detail AS omd', 'omd.order_idx', '=', 'o.idx')
                 ->join('shopProduct AS sp', 'sp.idx', '=', 'omd.product_idx')
                 ->select('sp.name', 'sp.content')
@@ -300,12 +304,13 @@ class AdviceNoteController extends Controller
                 ->where('omd.sidx', $row->sidx)
                 ->where('omd.order_type', 'B')
                 ->where('omd.status', '33')
-//                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.idx)"), '=', 0)
+                //                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.idx)"), '=', 0)
+                ->where(DB::raw("(SELECT COUNT(*) FROM `order_cancel_detail` WHERE `order_member_idx` = omd.order_member_idx)"), '=', 0)
                 ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail` WHERE `order_member_idx` = omd.idx AND `status` = '99')"), '=', 0)
                 ->orderBy('omd.idx', 'ASC')
                 ->get();
 
-            $next_course = DB::table('order AS o')
+            $next_course = DB::connection('mysql2')->table('order AS o')
                 ->join('order_member_detail AS omd', 'omd.order_idx', '=', 'o.idx')
                 ->join('shopProduct AS sp', 'sp.idx', '=', 'omd.product_idx')
                 ->select('sp.name', 'sp.content')
@@ -315,6 +320,7 @@ class AdviceNoteController extends Controller
                 ->where('omd.order_type', 'B')
                 ->where('omd.status', '33')
 //                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.idx)"), '=', 0)
+                ->where(DB::raw("(SELECT COUNT(*) FROM `order_cancel_detail` WHERE `order_member_idx` = omd.order_member_idx)"), '=', 0)
                 ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail` WHERE `order_member_idx` = omd.idx AND `status` = '99')"), '=', 0)
                 ->orderBy('omd.idx', 'ASC')
                 ->get();
@@ -468,7 +474,7 @@ class AdviceNoteController extends Controller
             $result = Arr::add($result, "this_month_education_info", null);
         }
 
-        $this_course = DB::table('order AS o')
+        $this_course = DB::connection('mysql2')->table('order AS o')
             ->join('order_member_detail AS omd', 'omd.order_idx', '=', 'o.idx')
             ->join('shopProduct AS sp', 'sp.idx', '=', 'omd.product_idx')
             ->select('sp.name', 'sp.content')
@@ -482,7 +488,7 @@ class AdviceNoteController extends Controller
             ->orderBy('omd.idx', 'ASC')
             ->get();
 
-        $next_course = DB::table('order AS o')
+        $next_course = DB::connection('mysql2')->table('order AS o')
             ->join('order_member_detail AS omd', 'omd.order_idx', '=', 'o.idx')
             ->join('shopProduct AS sp', 'sp.idx', '=', 'omd.product_idx')
             ->select('sp.name', 'sp.content')
@@ -522,24 +528,27 @@ class AdviceNoteController extends Controller
             ->count();
 
         // @2021-10-01 마지막주만 작성가능
-        $now_year_month = date('Y-m');
-        $last_day = date('t', strtotime($now_year_month . '-01'));
-        $write_possible_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -5 day')));
-        $now_date = strtotime(date('Y-m-d H:i:s', time()));
+//        $now_year_month = date('Y-m');
+//        $last_day = date('t', strtotime($now_year_month . '-01'));
+//        $write_possible_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -5 day')));
+//        $now_date = strtotime(date('Y-m-d H:i:s', time()));
+//
+//        $result = Arr::add($result, "write_possible_date", date('Y-m-d H:i:s', $write_possible_date)."~");
+//
+////        $result = Arr::add($result, "now_year_month", $now_year_month);
+////        $result = Arr::add($result, "last_day", $last_day);
+////        $result = Arr::add($result, "now_date", $now_date);
+//
+//        if ($write_possible_date < $now_date) {
+//            $result = Arr::add($result, "write_possible", true);
+//            $result = Arr::add($result, "this_month_letter_count", $advice_note_letter);
+//        } else {
+//            $result = Arr::add($result, "write_possible", false);
+//            $result = Arr::add($result, "this_month_letter_count", 1);
+//        }
 
-        $result = Arr::add($result, "write_possible_date", date('Y-m-d H:i:s', $write_possible_date)."~");
-
-//        $result = Arr::add($result, "now_year_month", $now_year_month);
-//        $result = Arr::add($result, "last_day", $last_day);
-//        $result = Arr::add($result, "now_date", $now_date);
-
-        if ($write_possible_date < $now_date) {
-            $result = Arr::add($result, "write_possible", true);
-            $result = Arr::add($result, "this_month_letter_count", $advice_note_letter);
-        } else {
-            $result = Arr::add($result, "write_possible", false);
-            $result = Arr::add($result, "this_month_letter_count", 1);
-        }
+        $result = Arr::add($result, "write_possible", true);
+        $result = Arr::add($result, "this_month_letter_count", $advice_note_letter);
 
         return response()->json($result);
     }
@@ -567,20 +576,22 @@ class AdviceNoteController extends Controller
         $month = $request->input('month') ? sprintf('%02d',$request->input('month')) : $now->format('m');
 
         // @2021-10-01 마지막주만 작성가능 -> 항상 작성 가능
+        $result = Arr::add($result, "write_possible", true);
+
+//        $now_year_month = date('Y-m');
+//        $last_day = date('t', strtotime($now_year_month . '-01'));
+//        $write_possible_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -5 day')));
+//        $now_date = strtotime(date('Y-m-d H:i:s', time()));
+//
+//        $result = Arr::add($result, "write_possible_date", date('Y-m-d H:i:s', $write_possible_date)."~");
+//
+//        if ($write_possible_date < $now_date && $now_year_month == $year."-".$month) {
+//            $result = Arr::add($result, "write_possible", true);
+//        } else {
+//            $result = Arr::add($result, "write_possible", false);
+//        }
+
 //        $result = Arr::add($result, "write_possible", true);
-
-        $now_year_month = date('Y-m');
-        $last_day = date('t', strtotime($now_year_month . '-01'));
-        $write_possible_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -5 day')));
-        $now_date = strtotime(date('Y-m-d H:i:s', time()));
-
-        $result = Arr::add($result, "write_possible_date", date('Y-m-d H:i:s', $write_possible_date)."~");
-
-        if ($write_possible_date < $now_date && $now_year_month == $year."-".$month) {
-            $result = Arr::add($result, "write_possible", true);
-        } else {
-            $result = Arr::add($result, "write_possible", false);
-        }
 
         return response()->json($result);
     }
@@ -666,43 +677,65 @@ class AdviceNoteController extends Controller
         $debug_write = $request->input('debug_write') ? true : false;
         if (env('APP_ENV') != 'development') $debug_write = false;
 
+        $id = $request->input('id') ?? null;
+
+        $adviceNote = AdviceNote::whereId($id)->first();
+
+        if ($adviceNote) {
+            $adviceNote->content = $content;
+            $adviceNote->class_content = $class_content;
+
+            $adviceNote->save();
+
+            $result = Arr::add($result, 'result', 'success');
+            $result = Arr::add($result, 'error', '등록 되었습니다.');
+            $result = Arr::add($result, 'ids', $id);
+
+            return response()->json($result);
+        }
+
         if ($type == AdviceNote::LETTER_TYPE) {
             $this_date = Carbon::create($year, $month);
             $this_month = $this_date->format('Y-m');
             $next_month = $this_date->addMonth(1)->format('Y-m');
 
-            $check_letter = AdviceNote::select(['id', 'sidx'])
-                ->where('type', $type)
-                ->whereIn('sidx', $student)
-                ->where('this_month', $this_month)
-                ->where('status', 'Y')
-                ->get();
+//            $check_letter = AdviceNote::select(['id', 'sidx'])
+//                ->where('type', $type)
+//                ->whereIn('sidx', $student)
+//                ->where('this_month', $this_month)
+//                ->where('status', 'Y')
+//                ->get();
 
-            if ($check_letter->count() < 1) {
-                // @2021-10-01 마지막주만 작성가능
-                $now_year_month = date('Y-m');
-                if ($debug_write) $now_year_month = $year."-".$month;
-
-                $last_day = date('t', strtotime($now_year_month . '-01'));
-                $write_possible_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -5 day')));
-                $now_date = strtotime(date('Y-m-d H:i:s', time()));
-
-                if ($debug_write) $now_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -4 day')));
-
-                if ($write_possible_date < $now_date) {
-                    $is_write = true;
-                } else {
-                    $is_write = false;
-                    $write_not_possible = true;
-                }
-
-                unset($last_day);
-                unset($write_possible_date);
-                unset($now_date);
-            } else {
-                $is_write = false;
-            }
+//            if ($check_letter->count() < 1) {
+//                // @2021-10-01 마지막주만 작성가능
+//                $now_year_month = date('Y-m');
+//                if ($debug_write) $now_year_month = $year."-".$month;
+//
+////                $last_day = date('t', strtotime($now_year_month . '-01'));
+////                $write_possible_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -5 day')));
+////                $now_date = strtotime(date('Y-m-d H:i:s', time()));
+////
+////                if ($debug_write) $now_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -4 day')));
+////
+////                if ($write_possible_date < $now_date) {
+////                    $is_write = true;
+////                } else {
+////                    $is_write = false;
+////                    $write_not_possible = true;
+////                }
+//
+////                $is_write = true;
+//
+//
+////                unset($last_day);
+////                unset($write_possible_date);
+////                unset($now_date);
+//            } else {
+//                $is_write = false;
+//            }
         }
+
+        $is_write = true;
 
         if (!$is_write) {
             if ($write_not_possible === true) {
@@ -745,6 +778,14 @@ class AdviceNoteController extends Controller
                 $student_row = RaonMember::whereIdx($l)->first();
                 if ($student_row) {
                     $title = $student_row->name . "의 선생님이 알립니다.";
+
+//                    dd($ymd);
+//
+//                    $year = null;
+//                    $month = null;
+//                    $day = 1;
+//                    $this_month = null;
+//                    $next_month = null;
                 }
             }
             $payload = [
@@ -763,6 +804,8 @@ class AdviceNoteController extends Controller
                 'status' => 'Y',
                 'batch' => 'N'
             ];
+
+//            dd($payload);
 
             $adviceNote = new AdviceNote($payload);
             $adviceNote->save();
@@ -790,6 +833,7 @@ class AdviceNoteController extends Controller
                     if ($vimeo_id) {
                         $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                     } else {
+                        $file = \App::make('helper')->rotateImage($file);
                         $file_path = \App::make('helper')->putResizeS3(AdviceFile::FILE_DIR, $file);
                     }
 
@@ -907,6 +951,7 @@ class AdviceNoteController extends Controller
                 if ($vimeo_id) {
                     $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                 } else {
+                    $file = \App::make('helper')->rotateImage($file);
                     $file_path = \App::make('helper')->putResizeS3(AdviceFile::FILE_DIR, $file);
                 }
 
@@ -1003,22 +1048,24 @@ class AdviceNoteController extends Controller
             $now_year_month = date('Y-m');
             if ($debug_write) $now_year_month = $year."-".$month;
 
-            $last_day = date('t', strtotime($now_year_month . '-01'));
-            $write_possible_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -5 day')));
-            $now_date = strtotime(date('Y-m-d H:i:s', time()));
+//            $last_day = date('t', strtotime($now_year_month . '-01'));
+//            $write_possible_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -5 day')));
+//            $now_date = strtotime(date('Y-m-d H:i:s', time()));
+//
+//            if ($debug_write) $now_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -4 day')));
+//
+//            if ($write_possible_date < $now_date) {
+//                $is_write = true;
+//            } else {
+//                $is_write = false;
+//                $write_not_possible = true;
+//            }
 
-            if ($debug_write) $now_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -4 day')));
+            $is_write = true;
 
-            if ($write_possible_date < $now_date) {
-                $is_write = true;
-            } else {
-                $is_write = false;
-                $write_not_possible = true;
-            }
-
-            unset($last_day);
-            unset($write_possible_date);
-            unset($now_date);
+//            unset($last_day);
+//            unset($write_possible_date);
+//            unset($now_date);
         }
 
         if (!$is_write) {
@@ -1192,22 +1239,24 @@ class AdviceNoteController extends Controller
             $now_year_month = date('Y-m');
             if ($debug_write) $now_year_month = $year."-".$month;
 
-            $last_day = date('t', strtotime($now_year_month . '-01'));
-            $write_possible_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -5 day')));
-            $now_date = strtotime(date('Y-m-d H:i:s', time()));
+//            $last_day = date('t', strtotime($now_year_month . '-01'));
+//            $write_possible_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -5 day')));
+//            $now_date = strtotime(date('Y-m-d H:i:s', time()));
+//
+//            if ($debug_write) $now_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -4 day')));
+//
+//            if ($write_possible_date < $now_date) {
+//                $batch_exec = 'Y';
+//            } else {
+//                $batch_exec = 'N';
+//                $write_not_possible = true;
+//            }
 
-            if ($debug_write) $now_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -4 day')));
+            $batch_exec = 'Y';
 
-            if ($write_possible_date < $now_date) {
-                $batch_exec = 'Y';
-            } else {
-                $batch_exec = 'N';
-                $write_not_possible = true;
-            }
-
-            unset($last_day);
-            unset($write_possible_date);
-            unset($now_date);
+//            unset($last_day);
+//            unset($write_possible_date);
+//            unset($now_date);
         }
 
         if ($batch_exec == 'N') {
@@ -1400,6 +1449,7 @@ class AdviceNoteController extends Controller
     public function advice(Request $request)
     {
         $ym = $request->input('ym') ?? date('Y-m');
+
         $search_text = $request->input('search_text') ?? '';
         $search_user_id = $request->input('search_user_id') ?? '';
 
@@ -1469,7 +1519,7 @@ class AdviceNoteController extends Controller
             'month' => $month,
         ]);
         $res = $this->checkLetter($req);
-        $writeMode = $res->original['write_possible'] || session('auth')['user_type'] == 'a';
+        $writeMode = $res->original['write_possible'];
 
         return view('advice/advice', [
             'user' => $user,
@@ -1516,8 +1566,20 @@ class AdviceNoteController extends Controller
         ]);
     }
 
-    public function noteView($user_id, $id)
+    public function noteView(Request $request, $user_id, $id)
     {
+        $isCopy = $request->input('iscopy');
+
+        if ($isCopy) {
+            $adviceNoteShareHistory = AdviceNoteShareHistory::where('advice_note_id', $id)->first();
+
+            if ($adviceNoteShareHistory) {
+                $adviceNoteShareHistory->confirmed_at = date('Y-m-d H:i:s', time());
+
+                $adviceNoteShareHistory->save();
+            }
+        }
+
         // 알람 통해서 이동했는데 다른 자녀일 경우 홈으로
         if (session()->get('auth')['user_type'] == 's') {
             if (session()->get('auth')['user_id'] != $user_id) {
@@ -1697,11 +1759,32 @@ class AdviceNoteController extends Controller
                 $ymd = $row['date2'];
                 $ym = $row['ym'];
             }
+
+            //전체 학생리스트
+            $req = Request::create('/adviceNote/student/list', 'GET', [
+                'user' => $user,
+                'year' => $ymdArr[0] ?? "",
+                'month' => $ymdArr[1] ?? "",
+                'search_user_id' => $userId ?? "",
+            ]);
+            $res = $this->student($req);
+            $student = $res->original['list'] ?? [];
         } else {
+            // 이번 달이 아니면 가정통신문 작성 불가
+            $nowDate = date('Y-m');
+
+            if ($userType != 'a' && $nowDate != $ym) {
+                $error = \App::make('helper')->getErrorMsg("이번 달에 해당하는 가정통신문만 작성할 수 있습니다.");
+                \App::make('helper')->alert($error);
+            }
+
             // 날짜로 조회
             $ymdArr = explode('-',$ymd);
-            if ($userType == 'a') {
-                $mode = 'a';
+            if ($userType == 'a' || $mode == 'w') {
+                if ($userType == 'a') {
+                    $mode = 'a';
+                }
+
                 $req = Request::create('/adviceNoteAdmin/write/'.$id, 'GET', [
                     'user' => \App::make('helper')->getUsertId(),
                     'year' => $ymdArr[0] ?? "",
@@ -1711,7 +1794,7 @@ class AdviceNoteController extends Controller
                 $res = $adviceNoteAdminController->show($req);
 
                 if ($res->original['result'] == 'success') {
-                    $mode = "u";
+//                    $mode = "u";
                     $row['prefix_content'] = $res->original['prefix_content'];
                     $row['this_month_education_info'] = $res->original['this_month_education_info'];
                     $nextMonth = $res->original['nextMonth'];
@@ -1725,9 +1808,16 @@ class AdviceNoteController extends Controller
                 'user' => $user,
                 'year' => $ymdArr[0] ?? "",
                 'month' => $ymdArr[1] ?? "",
-                'search_user_id' => "",
+                'search_user_id' => $search_user_id ?? "",
             ]);
             $res = $this->student($req);
+
+            // 가정통신문 발송한 학생은 제외
+            foreach ($res->original['list'] as $key => $list) {
+                if ($list['letter'] > 0) {
+                    unset($res->original['list'][$key]);
+                }
+            }
 //            $req = Request::create('/api/children', 'GET', [
 //                'user' => $user,
 //            ]);
@@ -1747,9 +1837,10 @@ class AdviceNoteController extends Controller
                     }
                 }
             }
-            if ($student_cnt == $letter_cnt && $letter_cnt > 0) {
-                \App::make('helper')->alert("가정통신문 발송이 완료 되었습니다.");
-            }
+//            if ($student_cnt == $letter_cnt && $letter_cnt > 0) {
+//                \App::make('helper')->alert("가정통신문 발송이 완료 되었습니다.");
+//            }
+
             if ($search_user_is_letter) {
                 $smonth = $ymdArr[1] ?? "";
                 $smonth = $smonth ? sprintf('%02d', $smonth) : date("m");
@@ -1758,17 +1849,18 @@ class AdviceNoteController extends Controller
             }
 
             if (count($student) == 0) {
-
                 \App::make('helper')->alert("모든 학생에게 가정통신문을 발송하여 더이상 가정통신문 작성을 할 수 없습니다.");
             }
         }
+
+        // 작성 후 수정되었습니다 -> 모든 학생에게 가정통신문을 발송하여 더이상 가정통신문 작성을 할 수 없습니다.
 
         return view('advice/letterWrite', [
             'ym' => $ym,
             'ymd' => $ymd,
             'nextMonth' => $nextMonth,
             'minMonth' => $minMonth,
-            'student' => $student ?? "",
+            'student' => $student ?? [],
             'mode' => $mode,
             'id' => $id,
             'row' => $row,
@@ -1779,6 +1871,7 @@ class AdviceNoteController extends Controller
 
     public function writeAction(Request $request)
     {
+        dd(1);
         $mode = $request->input('mode') ?? '';
         $id = $request->input('id') ?? '';
         $userId = $request->input('userId') ?? '';
@@ -1793,12 +1886,12 @@ class AdviceNoteController extends Controller
         $multiform_delete_idx = $request->input('multiform_delete_idx') ?? '';
         $multiform_idx = $request->input('multiform_idx') ?? '';
 
-        if ($mode != 'a' && $type != 'letter') {
+        if ($mode != 'a' && session('auth')['user_type'] =='m') {
             if ($ymd == "") \App::make('helper')->alert('작성일자를 입력해주세요.');
             $ymdArr = explode('-', $ymd);
             $year = $ymdArr[0]??-1;
             $month = $ymdArr[1]??-1;
-            $day = $ymdArr[2]??-1;
+            $day = $ymdArr[2]??1;
 //            if (! checkdate((int)$month,(int)$day,(int)$year)) \App::make('helper')->alert('올바른 작성일자가 아닙니다.');
             if ($content == "" && $type != "letter") \App::make('helper')->alert('내용을 입력해주세요.');
 //            if (!$upload_files) \App::make('helper')->alert('사진·동영상을 등록해주세요.');
@@ -1813,7 +1906,6 @@ class AdviceNoteController extends Controller
         if (in_array($userType, ['a','h'])) {
             $user = session()->get('center');
         }
-
 
 //        \App::make('helper')->vardump($upload_files);
 
@@ -1843,12 +1935,13 @@ class AdviceNoteController extends Controller
 
         // 1. $mode = 'w' + $type = 'advice' -> 알림장 작성
         // 2. $mode = 'u' + $type = 'advice' -> 알림장 수정
-        // 3. $mode = 'a' + $type = 'letter' -> 가정통신문 작성
-        // 4. $mode = 'u' + $type = 'letter' -> 가정통신문 수정 @@
+
+        // 3. $mode = 'a' + $type = 'letter' -> 관리자 가정통신문 작성
+        // 3. $mode = 'w' + $type = 'letter' -> 원장 가정통신문 작성
+        // 4. $mode = 'u' + $type = 'letter' -> 관리자 가정통신문 수정
 
         // 알림장 수정
         if ($mode == 'u' && $type == 'advice') {
-
             //파일 삭제
             $delete_ids = $request->input('delete_ids') ?? '';
             if ($delete_ids != "") {
@@ -1876,13 +1969,22 @@ class AdviceNoteController extends Controller
             ]);
             $adviceNoteAdminController = new AdviceNoteAdminController();
             $res = $adviceNoteAdminController->store($request);
-        // 가정통신문 수정
         } else if ($mode == 'u' && $type = 'letter') {
+            // 어드민 가정통신문 수정
+            if (session('auth')['user_type'] == 'a') {
+                $request->merge([
+                    'user' => \App::make('helper')->getUsertId(),
+                ]);
+                $adviceNoteAdminController = new AdviceNoteAdminController();
+                $res = $adviceNoteAdminController->store($request);
+            }
+        // 원장 가정통신문 작성
+        } else if ($mode == 'w' && $type == 'letter') {
             $request->merge([
                 'user' => \App::make('helper')->getUsertId(),
             ]);
-            $adviceNoteAdminController = new AdviceNoteAdminController();
-            $res = $adviceNoteAdminController->store($request);
+
+            $res = $this->store($request);
         // 알림장 작성
         } else {
             $requestMergeData = [
@@ -1973,7 +2075,7 @@ class AdviceNoteController extends Controller
                         }
                     }
                     if ($student_cnt == $letter_cnt && $letter_cnt > 0) {
-                        \App::make('helper')->alert("가정통신문이 전체 발송 되었습니다.",$link);
+                        \App::make('helper')->alert("가정통신문이 발송 되었습니다.",$link);
                     }
                 }
             }

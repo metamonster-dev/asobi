@@ -386,6 +386,7 @@ function getVimeoVideo () {
                 next.then(function(data, v){
                     // console.log("DATA:", i, elId, data);
 
+
                     const resData = data?.data?.body;
                     let link = resData?.download[0]?.link ?? '';
                     if (link == "") link = 'javascript:void(0);';
@@ -410,11 +411,18 @@ function getVimeoVideo () {
                         const ext = resData?.download[qtIdx]?.type.replaceAll('video/','') ?? '';
                         link = "javascript:ycommon.downloadMovie(os,'"+link+"','"+ext+"')";
                     }
+
                     // const src = resData?.player_embed_url;
                     // const iframeHtml = `<button type="button" class="btn btn_play"><img src="/img/ic_play.png" /></button>
                     // <a href="${link}" class="btn btn_dl"><img src="/img/ic_download.svg"></a>
                     // <iframe src="${src}&title=0&byline=0&portrait=0&controls=0" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="Untitled"></iframe>`;
                     // $(`.video_area#vimeo${i}`).html(iframeHtml);
+
+                    const resData2 = data?.data?.body?.pictures;
+                    const src = resData2?.sizes[2]?.link;
+                    document.querySelectorAll('.video_area > img').forEach((elem) => {
+                        elem.src = src;
+                    })
 
                     const options = {
                         id: num,
@@ -422,14 +430,22 @@ function getVimeoVideo () {
                         byline: false,
                         portrait: false,
                         controls: false,
+                        // maxwidth: '100%'
+                        // width: '100%',
+                        // height: '100%',
+                        // loop: true,
+                        // playsinline: false
                     }
+
                     const player = new Vimeo.Player(elId, options);
                     // player.on('play', function() {
                     //     console.log('played the video!');
                     // });
+
                     player.on('ended', function() {
                         $('#playButton'+i).show();
                         $('#playButton'+i).removeClass('plaing');
+                        player.setCurrentTime(0);
                     });
                     player.on('pause', function() {
                         $('#playButton'+i).show();
@@ -443,11 +459,22 @@ function getVimeoVideo () {
                     $(`.video_area#vimeo${i}`).find('img').hide();
                     $(`.video_area#vimeo${i}`).append(playButton + pauseButton + downloadButton);
 
+                    player.loadVideo(num).then(function () {
+                        document.querySelector('iframe').width = '100%';
+                        document.querySelector('iframe').height = '100%';
+
+                        document.querySelector('.loading_img').style.display = 'none';
+                        document.querySelector('.video_none').style.display = 'block';
+                    })
+
                     $(document).on('click','#playButton'+i,function (){
                         let $this = $(this)
                         player.play().then(function (){
+
                             $this.addClass('plaing');
                             $this.hide();
+
+                            document.getElementById('pauseButton'+i).style.opacity = '0';
                         });
                     });
 

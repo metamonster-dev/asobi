@@ -455,8 +455,8 @@ $hd_bg = "1";
         @endif
 
         $(document).on('change', '.upload_files', function(e) {
-            const imageMaxSize = 10485760; // 10MB
-            const videoMaxSize = 10 * 10485760; // 10MB
+            const imageMaxSize = 10 * 1024 * 1024; // 10MB
+            const videoMaxSize = 10 * 10 * 1024 * 1024; // 100MB
 
             for (var i = 0; i < this.files.length; i++) {
 
@@ -512,6 +512,18 @@ $hd_bg = "1";
         }
         @endif
 
+    });
+
+    document.querySelectorAll('a').forEach(function(anchor) {
+        anchor.addEventListener('click', function(event) {
+            $('#loading').show();
+        });
+    });
+
+    document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+        element.addEventListener('click', function(event) {
+            $('#loading').show();
+        });
     });
 </script>
 

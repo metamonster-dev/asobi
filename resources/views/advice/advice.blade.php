@@ -10,6 +10,15 @@ $back_link = "/";
 $twoYearsAgo = date('Y-m', strtotime('-2 years', mktime(0, 0, 0, 1, 1, date('Y'))));
 $thisYear = date(date('Y').'-12');
 $device_type = session('auth')['device_type'] ?? '';
+$device_kind = session('auth')['device_kind'] ?? '';
+
+$userAgent = $_SERVER['HTTP_USER_AGENT'];
+$phpisIOS = false;
+if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== false || strpos($userAgent, 'iPod') !== false) {
+    $phpisIOS = true;
+} else {
+    $phpisIOS = false;
+}
 ?>
 @include('common.headm02')
 
@@ -37,7 +46,7 @@ $device_type = session('auth')['device_type'] ?? '';
 {{--                                       @endif--}}
 {{--                                >--}}
 
-                                @if ($device_type === 'iPhone' || $device_type === 'iPad')
+                                @if ($device_kind == 'iOS' || $phpisIOS)
                                     <select name="ym" id="ym" onchange="this.form.submit()" class="form-control form-control-lg col-6 col-lg-5">
                                         @php
                                             for ($date = strtotime($twoYearsAgo); $date <= strtotime($thisYear); $date = strtotime("+1 month", $date)) {
@@ -54,7 +63,7 @@ $device_type = session('auth')['device_type'] ?? '';
                                 <div class="position-relative gr_r m_select_wrap">
                                     <div class="input_wrap">
                                         <input type="hidden" name="search_user_id" value="{{ $search_user_id }}" >
-                                        <input type="text" name="search_text" id="search_text" value="{{ $search_text }}" class="form-control bg-white custom-select m_select" autocomplete="off" placeholder="전체" @if ($device_type === 'iPhone' || $device_type === 'iPad')style="height: var(--height_md);"@endif>
+                                        <input type="text" name="search_text" id="search_text" value="{{ $search_text }}" class="form-control bg-white custom-select m_select" autocomplete="off" placeholder="전체" @if ($device_kind == 'iOS' || $phpisIOS)style="height: var(--height_md);"@endif>
                                         <button class="m_delete"><img src="/img/ic_delete_sm.png"></button>
                                     </div>
                                     <ul id="searchList" class="m_select_list none_scroll_bar"></ul>
@@ -210,7 +219,7 @@ $device_type = session('auth')['device_type'] ?? '';
         <div class="modal-content">
             <div class="modal-body text-center">
                 <h4 class="tit_h4 py-4 border-bottom border-text">작성 선택</h4>
-                <button class="btn btn-block h-auto px-0 py-4 border-bottom" value="" onclick="location.href='/advice/letter/write?ym={{ $ym }}'">
+                <button class="btn btn-block h-auto px-0 py-4 border-bottom" value="" onclick="location.href='/advice/letter/write?ym={{ $ym }}&search_user_id={{ $search_user_id }}'">
                     <p class="py-2 fs_16 fw_400">가정통신문 작성</p>
                 </button>
                 @if(session('auth')['user_type'] != "a")
@@ -250,39 +259,19 @@ $device_type = session('auth')['device_type'] ?? '';
         getVimeoThumbs();
     });
 
-    const dateInput = document.getElementById('ym');
 
-    const minDate = new Date();
-    const maxDate = new Date();
 
-    minDate.setFullYear(minDate.getFullYear() - 2);
-    maxDate.setMonth(11);
-
-    const minYear = minDate.getFullYear();
-    const minMonth = String(minDate.getMonth() + 1).padStart(2, '0');
-
-    dateInput.addEventListener('input', function() {
-        const selectedDate = new Date(this.value);
-
-        if (selectedDate < minDate) {
-            this.value = `${minYear}-${minMonth}`;
-        } else if (selectedDate > maxDate) {
-            const maxYear = maxDate.getFullYear();
-            this.value = `${maxYear}-12`;
-        }
-    });
-
-    document.querySelectorAll('a').forEach(function(anchor) {
-        anchor.addEventListener('click', function(event) {
-            $('#loading').show();
-        });
-    });
-
-    document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
-        element.addEventListener('click', function(event) {
-            $('#loading').show();
-        });
-    });
+    // document.querySelectorAll('a').forEach(function(anchor) {
+    //     anchor.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
+    //
+    // document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+    //     element.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
 </script>
 
 @endsection

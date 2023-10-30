@@ -427,8 +427,8 @@ $hd_bg = "3";
         @endif
 
         $(document).on('change', '.upload_files', function(e) {
-            const imageMaxSize = 10485760; // 10MB
-            const videoMaxSize = 10 * 10485760; // 10MB
+            const imageMaxSize = 10 * 1024 * 1024; // 10MB
+            const videoMaxSize = 10 * 10 * 1024 * 1024; // 100MB
 
             for (var i = 0; i < this.files.length; i++) {
                 if (this.files[i].type.startsWith('image/')) {
@@ -438,7 +438,6 @@ $hd_bg = "3";
                             return;
                     }
                 } else if (this.files[i].type.startsWith('video/')) {
-                    console.log(this.files[i].size);
                     if (this.files[i].size > videoMaxSize) {
                         jalert('파일 크기가 너무 큽니다. 100MB 이하의 파일을 선택하세요.');
                         this.value = '';

@@ -48,12 +48,12 @@ $back_link = $_SERVER['HTTP_REFERER'];
                 @if($modifyBtn)
                 <button type="button" class="btn btn-primary" onclick="location.href='/asobiNotice/write/{{ $row['id'] }}'">수정</button>
                 @endif
-                <button type="button" class="btn btn-gray text-white" onclick="location.href='/asobiNotice'">목록</button>
+                <button type="button" class="btn btn-gray text-white" onclick="location.href='{{ $back_link }}'">목록</button>
                 @if($deleteBtn)
                 <button type="button" class="btn btn-gray text-white" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/asobiNotice/delete/{{ $row['id'] }}';})">삭제</button>
                 @endif
             @else
-            <button type="button" class="btn btn-gray text-white" onclick="location.href='/asobiNotice'">목록</button>
+            <button type="button" class="btn btn-gray text-white" onclick="location.href='{{ $back_link }}'">목록</button>
             @endif
         </div>
     </div>
@@ -67,17 +67,17 @@ $back_link = $_SERVER['HTTP_REFERER'];
 </div>
 
 <script>
-    document.querySelectorAll('a').forEach(function(anchor) {
-        anchor.addEventListener('click', function(event) {
-            $('#loading').show();
-        });
-    });
-
-    document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
-        element.addEventListener('click', function(event) {
-            $('#loading').show();
-        });
-    });
+    // document.querySelectorAll('a').forEach(function(anchor) {
+    //     anchor.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
+    //
+    // document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+    //     element.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
 </script>
 
 @endsection

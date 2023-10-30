@@ -12,4 +12,6 @@ class RaonMember extends Model
 
     protected $table = 'raon_member';
     public $timestamps = false;
+
+    protected $connection = 'mysql2';
 }

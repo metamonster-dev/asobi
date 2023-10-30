@@ -1110,13 +1110,13 @@ var ycommon = (function(ycommon, $, window) {
         filesArr.forEach(function(f,i) {
             // console.log(f);
             if(f.type.match("image.*")) {
-                if(f.size > 10 * 1000 * 1000) {
+                if(f.size > 10 * 1024 * 1024) {
                     alert("이미지는 10메가 이하만 가능합니다.");
                     return;
                 }
             } else if (f.type.match("video.*")) {
-                if(f.size > 500 * 1000 * 1000) {
-                    alert("이미지는 500메가 이하만 가능합니다.");
+                if(f.size > 10 * 10 * 1024 * 1024) {
+                    alert("이미지는 100메가 이하만 가능합니다.");
                     return;
                 }
             } else {
@@ -1134,6 +1134,86 @@ var ycommon = (function(ycommon, $, window) {
                     $('#label_upload_file_'+id).attr('for','00');
                 }
                 multiform_idx.push(id2);
+
+
+                // let rotatedImageDataUrl;
+                //
+                // loadImage(
+                //     e.target.result,
+                //     function (img, data) {
+                //
+                //         console.log(img);
+                //         console.log(data);
+                //
+                //         if (data && data.exif) {
+                //             // Exif 데이터가 있을 경우 (회전 정보가 있는 경우)
+                //             const orientation = data.exif.get('Orientation');
+                //
+                //             if (orientation) {
+                //                 // 이미지를 회전시키는 작업
+                //                 const canvas = document.createElement('canvas');
+                //                 const ctx = canvas.getContext('2d');
+                //                 canvas.width = img.width;
+                //                 canvas.height = img.height;
+                //
+                //                 // Exif 데이터의 Orientation 정보에 따라 이미지를 회전
+                //                 switch (orientation) {
+                //                     case 3:
+                //                         ctx.rotate(Math.PI);
+                //                         ctx.drawImage(img, -img.width, -img.height);
+                //                         break;
+                //                     case 6:
+                //                         canvas.width = img.height;
+                //                         canvas.height = img.width;
+                //                         ctx.rotate(0.5 * Math.PI);
+                //                         ctx.drawImage(img, 0, -img.height);
+                //                         break;
+                //                     case 8:
+                //                         canvas.width = img.height;
+                //                         canvas.height = img.width;
+                //                         ctx.rotate(-0.5 * Math.PI);
+                //                         ctx.drawImage(img, -img.width, 0);
+                //                         break;
+                //                     default:
+                //                         ctx.drawImage(img, 0, 0);
+                //                         break;
+                //                 }
+                //
+                //                 // 회전된 이미지를 data URL로 가져옴
+                //                 rotatedImageDataUrl = canvas.toDataURL('image/jpeg');
+                //             }
+                //         }
+                //     },
+                //     { meta: true, orientation: true, canvas: true }
+                // );
+
+                // loadImage(
+                //     e.target.result,
+                //     function(img) {
+                //         var canvas = document.createElement('canvas');
+                //         var ctx = canvas.getContext('2d');
+                //         canvas.width = img.width;
+                //         canvas.height = img.height;
+                //         ctx.drawImage(img, 0, 0);
+                //
+                //         rotatedImageDataUrl = canvas.toDataURL('image/jpeg'); // 회전된 이미지를 JPEG 형식으로 가져옵니다.
+                //     }
+                //
+                //     // function (img, data) {
+                //     //     if (data.imageHead && data.exif) {
+                //     //         // 3. exif 값이 있다면 orientation 값을 1로 변경
+                //     //         loadImage.writeExifData(data.imageHead, data, 'Orientation', 1);
+                //     //         img.toBlob(function (blob) {
+                //     //             loadImage.replaceHead(blob, data.imageHead, async function (newBlob) {
+                //     //                 newBlob.name = file.name;
+                //     //             });
+                //     //         }, 'image/jpeg');
+                //     //     }
+                //     // }
+                // );
+
+                // e.target.result = rotatedImageDataUrl;
+
                 // console.log(e.target.result);
                 $("#image-upload-"+id2).addClass('on');
                 if (e.target.result.match("video.*")) {
@@ -1236,13 +1316,13 @@ var ycommon = (function(ycommon, $, window) {
         filesArr.forEach(function(f,i) {
             // console.log(f);
             if(f.type.match("image.*")) {
-                if(f.size > 10 * 1000 * 1000) {
+                if(f.size > 10 * 1024 * 1024) {
                     alert("이미지는 10메가 이하만 가능합니다.");
                     return;
                 }
             } else if (f.type.match("video.*")) {
-                if(f.size > 500 * 1000 * 1000) {
-                    alert("이미지는 500메가 이하만 가능합니다.");
+                if(f.size > 10 * 10 * 1024 * 1024) {
+                    alert("이미지는 100메가 이하만 가능합니다.");
                     return;
                 }
             } else {
@@ -1362,13 +1442,13 @@ var ycommon = (function(ycommon, $, window) {
         filesArr.forEach(function(f,i) {
             // console.log(f);
             if(f.type.match("image.*")) {
-                if(f.size > 10 * 1000 * 1000) {
+                if(f.size > 10 * 1024 * 1024) {
                     alert("이미지는 10메가 이하만 가능합니다.");
                     return;
                 }
             } else if (f.type.match("video.*")) {
-                if(f.size > 500 * 1000 * 1000) {
-                    alert("이미지는 500메가 이하만 가능합니다.");
+                if(f.size > 10 * 10 * 1024 * 1024) {
+                    alert("이미지는 100메가 이하만 가능합니다.");
                     return;
                 }
             } else {

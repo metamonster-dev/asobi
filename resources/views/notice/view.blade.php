@@ -180,7 +180,7 @@ $hd_bg = "3";
         if (event.origin !== undefined && event.origin == "https://player.vimeo.com") {
             return false;
         }
-        const data = JSON.parse(event.data);
+        const data = JSON.stringify(event.data);
         if(data.msg) {
             jalert(data.name, data.msg);
         }

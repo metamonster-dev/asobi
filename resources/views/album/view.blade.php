@@ -19,6 +19,67 @@ $back_link = '/album?ym='.$resultDateString;
 ?>
 @include('common.headm03')
 
+<style>
+    .swiper {
+        width: 100%;
+        height: 100%;
+        display: none; /* 초기에는 숨김 */
+    }
+
+    .swiper-slide {
+        text-align: center;
+        font-size: 18px;
+        background: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        /*width: 100% !important;*/
+    }
+
+    .swiper-slide img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .swiper-slide .video_area {
+        width: 100%;
+        height: 100vh;
+    }
+
+    .fullscreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 99999;
+        background: #fff;
+    }
+
+    .closeButton {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: transparent;
+        color: black;
+        border: none;
+        padding: 10px 20px;
+        cursor: pointer;
+        border-radius: 1rem;
+    }
+
+    div > iframe {
+        pointer-events:none;
+        /*width: 100vw !important;*/
+    }
+
+    .video_none {
+        display: none;
+    }
+</style>
+
 <article class="sub_pg">
     <div class="container pt-4 pt_lg_50">
         <div class="d-none d-lg-block">
@@ -51,25 +112,71 @@ $back_link = '/album?ym='.$resultDateString;
                     @foreach($row['file'] as $l)
                     <li>
                         <div class="att_img">
-                            @if(isset($l['file_path']) && $l['file_path'])
-                            <a href="javascript:;" onclick="bigImgShow('{{ $l['file_path'] }}', '{{ $j }}')">
-                                <div class="area_img rounded overflow-hidden">
+
+                            @if(isset($l['video_id']) && $l['video_id'])
+{{--                                <div class="area video_area" id="vimeo{{ $k }}" data-vimeo="{{ $l['video_id'] }}">--}}
+                                <div class="area video_area expand_button mySlide slide-number{{ $j }}">
+{{--                                    <img src="/img/loading.gif" class="loading_img">--}}
+{{--                                    <img src="https://vumbnail.com/{{ $l['video_id'] }}.jpg" alt="">--}}
+                                    <img src="/img/loading.gif" alt="">
+{{--                                    <img src="/img/loading.gif" class="video_thumb" id="vimeo{{ $k }}" data-vimeo="{{ $l['video_id'] }}">--}}
+                                </div>
+                                @php $k = $k + 1; @endphp
+                            @elseif(isset($l['file_path']) && $l['file_path'])
+                                <div class="area_img rounded overflow-hidden expand_button mySlide slide-number{{ $j }}">
                                     <img src="{{ $l['file_path'] }}" class="w-100">
                                 </div>
-                            </a>
-                            <a onclick="javascript:ycommon.downloadImage(os,'/album/downloadFile/{{ $l['file_id'] }}','{{ $l['file_path'] }}');" class="btn btn_dl"><img src="/img/ic_download.svg"></a>
-                                @php $j++; @endphp
-                            @elseif(isset($l['video_id']) && $l['video_id'])
-                            <div class="area video_area" id="vimeo{{ $k }}" data-vimeo="{{ $l['video_id'] }}">
-                                <img src="/img/loading.gif" class="loading_img">
+                                <a onclick="javascript:ycommon.downloadImage(os,'/album/downloadFile/{{ $l['file_id'] }}','{{ $l['file_path'] }}');" class="btn btn_dl"><img src="/img/ic_download.svg"></a>
+
+
+
+
+{{--                            @if(isset($l['video_id']) && $l['video_id'])--}}
+{{--                                <a href="javascript:;" onclick="bigImgShow('{{ $l['file_path'] }}', '{{ $j }}', 'video')">--}}
+{{--                                    <div class="area video_area" id="vimeo{{ $k }}" data-vimeo="{{ $l['video_id'] }}">--}}
+{{--                                        <img src="/img/loading.gif" class="loading_img">--}}
+{{--                                    </div>--}}
+{{--                                </a>--}}
+{{--                                @php $k = $k + 1; @endphp--}}
+{{--                            @elseif(isset($l['file_path']) && $l['file_path'])--}}
+{{--                                <a href="javascript:;" onclick="bigImgShow('{{ $l['file_path'] }}', '{{ $j }}', 'image')">--}}
+{{--                                    <div class="area_img rounded overflow-hidden">--}}
+{{--                                        <img src="{{ $l['file_path'] }}" class="w-100">--}}
+{{--                                    </div>--}}
+{{--                                </a>--}}
+{{--                                <a onclick="javascript:ycommon.downloadImage(os,'/album/downloadFile/{{ $l['file_id'] }}','{{ $l['file_path'] }}');" class="btn btn_dl"><img src="/img/ic_download.svg"></a>--}}
+
+
+
+
+
+{{--                            @if(isset($l['file_path']) && $l['file_path'])--}}
+{{--                            <a href="javascript:;" onclick="bigImgShow('{{ $l['file_path'] }}', '{{ $j }}')">--}}
+{{--                                <div class="area_img rounded overflow-hidden">--}}
+{{--                                    <img src="{{ $l['file_path'] }}" class="w-100">--}}
+{{--                                </div>--}}
+{{--                            </a>--}}
+{{--                            <a onclick="javascript:ycommon.downloadImage(os,'/album/downloadFile/{{ $l['file_id'] }}','{{ $l['file_path'] }}');" class="btn btn_dl"><img src="/img/ic_download.svg"></a>--}}
+{{--                                @php $j++; @endphp--}}
+{{--                            @elseif(isset($l['video_id']) && $l['video_id'])--}}
+{{--                            <div class="area video_area" id="vimeo{{ $k }}" data-vimeo="{{ $l['video_id'] }}">--}}
+{{--                                <img src="/img/loading.gif" class="loading_img">--}}
 {{--                                <iframe src="https://player.vimeo.com/video/{{ $l['video_id'] }}?title=0&byline=0&portrait=0&controls=0" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen="" title="Untitled" data-ready="true"></iframe>--}}
-                            </div>
-                                @php $k = $k + 1; @endphp
+{{--                                <iframe src="https://player.vimeo.com/video/876208856" frameborder="0"></iframe></iframe>--}}
+{{--                            </div>--}}
+{{--                                @php $k = $k + 1; @endphp--}}
+
+
+
                             @else
                             <div class="area">
                                 <i class="no_img"></i>
                             </div>
                             @endif
+
+{{--                            새로 추가 --}}
+                                @php $j++; @endphp
+
                         </div>
                     </li>
                     @endforeach
@@ -157,8 +264,51 @@ $back_link = '/album?ym='.$resultDateString;
     </div>
 </div>
 
+<!-- Swiper -->
+<div class="swiper mySwiper">
+    <div class="swiper-wrapper">
+
+        @if(isset($row['file']) && is_array($row['file']) && count($row['file']) > 0)
+            @php $k = 0; $j=0; @endphp
+            @foreach($row['file'] as $l)
+                @if(isset($l['video_id']) && $l['video_id'])
+                    <div class="swiper-slide">
+                        <button class="closeButton" onclick="closeFullscreen()">X</button>
+                        <img src="/img/loading.gif" class="loading_img">
+                        <div class="area video_area video_none" id="vimeo{{ $k }}" data-vimeo="{{ $l['video_id'] }}"></div>
+                    </div>
+                    @php $k = $k + 1; @endphp
+                @elseif(isset($l['file_path']) && $l['file_path'])
+                    <div class="swiper-slide">
+                        <button class="closeButton" onclick="closeFullscreen()">X</button>
+                        <div class="area_img rounded overflow-hidden pinch_zoom">
+                            <img src="{{ $l['file_path'] }}" class="w-100 ">
+                        </div>
+                        <a onclick="javascript:ycommon.downloadImage(os,'/album/downloadFile/{{ $l['file_id'] }}','{{ $l['file_path'] }}');" class="btn btn_dl"><img src="/img/ic_download.svg"></a>
+                    </div>
+                @endif
+            @endforeach
+        @endif
+
+{{--        <div class="swiper-slide">--}}
+{{--            <button class="closeButton" onclick="closeFullscreen()">X</button>--}}
+{{--            <img src="https://via.placeholder.com/150" alt="Description">--}}
+{{--        </div>--}}
+{{--        <div class="swiper-slide">--}}
+{{--            <button class="closeButton" onclick="closeFullscreen()">X</button>--}}
+{{--            <button type="button" class="btn btn_play expand_button" id="playButtonLayer"><img src="/img/ic_play.png" /></button>--}}
+{{--            <iframe src="https://player.vimeo.com/video/878197050?title=0&byline=0&portrait=0&playsinline=0&controls=0&app_id=122963" frameborder="0"></iframe>--}}
+{{--            <iframe src="https://player.vimeo.com/video/876261885" frameborder="0" allowfullscreen></iframe>--}}
+{{--        </div>--}}
+
+    </div>
+{{--    <div class="swiper-button-next"></div>--}}
+{{--    <div class="swiper-button-prev"></div>--}}
+</div>
+
 <script>
     $(window).on("load", function() {
+        // getVimeoThumbs();
         getVimeoVideo();
     });
 
@@ -167,26 +317,30 @@ $back_link = '/album?ym='.$resultDateString;
         @foreach($row['file'] as $l)
             @if(isset($l['file_path']) && $l['file_path'])
     file_lists.push(encodeURIComponent('{!! $l['file_path'] !!}'));
+    {{--file_lists.push('{!! $l['file_path'] !!}');--}}
             @endif
         @endforeach
     @endif
 
+    // console.log(file_lists);
+
     // 원본 이미지 보기
-    function bigImgShow(imgSrc, k) {
+    function bigImgShow(imgSrc, k, type) {
         if (os == 'web') {
             let winW = $(window).width();
-            if (winW > 767 && imgSrc) {
+            if (winW > 767 && imgSrc && type === 'image') {
                 $("#bigImgModal").find("img").attr("src", imgSrc);
                 $("#bigImgModal").addClass("show");
                 $("body").addClass("overflow-hidden");
             }
-        } else {
-            window.webViewBridge.send('bigImgShow', {files:file_lists, idx: k}, function(res) {
-                // console.log(res);
-            }, function(err) {
-                // console.error(err);
-            });
         }
+        // else {
+        //     window.webViewBridge.send('bigImgShow', {files:file_lists, idx: k}, function(res) {
+        //         console.log(res);
+        //     }, function(err) {
+        //         console.error(err);
+        //     });
+        // }
     }
 
     function test(e) {
@@ -426,23 +580,69 @@ $back_link = '/album?ym='.$resultDateString;
         if (event.origin !== undefined && event.origin == "https://player.vimeo.com") {
             return false;
         }
-        const data = JSON.parse(event.data);
+        const data = JSON.stringify(event.data);
         if(data.msg) {
             jalert(data.name, data.msg);
         }
     });
 
-    document.querySelectorAll('a').forEach(function(anchor) {
-        anchor.addEventListener('click', function(event) {
-            $('#loading').show();
-        });
+    var swiper = new Swiper(".mySwiper", {
+        zoom: {
+            maxRatio: 5
+        },
+        // on: {
+        //     init: function () {
+        //         let pinchZoom = document.querySelector('.pinch_zoom img');
+        //
+        //         // new PinchZoom.default(pinchZoom);
+        //     }
+        // }
+
+        // navigation: {
+        //     nextEl: ".swiper-button-next",
+        //     prevEl: ".swiper-button-prev",
+        // },
+        // spaceBetween: -30
+        // nested: true,
+        // height: 100
     });
 
-    document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
-        element.addEventListener('click', function(event) {
-            $('#loading').show();
+    function closeFullscreen() {
+        document.querySelector(".swiper").classList.remove("fullscreen");
+        document.querySelector(".swiper").style.display = "none";
+        document.querySelector(".expand_button").style.display = "block";
+        swiper.update(); // 스와이퍼 업데이트
+    }
+
+    document.querySelectorAll(".expand_button").forEach((elem) => {
+        elem.addEventListener("click", () => {
+            document.querySelector(".swiper").style.display = 'block';
+            document.querySelector(".swiper").classList.toggle("fullscreen");
+            swiper.update(); // 스와이퍼 업데이트
+        })
+    })
+
+    // document.querySelector(".expand_button").addEventListener("click", function() {
+    //     document.querySelector(".swiper").style.display = 'block';
+    //     document.querySelector(".swiper").classList.toggle("fullscreen");
+    //     swiper.update(); // 스와이퍼 업데이트
+    // });
+
+    // document.querySelector('.slide-number0').addEventListener("click", () => {
+    //     swiper.slideToLoop(0, 0);
+    // })
+    //
+    // document.querySelector('.slide-number1').addEventListener("click", () => {
+    //     swiper.slideToLoop(1, 0);
+    // })
+
+    for (let i = 0; i < $('.mySlide').length; i++) {
+        document.querySelector(`.slide-number${i}`).addEventListener("click", () => {
+            swiper.slideToLoop(i, 0);
         });
-    });
+    }
+
+
 </script>
 
 

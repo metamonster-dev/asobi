@@ -192,7 +192,7 @@ Route::get('/version/ios', [VersionController::class, 'ios']);
 Route::get('/version/android', [VersionController::class, 'android']);
 
 
-Route::get('/share', [ShareController::class, 'index']);
+Route::get('/share', [ShareController::class, 'webDeepLink']);
 
 //임시파일
 Route::get('/tmpFiles', [TmpFileController::class, 'index']);

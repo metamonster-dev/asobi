@@ -360,9 +360,12 @@ class AlbumController extends Controller
                     $vimeo_id = $vimeo->upload_simple($file);
                 }
 
+
+
                 if ($vimeo_id) {
                     $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                 } else {
+                    $file = \App::make('helper')->rotateImage($file);
                     $file_path = \App::make('helper')->putResizeS3(AlbumFile::FILE_DIR, $file);
                 }
 
@@ -483,6 +486,7 @@ class AlbumController extends Controller
                 if ($vimeo_id) {
                     $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                 } else {
+                    $file = \App::make('helper')->rotateImage($file);
                     $file_path = \App::make('helper')->putResizeS3(AlbumFile::FILE_DIR, $file);
                 }
 
@@ -677,6 +681,18 @@ class AlbumController extends Controller
             \App::make('helper')->alert($error);
         }
 
+        foreach ($res->original['file'] as $key => $file) {
+            if (!$res->original['file'][$key]['file_path']) {
+//                $res->original['file'][$key]['file_path'] =  'https://player.vimeo.com/video/876261885?title=0&byline=0&portrait=0&controls=0&app_id=122963';
+//                $res->original['file'][$key]['file_path'] =  'https://player.vimeo.com/video/'.$file['video_id'];
+            }
+        }
+
+//        dd($res->original);
+
+//        $res->original['file']['0']['file_path'] = 'https://player.vimeo.com/video/876261885';
+        //        $res->original['file']['0']['file_path'] = 'https://player.vimeo.com/video/876261885?title=0&byline=0&portrait=0&controls=0&app_id=122963';
+
         return view('album/view',[
             'row' => $res->original ?? [],
             'studentReadN' => $studentReadN ?? [],
@@ -734,7 +750,6 @@ class AlbumController extends Controller
         $userController = new UserController();
         $res = $userController->children($req);
         $student = $res->original['list'] ?? [];
-
 
         return view('album/write',[
             'ymd' => $ymd,

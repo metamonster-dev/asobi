@@ -16,7 +16,7 @@ class BoardController extends Controller
 
         $result = [];
 //        $rs = Board::where('board_id', 7)->orderBy('id', 'desc')->get();
-        $rso = DB::table('raon_board_faq')
+        $rso = DB::connection('mysql2')->table('raon_board_faq')
             ->select('title', 'content', 'category')
 //            ->leftJoin('board_categories as b', 'a.category_id', '=', 'b.id')
             ->orderBy('idx', 'desc');

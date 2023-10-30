@@ -88,7 +88,7 @@ $test = '/advice?ym='.$date.'&search_user_id='.$row['student'].'&search_text='.$
             @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='m')
             <button type="button" class="btn btn-primary" onclick="location.href='/advice/note/write/{{ $id }}'">수정</button>
             <button type="button" class="btn btn-gray text-white" onclick="location.href='@if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='s') /advice/list @else {{ $back_link }} @endif'">목록</button>
-            <button type="button" class="btn btn-gray text-white" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/advice/delete/{{ $id }}';})">삭제</button>록
+            <button type="button" class="btn btn-gray text-white" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/advice/delete/{{ $id }}';})">삭제</button>
             @else
             <button type="button" class="btn btn-gray text-white" onclick="location.href='@if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='s') /advice/list @else {{ $back_link }} @endif'">목록</button>
             @endif
@@ -431,7 +431,7 @@ window.addEventListener('message', (event) => {
     if (event.origin !== undefined && event.origin == "https://player.vimeo.com") {
         return false;
     }
-    const data = JSON.parse(event.data);
+    const data = JSON.stringify(event.data);
     if(data.msg) {
         jalert(data.name, data.msg);
     }

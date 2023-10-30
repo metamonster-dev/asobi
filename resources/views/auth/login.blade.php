@@ -3,7 +3,6 @@
 class="body"
 @endsection
 @section('contents')
-
 <article class="sub_pg login_pg pt-0 pb-0">
   <div class="container">
     <div class="login_wr">
@@ -12,6 +11,7 @@ class="body"
         </div>
         <form class="login-form" name="login-form" id="login-form" method="POST" action="/auth/loginAction">
 
+            <input type="hidden" name="temp" id="" value="" />
             <input type="hidden" name="device_kind" id="device_kind" value="{{ $device_kind }}" />
             <input type="hidden" name="device_type" id="device_type" value="{{ $device_type }}" />
             <input type="hidden" name="device_id" id="device_id" value="{{ $device_id }}" />

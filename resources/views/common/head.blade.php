@@ -55,6 +55,17 @@ $resourceVersion = date('YmdHis');
 
 <!-- JS -->
 <script src="https://player.vimeo.com/api/player.js"></script>
+
+<!-- Link Swiper's CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
+<!-- Swiper JS -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/pinch-zoom-js@2.3.5/dist/pinch-zoom.umd.min.js"></script>
+{{--<script src="https://cdnjs.cloudflare.com/ajax/libs/pinch-zoom/2.3.0/pinch-zoom.min.js"></script>--}}
+
+
 <script src="//unpkg.com/hangul-js" type="text/javascript"></script><!-- 자동검색 -->
 <script src="/js/custom.js?v={{$resourceVersion}}" defer></script>
 <script src="/js/main.js?v={{$resourceVersion}}" defer></script>

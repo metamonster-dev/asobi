@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\DB;
 
 class MainController extends Controller
 {
@@ -105,4 +106,22 @@ class MainController extends Controller
         }
         return redirect('/');
     }
+
+    public function testDatabaseConnections()
+    {
+        try {
+            DB::connection('mysql')->getPdo();
+            echo "Connection 1 is established.";
+        } catch (\Exception $e) {
+            die("Could not connect to the database. Please check your configuration.");
+        }
+
+        try {
+            DB::connection('mysql2')->getPdo();
+            echo "Connection 2 is established.";
+        } catch (\Exception $e) {
+            die("Could not connect to the database. Please check your configuration.");
+        }
+    }
+
 }

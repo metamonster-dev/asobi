@@ -139,6 +139,13 @@ $hd_bg = "2";
     </div>
 </article>
 
+<div class="loading_wrap" id="loading" style="display: none;">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
+
 <script>
     var delete_ids = [];
     var tmp_file_ids = [];
@@ -161,10 +168,10 @@ $hd_bg = "2";
         fsubmit = true;
         $("#fsubmit").prop('disabled',true);
 
-        if (ycommon.getUploadCount(upload_cont-delete_ids.length+tmp_file_ids.length) > 20 ) {
+        if (ycommon.getUploadCount(upload_cont-delete_ids.length+tmp_file_ids.length) > 10 ) {
             fsubmit = false;
             $("#fsubmit").prop('disabled',false);
-            jalert("사진 및 동영상을 20개 초과할 수 없습니다.");
+            jalert("사진 및 동영상을 10개 초과할 수 없습니다.");
             return false;
         }
 
@@ -224,6 +231,8 @@ $hd_bg = "2";
         @endif
 
         ycommon.setDeleteUploadFile(multiform_delete_idx);
+
+        $('#loading').show();
 
         return true;
     }
@@ -446,13 +455,10 @@ $hd_bg = "2";
         @endif
 
         $(document).on('change', '.upload_files', function(e) {
-            const imageMaxSize = 10485760; // 10MB
-            const videoMaxSize = 10 * 10485760; // 10MB
+            const imageMaxSize = 10 * 1024 * 1024; // 10MB
+            const videoMaxSize = 10 * 10 * 1024 * 1024; // 100MB
 
             for (var i = 0; i < this.files.length; i++) {
-
-                console.log(this.files[i].type);
-
                 if (this.files[i].type.startsWith('image/')) {
                     if (this.files[i].size > imageMaxSize) {
                         jalert('파일 크기가 너무 큽니다. 10MB 이하의 파일을 선택하세요.');
@@ -460,7 +466,6 @@ $hd_bg = "2";
                         return;
                     }
                 } else if (this.files[i].type.startsWith('video/')) {
-                    console.log(this.files[i].size);
                     if (this.files[i].size > videoMaxSize) {
                         jalert('파일 크기가 너무 큽니다. 100MB 이하의 파일을 선택하세요.');
                         this.value = '';
@@ -504,6 +509,18 @@ $hd_bg = "2";
             jalert2('임시 저장된 내용을 불러오시겠습니까?', '불러오기', setTmpSave);
         }
         @endif
+    });
+
+    document.querySelectorAll('a').forEach(function(anchor) {
+        anchor.addEventListener('click', function(event) {
+            $('#loading').show();
+        });
+    });
+
+    document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+        element.addEventListener('click', function(event) {
+            $('#loading').show();
+        });
     });
 </script>
 

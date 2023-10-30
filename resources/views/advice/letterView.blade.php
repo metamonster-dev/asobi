@@ -51,7 +51,9 @@ $hd_bg = "1";
                     <ul class="more_cont">
                         @if(isset(session('auth')['user_type']) && (session('auth')['user_type'] =='m' || session('auth')['user_type'] == 'a'))
                         <li><button class="btn" onclick="UrlCopy()">공유</button></li>
-                        <li><button class="btn" onclick="location.href='/advice/letter/write/{{ $id }}?userId={{ $userId }}'">수정</button></li>
+                            @if(session('auth')['user_type'] == 'a')
+                            <li><button class="btn" onclick="location.href='/advice/letter/write/{{ $id }}?userId={{ $userId }}'">수정</button></li>
+                            @endif
                         @endif
                         <li><button class="btn" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/advice/delete/{{ $id }}';})">삭제</button></li>
                     </ul>
@@ -159,7 +161,7 @@ $hd_bg = "1";
                         <img src="/img/m1_tit1.png">
                     </div>
                 </div>
-                <div class="fs_15 wh_pre line_h1_4">{!! nl2br($row['this_month_education_info']) !!}</div>
+                <div class="fs_15 wh_pre line_h1_4">{!! $row['this_month_education_info'] !!}</div>
             </div>
             @endif
         </div>

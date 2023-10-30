@@ -50,7 +50,7 @@ if ($id && $userId) {
                         <h5>작성일자</h5>
                     </div>
 {{--                    <input type="date" name="ymd" id="ymd" value="{{ $ymd }}" max="<?php echo date("Y-m-d") ?>" @if($mode != "w")readonly="readonly"@endif class="form-control text-dark_gray">--}}
-                    <input type="month" name="ymd" id="ymd" value="{{ $ym }}" min="{{ $minMonth ?? ''}}" max="{{ $nextMonth ?? ''}}" @if($mode != "w" && $id)readonly="readonly"@endif class="form-control text-dark_gray">
+                    <input type="month" name="ymd" id="ymd" value="{{ $ym }}" min="{{ $minMonth ?? ''}}" max="{{ $nextMonth ?? ''}}" @if(($mode != "w" && $id) || session('auth')['user_type'] != 'a')readonly="readonly"@endif class="form-control text-dark_gray">
                 </div>
                 <div class="d-none d-lg-block"></div>
                 @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='m')
@@ -89,7 +89,7 @@ if ($id && $userId) {
 
             @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='m')
             <!-- 학생선택은 교육원일 때만 노출 -->
-                @if($mode == 'w')
+                @if(session('auth')['user_type'] == 'm')
                     <div class="d-flex align-items-center justify-content-between mt-3 pt-3 mb-4">
                         <div class="ip_wr">
                             <div class="ip_tit mb-0">
@@ -113,7 +113,7 @@ if ($id && $userId) {
                     @if(count($student) > 0)
                     <ul class="grid03_list note_stu_list_chk pb-3">
                         @foreach($student as $l)
-                            @if($l['letter'] == "0")
+{{--                            @if($l['letter'] == "0")--}}
                             <li>
                                 <label>
                                     <input type="checkbox" name="student[]" @if($search_user_id!="" && $search_user_id == $l['id']) checked="checked" @endif value="{{ $l['id'] }}" class="chkStudent d-none">
@@ -128,7 +128,7 @@ if ($id && $userId) {
                                     </div>
                                 </label>
                             </li>
-                            @endif
+{{--                            @endif--}}
                         @endforeach
                     </ul>
                     @else
@@ -154,6 +154,13 @@ if ($id && $userId) {
         </form>
     </div>
 </article>
+
+<div class="loading_wrap" id="loading" style="display: none;">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
 
 <script>
     var fsubmit = false;
@@ -226,6 +233,12 @@ if ($id && $userId) {
                 return false;
             }
         @endif
+
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function(event) {
+                $('#loading').show();
+            });
+        });
 
         return true;
     }
@@ -336,6 +349,18 @@ if ($id && $userId) {
         url.searchParams.set('ym', selectedDate);
 
         window.location.href = url;
+    });
+
+    document.querySelectorAll('a').forEach(function(anchor) {
+        anchor.addEventListener('click', function(event) {
+            $('#loading').show();
+        });
+    });
+
+    document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+        element.addEventListener('click', function(event) {
+            $('#loading').show();
+        });
     });
 </script>
 

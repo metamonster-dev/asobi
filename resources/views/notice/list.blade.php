@@ -9,6 +9,15 @@ class="body sub_bg3"
 $twoYearsAgo = date('Y-m', strtotime('-2 years', mktime(0, 0, 0, 1, 1, date('Y'))));
 $thisYear = date(date('Y').'-12');
 $device_type = session('auth')['device_type'] ?? '';
+$device_kind = session('auth')['device_kind'] ?? '';
+
+$userAgent = $_SERVER['HTTP_USER_AGENT'];
+$phpisIOS = false;
+if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== false || strpos($userAgent, 'iPod') !== false) {
+    $phpisIOS = true;
+} else {
+    $phpisIOS = false;
+}
 ?>
 @php
     if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='s') $title = "공지사항";
@@ -43,7 +52,7 @@ $device_type = session('auth')['device_type'] ?? '';
 {{--                                   @endif--}}
 {{--                            >--}}
 
-                            @if ($device_type === 'iPhone' || $device_type === 'iPad')
+                            @if ($device_kind == 'iOS' || $phpisIOS)
                                 <select name="ym" id="ym" onchange="this.form.submit()" class="form-control form-control-lg">
                                     @php
                                         for ($date = strtotime($twoYearsAgo); $date <= strtotime($thisYear); $date = strtotime("+1 month", $date)) {
@@ -158,27 +167,7 @@ $device_type = session('auth')['device_type'] ?? '';
         getVimeoThumbs();
     });
 
-    const dateInput = document.getElementById('ym');
 
-    const minDate = new Date();
-    const maxDate = new Date();
-
-    minDate.setFullYear(minDate.getFullYear() - 2);
-    maxDate.setMonth(11);
-
-    const minYear = minDate.getFullYear();
-    const minMonth = String(minDate.getMonth() + 1).padStart(2, '0');
-
-    dateInput.addEventListener('input', function() {
-        const selectedDate = new Date(this.value);
-
-        if (selectedDate < minDate) {
-            this.value = `${minYear}-${minMonth}`;
-        } else if (selectedDate > maxDate) {
-            const maxYear = maxDate.getFullYear();
-            this.value = `${maxYear}-12`;
-        }
-    });
 
     document.querySelectorAll('a').forEach(function(anchor) {
         anchor.addEventListener('click', function(event) {

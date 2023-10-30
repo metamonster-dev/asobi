@@ -106,12 +106,20 @@ class UserAppInfoController extends Controller
         //동일 푸시키를 삭제합니다.
         $this->deleteFCMKey($push_key);
 
+        $userAgent = $_SERVER['HTTP_USER_AGENT'];
+
+        if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== false) {
+            $phpisMobile = true;
+        } else {
+            $phpisMobile = false;
+        }
+
         if ($user->mtype == 's') {
-//            if ($device_kind == "web") {
-//                $result['result'] = 'fail';
-//                $result = Arr::add($result, 'error', '학부모 로그인은 앱에서만 가능합니다.');
-//                return response()->json($result);
-//            }
+            if ($device_kind == "web" && $phpisMobile === false) {
+                $result['result'] = 'fail';
+                $result = Arr::add($result, 'error', '학부모 로그인은 앱에서만 가능합니다.');
+                return response()->json($result);
+            }
 
             $this->loginUserProc($user, $result, $device_kind, $device_type, $device_id, $push_key, $ip);
         } else {
@@ -140,8 +148,8 @@ class UserAppInfoController extends Controller
 
         $children_search_mobilephone = str_replace('-', '', $user->mobilephone);
 
-//        $children_rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $children_search_mobilephone)
-        $children_rs = RaonMember::where('mobilephone', $user->mobilephone)
+        $children_rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $children_search_mobilephone)
+//        $children_rs = RaonMember::where('mobilephone', $user->mobilephone)
             ->where('mtype', 's')
             ->whereIn('s_status', array('W', 'Y'))
             ->orderBy('s_status', 'desc')
@@ -168,8 +176,6 @@ class UserAppInfoController extends Controller
                     'event_alarm' => 'Y',
                     'wifi' => 'N',
                 ];
-
-                $time3 = microtime(true);
 
                 $userAppInfo = UserAppInfo::where('user_id', $children_row->idx)
                     ->where('device_kind', $device_kind)
@@ -247,6 +253,7 @@ class UserAppInfoController extends Controller
             ->where('device_id', $device_id)
             ->first();
 
+
         if ($userAppInfo) {
             if ($userAppInfo->push_key != $push_key) {
                 $userAppInfo->push_key = $push_key;
@@ -260,10 +267,14 @@ class UserAppInfoController extends Controller
                 ->first();
 
             if ($userAppInfo) {
+                var_dump(2);
+                var_dump($userAppInfo->user_id);
                 $userAppInfo->device_kind = $device_kind;
                 $userAppInfo->device_type = $device_type;
                 $userAppInfo->device_id = $device_id;
                 $userAppInfo->push_key = $push_key;
+
+                var_dump($userAppInfo->id);
 
                 $userAppInfo->save();
             } else {
@@ -272,8 +283,7 @@ class UserAppInfoController extends Controller
             }
         }
 
-        $userAppInfo->refresh();
-//        var_dump($userAppInfo->__toString());
+//        dd('end');
 
         $result = Arr::add($result, 'push_alarm', $userAppInfo->push_alarm);
         $result = Arr::add($result, 'notice_alarm', $userAppInfo->notice_alarm);
@@ -382,7 +392,7 @@ class UserAppInfoController extends Controller
         $sms_phone = $request->input('sms_phone');
         $reset_password = random_int(1000, 9999);
 
-        $user = RaonMember::selectRaw('*, pw(?) as input_pw', [$reset_password])->where('id', $login_id)->whereRaw("replace(mobilephone, '-', '') = ?", $phone)->first();
+        $user = RaonMember::selectRaw('*, PASSWORD(?) as input_pw', [$reset_password])->where('id', $login_id)->whereRaw("replace(mobilephone, '-', '') = ?", $phone)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -413,7 +423,10 @@ class UserAppInfoController extends Controller
             $user->save();
         }
 
+//        4275
+
         $result = Arr::add($result, 'result', 'success');
+//        $result = Arr::add($result, 'error', $reset_password);
         $result = Arr::add($result, 'error', '사용자 정보가 초기화 되었습니다.');
         $result = Arr::add($result, 'password', $reset_password);
         $result = Arr::add($result, 'sms_bool', $bool);
@@ -659,6 +672,7 @@ class UserAppInfoController extends Controller
             $userMemberDetail = RaonMember::where('idx', $user->idx)->first();
             $profile_image = $userMemberDetail->user_picture ?? '';
 
+            $file = \App::make('helper')->rotateImage($file);
             $file_path = \App::make('helper')->putResizeS3(UserAppInfo::FILE_DIR, $file);
             $userMemberDetail->user_picture = $file_path;
             $userMemberDetail->save();

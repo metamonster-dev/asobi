@@ -19,6 +19,7 @@ use App\EducatonInfo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\DB;
 
 class PushMessageController extends Controller
 {
@@ -204,8 +205,11 @@ class PushMessageController extends Controller
 //                            ->pluck('idx')
 //                            ->toArray();
 
+                        // array_push?
                         $rs = RaonMember::where(function($query) {
                             $query->where('mtype', 's')->where('s_status', 'Y');
+                                })->orWhere(function($query) {
+                            $query->where('mtype', 'm')->where('m_status', 'Y');
                                 })->orWhere(function($query) {
                             $query->where('mtype', 'h')->where('h_status', 'Y');
                                 })
@@ -514,21 +518,26 @@ class PushMessageController extends Controller
                     $arr_push = array_unique($arr_push);
                     $arr_push = array_values($arr_push);
 
-                    $pushLog = new PushLog([
-                        'type' => $this->type,
-                        'type_id' => $this->type_id,
-                        'receivers' => json_encode($arr_push)
-                    ]);
+                    $chunks = array_chunk($arr_push, 1000);
 
-                    $pushLog->save();
+                    foreach ($chunks as $chunk) {
+                        $pushLog = new PushLog([
+                            'type' => $this->type,
+                            'type_id' => $this->type_id,
+                            'receivers' => json_encode($arr_push)
+                        ]);
 
-                    if (env('APP_ENV') != 'dev') {
-                        $handler = App::make(FcmHandler::class);
-                        $handler->setReceivers($arr_push);
-                        $handler->setMessage(['title'=> $title, 'body'=> $body, 'type'=> $this->type, 'id'=> $row->id]);
-                        $handler->setMessageData(['title'=> $title, 'message'=> $body, 'type'=> $this->type, 'id'=> $row->id]);
-                        $handler->sendMessage();
+                        $pushLog->save();
+
+                        if (env('APP_ENV') != 'dev') {
+                            $handler = App::make(FcmHandler::class);
+                            $handler->setReceivers($arr_push);
+                            $handler->setMessage(['title'=> $title, 'body'=> $body, 'type'=> $this->type, 'id'=> $row->id]);
+                            $handler->setMessageData(['title'=> $title, 'message'=> $body, 'type'=> $this->type, 'id'=> $row->id]);
+                            $handler->sendMessage();
+                        }
                     }
+
                 }
             }
         }
@@ -550,21 +559,26 @@ class PushMessageController extends Controller
                     $arr_push = array_unique($arr_push);
                     $arr_push = array_values($arr_push);
 
-                    $pushLog = new PushLog([
-                        'type' => $this->type,
-                        'type_id' => $this->type_id,
-                        'receivers' => json_encode($arr_push)
-                    ]);
+                    $chunks = array_chunk($arr_push, 1000);
 
-                    $pushLog->save();
+                    foreach ($chunks as $chunk) {
+                        $pushLog = new PushLog([
+                            'type' => $this->type,
+                            'type_id' => $this->type_id,
+                            'receivers' => json_encode($arr_push)
+                        ]);
 
-                    if (env('APP_ENV') != 'dev') {
-                        $handler = App::make(FcmHandler::class);
-                        $handler->setReceivers($arr_push);
-                        $handler->setMessage(['title'=> $title, 'body'=> $body, 'type'=> $this->type, 'id'=> $row->id]);
-                        $handler->setMessageData(['title'=> $title, 'message'=> $body, 'type'=> $this->type, 'id'=> $row->id]);
-                        $handler->sendMessage();
+                        $pushLog->save();
+
+                        if (env('APP_ENV') != 'dev') {
+                            $handler = App::make(FcmHandler::class);
+                            $handler->setReceivers($arr_push);
+                            $handler->setMessage(['title'=> $title, 'body'=> $body, 'type'=> $this->type, 'id'=> $row->id]);
+                            $handler->setMessageData(['title'=> $title, 'message'=> $body, 'type'=> $this->type, 'id'=> $row->id]);
+                            $handler->sendMessage();
+                        }
                     }
+
                 }
             }
         }

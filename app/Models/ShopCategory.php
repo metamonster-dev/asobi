@@ -12,4 +12,6 @@ class ShopCategory extends Model
     protected $primaryKey = 'cd_ix';
 
     protected $table = 'shopCategory';
+
+    protected $connection = 'mysql2';
 }

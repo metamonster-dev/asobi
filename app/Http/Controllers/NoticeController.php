@@ -362,6 +362,8 @@ class NoticeController extends Controller
             'user_id' => $user->idx
         ];
         $notice = new Notice($payload);
+
+
         $notice->save();
 
         $tmp_upload = $request->input('upload_files');
@@ -387,6 +389,7 @@ class NoticeController extends Controller
                 if ($vimeo_id) {
                     $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                 } else {
+                    $file = \App::make('helper')->rotateImage($file);
                     $file_path = \App::make('helper')->putResizeS3(NoticeFile::FILE_DIR, $file);
                 }
 
@@ -494,6 +497,7 @@ class NoticeController extends Controller
                 if ($vimeo_id) {
                     $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                 } else {
+                    $file = \App::make('helper')->rotateImage($file);
                     $file_path = \App::make('helper')->putResizeS3(NoticeFile::FILE_DIR, $file);
                 }
 

@@ -26,7 +26,7 @@ use App\Http\Controllers\EditorFileController;
 | Here is where you can register web routes for your application. These
 | routes are loaded by the RouteServiceProvider within a group which
 | contains the "web" middleware group. Now create something great!
-|
+|DB
 */
 
 //Route::get('/fcm', function () {
@@ -36,6 +36,8 @@ use App\Http\Controllers\EditorFileController;
 //Route::get('/share/{type}/{id}', [ShareController::class, 'webDeepLink']);
 
 Route::get('/', [MainController::class, 'main'])->middleware('checkLogin');
+//Route::get('/test', [MainController::class, 'testDatabaseConnections']);
+Route::get('/test', [EventController::class, 'empty']);
 Route::post('/main/selectAction', [MainController::class, 'selectAction'])->middleware('checkLogin')->middleware('enterUserType:a|h');
 
 // 로그인등
@@ -172,7 +174,3 @@ Route::group(['prefix' => 'event', 'middleware' => 'checkLogin'], function () {
 Route::fallback(function () {
     abort(404);
 });
-
-// 버튼 누를 때 세션에 웹인지 앱인지
-// 앱일 때 버튼 누를 때 네비게이션 동작하게
-// 페이지 여러개 만들어서 스택 네비게이션 적용

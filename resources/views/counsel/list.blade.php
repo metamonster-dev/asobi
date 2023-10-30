@@ -7,6 +7,17 @@ class="body sub_bg7"
 $title = "상담일지";
 $hd_bg = "7";
 $back_link = "/";
+
+$device_type = session('auth')['device_type'] ?? '';
+$device_kind = session('auth')['device_kind'] ?? '';
+
+$userAgent = $_SERVER['HTTP_USER_AGENT'];
+$phpisIOS = false;
+if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== false || strpos($userAgent, 'iPod') !== false) {
+    $phpisIOS = true;
+} else {
+    $phpisIOS = false;
+}
 ?>
 @include('common.headm02')
 
@@ -27,7 +38,13 @@ $back_link = "/";
                     <div class="d-block d-lg-flex mt-0 mt-lg-3 mt-lg-0">
                         <div class="m_top mb-0">
                             <div class="input-group">
-                                <input type="month" name="ym" id="ym" value="{{ $ym }}" class="form-control form-control-lg col-6" onchange="this.form.submit()">
+                                <input type="month" name="ym" id="ym" value="{{ $ym }}" class="form-control form-control-lg col-6"
+                                @if ($device_kind == 'iOS' || $phpisIOS)
+                                    onBlur="this.form.submit()"
+                                @else
+                                    onchange="this.form.submit()"
+                                @endif
+                                >
                                 <div class="position-relative gr_r m_select_wrap">
                                     <div class="input_wrap">
                                         <input type="hidden" name="search_user_id" value="{{ $search_user_id }}" >
