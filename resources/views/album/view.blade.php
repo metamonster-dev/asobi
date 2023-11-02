@@ -72,7 +72,6 @@ $back_link = '/album?ym='.$resultDateString;
 
     div > iframe {
         pointer-events:none;
-        /*width: 100vw !important;*/
     }
 
     .video_none {
@@ -114,12 +113,8 @@ $back_link = '/album?ym='.$resultDateString;
                         <div class="att_img">
 
                             @if(isset($l['video_id']) && $l['video_id'])
-{{--                                <div class="area video_area" id="vimeo{{ $k }}" data-vimeo="{{ $l['video_id'] }}">--}}
-                                <div class="area video_area expand_button mySlide slide-number{{ $j }}">
-{{--                                    <img src="/img/loading.gif" class="loading_img">--}}
-{{--                                    <img src="https://vumbnail.com/{{ $l['video_id'] }}.jpg" alt="">--}}
+                                <div class="area video_area video_download expand_button mySlide slide-number{{ $j }}">
                                     <img src="/img/loading.gif" alt="">
-{{--                                    <img src="/img/loading.gif" class="video_thumb" id="vimeo{{ $k }}" data-vimeo="{{ $l['video_id'] }}">--}}
                                 </div>
                                 @php $k = $k + 1; @endphp
                             @elseif(isset($l['file_path']) && $l['file_path'])
@@ -267,7 +262,6 @@ $back_link = '/album?ym='.$resultDateString;
 <!-- Swiper -->
 <div class="swiper mySwiper">
     <div class="swiper-wrapper">
-
         @if(isset($row['file']) && is_array($row['file']) && count($row['file']) > 0)
             @php $k = 0; $j=0; @endphp
             @foreach($row['file'] as $l)
@@ -289,26 +283,11 @@ $back_link = '/album?ym='.$resultDateString;
                 @endif
             @endforeach
         @endif
-
-{{--        <div class="swiper-slide">--}}
-{{--            <button class="closeButton" onclick="closeFullscreen()">X</button>--}}
-{{--            <img src="https://via.placeholder.com/150" alt="Description">--}}
-{{--        </div>--}}
-{{--        <div class="swiper-slide">--}}
-{{--            <button class="closeButton" onclick="closeFullscreen()">X</button>--}}
-{{--            <button type="button" class="btn btn_play expand_button" id="playButtonLayer"><img src="/img/ic_play.png" /></button>--}}
-{{--            <iframe src="https://player.vimeo.com/video/878197050?title=0&byline=0&portrait=0&playsinline=0&controls=0&app_id=122963" frameborder="0"></iframe>--}}
-{{--            <iframe src="https://player.vimeo.com/video/876261885" frameborder="0" allowfullscreen></iframe>--}}
-{{--        </div>--}}
-
     </div>
-{{--    <div class="swiper-button-next"></div>--}}
-{{--    <div class="swiper-button-prev"></div>--}}
 </div>
 
 <script>
     $(window).on("load", function() {
-        // getVimeoThumbs();
         getVimeoVideo();
     });
 
@@ -317,7 +296,6 @@ $back_link = '/album?ym='.$resultDateString;
         @foreach($row['file'] as $l)
             @if(isset($l['file_path']) && $l['file_path'])
     file_lists.push(encodeURIComponent('{!! $l['file_path'] !!}'));
-    {{--file_lists.push('{!! $l['file_path'] !!}');--}}
             @endif
         @endforeach
     @endif
@@ -326,20 +304,21 @@ $back_link = '/album?ym='.$resultDateString;
 
     // 원본 이미지 보기
     function bigImgShow(imgSrc, k, type) {
-        if (os == 'web') {
-            let winW = $(window).width();
-            if (winW > 767 && imgSrc && type === 'image') {
-                $("#bigImgModal").find("img").attr("src", imgSrc);
-                $("#bigImgModal").addClass("show");
-                $("body").addClass("overflow-hidden");
-            }
-        }
+        // if (os == 'web') {
+        //     let winW = $(window).width();
+        //     if (winW > 767 && imgSrc && type === 'image') {
+        //         $("#bigImgModal").find("img").attr("src", imgSrc);
+        //         $("#bigImgModal").addClass("show");
+        //         $("body").addClass("overflow-hidden");
+        //     }
+        // }
         // else {
-        //     window.webViewBridge.send('bigImgShow', {files:file_lists, idx: k}, function(res) {
-        //         console.log(res);
-        //     }, function(err) {
-        //         console.error(err);
-        //     });
+        //     console.log(file_lists);
+            // window.webViewBridge.send('bigImgShow', {files:file_lists, idx: k, type: type}, function(res) {
+            //     console.log(res);
+            // }, function(err) {
+            //     console.error(err);
+            // });
         // }
     }
 
@@ -587,25 +566,10 @@ $back_link = '/album?ym='.$resultDateString;
     });
 
     var swiper = new Swiper(".mySwiper", {
-        zoom: {
-            maxRatio: 5
-        },
-        // on: {
-        //     init: function () {
-        //         let pinchZoom = document.querySelector('.pinch_zoom img');
-        //
-        //         // new PinchZoom.default(pinchZoom);
-        //     }
-        // }
 
-        // navigation: {
-        //     nextEl: ".swiper-button-next",
-        //     prevEl: ".swiper-button-prev",
-        // },
-        // spaceBetween: -30
-        // nested: true,
-        // height: 100
     });
+
+    // var myPinchZoom = new PinchZoom.default(document.querySelector('.swiper'));
 
     function closeFullscreen() {
         document.querySelector(".swiper").classList.remove("fullscreen");
@@ -621,20 +585,6 @@ $back_link = '/album?ym='.$resultDateString;
             swiper.update(); // 스와이퍼 업데이트
         })
     })
-
-    // document.querySelector(".expand_button").addEventListener("click", function() {
-    //     document.querySelector(".swiper").style.display = 'block';
-    //     document.querySelector(".swiper").classList.toggle("fullscreen");
-    //     swiper.update(); // 스와이퍼 업데이트
-    // });
-
-    // document.querySelector('.slide-number0').addEventListener("click", () => {
-    //     swiper.slideToLoop(0, 0);
-    // })
-    //
-    // document.querySelector('.slide-number1').addEventListener("click", () => {
-    //     swiper.slideToLoop(1, 0);
-    // })
 
     for (let i = 0; i < $('.mySlide').length; i++) {
         document.querySelector(`.slide-number${i}`).addEventListener("click", () => {

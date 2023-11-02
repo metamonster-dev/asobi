@@ -3,6 +3,7 @@
 <meta name="Keywords" content="아소비">
 <meta name="Description" content="아소비">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+{{--<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, minimum-scale=1, user-scalable=yes">--}}
 <meta name="apple-mobile-web-app-title" content="아소비">
 <meta content="telephone=no" name="format-detection">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -62,8 +63,11 @@ $resourceVersion = date('YmdHis');
 <!-- Swiper JS -->
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
+<!-- Pinch Zoom CSS -->
+{{--<link rel="stylesheet" href="https://unpkg.com/pinch-zoom/dist/pinch-zoom.min.css" />--}}
+
+<!-- Pinch Zoom JS -->
 <script src="https://cdn.jsdelivr.net/npm/pinch-zoom-js@2.3.5/dist/pinch-zoom.umd.min.js"></script>
-{{--<script src="https://cdnjs.cloudflare.com/ajax/libs/pinch-zoom/2.3.0/pinch-zoom.min.js"></script>--}}
 
 
 <script src="//unpkg.com/hangul-js" type="text/javascript"></script><!-- 자동검색 -->
