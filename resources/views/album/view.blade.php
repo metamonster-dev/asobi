@@ -16,6 +16,14 @@ $resultDateString = $year . '-' . $month;
 
 $back_link = '/album?ym='.$resultDateString;
 // $back_link = '/album';
+
+$userAgent = $_SERVER['HTTP_USER_AGENT'];
+
+if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== false) {
+    $phpisMobile = true;
+} else {
+    $phpisMobile = false;
+}
 ?>
 @include('common.headm03')
 
@@ -113,7 +121,7 @@ $back_link = '/album?ym='.$resultDateString;
                         <div class="att_img">
 
                             @if(isset($l['video_id']) && $l['video_id'])
-                                <div class="area video_area video_download expand_button mySlide slide-number{{ $j }}">
+                                <div class="area video_area video_download expand_button thumnail_img mySlide slide-number{{ $j }}">
                                     <img src="/img/loading.gif" alt="">
                                 </div>
                                 @php $k = $k + 1; @endphp
@@ -266,7 +274,7 @@ $back_link = '/album?ym='.$resultDateString;
             @php $k = 0; $j=0; @endphp
             @foreach($row['file'] as $l)
                 @if(isset($l['video_id']) && $l['video_id'])
-                    <div class="swiper-slide">
+                    <div class="swiper-slide @if($phpisMobile)thumnail_img @endif">
                         <button class="closeButton" onclick="closeFullscreen()">X</button>
                         <img src="/img/loading.gif" class="loading_img">
                         <div class="area video_area video_none" id="vimeo{{ $k }}" data-vimeo="{{ $l['video_id'] }}"></div>

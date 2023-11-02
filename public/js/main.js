@@ -421,17 +421,25 @@ function getVimeoVideo () {
                         byline: false,
                         portrait: false,
                         controls: false,
-                        playsinline: false
+                        playsinline: false,
                     }
                     const player = new Vimeo.Player(elId, options);
                     // player.on('play', function() {
                     //     console.log('played the video!');
                     // });
+
+                    // 로드 되자마자 자동 재생 방지
+                    player.on('loaded', function () {
+                        player.pause().then(function (){
+                        });
+                    });
+
                     player.on('ended', function() {
                         $('#playButton'+i).show();
                         $('#playButton'+i).removeClass('plaing');
-                        player.setCurrentTime(0);
+                        // player.setCurrentTime(0);
                     });
+
                     player.on('pause', function() {
                         $('#playButton'+i).show();
                         $('#playButton'+i).removeClass('plaing');
@@ -443,9 +451,9 @@ function getVimeoVideo () {
 
                     // 썸네일 넣기
                     const resData2 = data?.data?.body?.pictures;
-                    const src = resData2?.sizes[5]?.link;
-                    if (document.querySelectorAll('.video_area')) {
-                        document.querySelectorAll('.video_area > img').forEach((elem) => {
+                    const src = resData2?.sizes[4]?.link;
+                    if (document.querySelectorAll('.thumnail_img')) {
+                        document.querySelectorAll('.thumnail_img > img').forEach((elem) => {
                             elem.src = src;
                         })
                     }
@@ -469,11 +477,16 @@ function getVimeoVideo () {
                     $(`.video_area#vimeo${i}`).find('img').hide();
                     $(`.video_area#vimeo${i}`).append(playButton + pauseButton + downloadButton);
 
+                    function isMobile(){
+                        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);}
+
                     player.loadVideo(num).then(function () {
                         document.querySelector('iframe').width = '100%';
                         document.querySelector('iframe').height = '100%';
 
-                        document.querySelector('.loading_img').style.display = 'none';
+                        if (!isMobile()) {
+                            document.querySelector('.loading_img').style.display = 'none';
+                        }
                         document.querySelector('.video_none').style.display = 'block';
                     })
 
