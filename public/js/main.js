@@ -386,9 +386,7 @@ function getVimeoVideo () {
                 next.then(function(data, v){
                     // console.log("DATA:", i, elId, data);
 
-
                     const resData = data?.data?.body;
-                    console.log(resData);
                     let link = resData?.download[0]?.link ?? '';
                     if (link == "") link = 'javascript:void(0);';
                     else {
@@ -443,21 +441,30 @@ function getVimeoVideo () {
                     const pauseButton = `<button type="button" class="btn btn_pause" id="pauseButton${i}"><img src="/img/ic_pause.png" /></button>`;
                     const downloadButton = `<a href="${link}" class="btn btn_dl"><img src="/img/ic_download.svg"></a>`;
 
+                    // 썸네일 넣기
                     const resData2 = data?.data?.body?.pictures;
                     const src = resData2?.sizes[5]?.link;
-                    document.querySelectorAll('.video_area > img').forEach((elem) => {
-                        elem.src = src;
-                    })
-
-                    document.querySelectorAll('.video_download').forEach((elem) => {
-                        elem.innerHTML += `<a href="${link}" class="btn btn_dl thumbnail_download"><img src="/img/ic_download.svg"></a>`;
-                    })
-
-                    document.querySelectorAll('.thumbnail_download').forEach((elem) => {
-                        elem.addEventListener('click', (e) => {
-                            e.stopPropagation();
+                    if (document.querySelectorAll('.video_area')) {
+                        document.querySelectorAll('.video_area > img').forEach((elem) => {
+                            elem.src = src;
                         })
-                    })
+                    }
+
+                    // 다운로드 버튼 넣기
+                    if (document.querySelectorAll('.video_download')) {
+                        document.querySelectorAll('.video_download').forEach((elem) => {
+                            elem.innerHTML += `<a href="${link}" class="btn btn_dl thumbnail_download"><img src="/img/ic_download.svg"></a>`;
+                        })
+                    }
+
+                    // 썸네일에 다운로드 버튼 넣기
+                    if (document.querySelectorAll('.thumbnail_download')) {
+                        document.querySelectorAll('.thumbnail_download').forEach((elem) => {
+                            elem.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                            })
+                        })
+                    }
 
                     $(`.video_area#vimeo${i}`).find('img').hide();
                     $(`.video_area#vimeo${i}`).append(playButton + pauseButton + downloadButton);

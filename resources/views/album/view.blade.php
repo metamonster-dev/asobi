@@ -578,20 +578,21 @@ $back_link = '/album?ym='.$resultDateString;
         swiper.update(); // 스와이퍼 업데이트
     }
 
-    document.querySelectorAll(".expand_button").forEach((elem) => {
-        elem.addEventListener("click", () => {
-            document.querySelector(".swiper").style.display = 'block';
-            document.querySelector(".swiper").classList.toggle("fullscreen");
-            swiper.update(); // 스와이퍼 업데이트
+    if (document.querySelectorAll(".expand_button")) {
+        document.querySelectorAll(".expand_button").forEach((elem) => {
+            elem.addEventListener("click", () => {
+                document.querySelector(".swiper").style.display = 'block';
+                document.querySelector(".swiper").classList.toggle("fullscreen");
+                swiper.update(); // 스와이퍼 업데이트
+            })
         })
-    })
 
-    for (let i = 0; i < $('.mySlide').length; i++) {
-        document.querySelector(`.slide-number${i}`).addEventListener("click", () => {
-            swiper.slideToLoop(i, 0);
-        });
+        for (let i = 0; i < $('.mySlide').length; i++) {
+            document.querySelector(`.slide-number${i}`).addEventListener("click", () => {
+                swiper.slideToLoop(i, 0);
+            });
+        }
     }
-
 
 </script>
 
