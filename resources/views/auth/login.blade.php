@@ -49,4 +49,19 @@ class="body"
   </div>
 </article>
 
+<div class="loading_wrap" id="loading" style="display: none">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function(event) {
+            $('#loading').show();
+        });
+    });
+</script>
+
 @endsection

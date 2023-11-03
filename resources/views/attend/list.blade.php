@@ -121,7 +121,8 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
                         </div>
                         <div class="d-flex align-items-center">
                             <div class="d-flex align-items-center pr-2 pr-sm-3">
-                                <p class="fs_14 mr-2">등원 </p>
+                                <span class="dot_stat bg-primary"></span>
+                                <p class="fs_14 mx-2">등원 </p>
                                 <div class="toggle_wr">
                                     <input type="checkbox" value="in-{{ $l['id'] }}" name="in{{ $l['id'] }}" id="in{{ $l['id'] }}" @if($l['attendance_in'] && $l['attendance_in'] == 1) checked @endif onchange="inoutChange(this)">
                                     <label for="in{{ $l['id'] }}" class="toggle_switch">
@@ -130,7 +131,8 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
                                 </div>
                             </div>
                             <div class="d-flex align-items-center pl-2 pl-sm-3">
-                                <p class="fs_14 mr-2">하원 </p>
+                                <span class="dot_stat bg-secondary"></span>
+                                <p class="fs_14 mx-2">하원 </p>
                                 <div class="toggle_wr">
                                     <input type="checkbox" value="out-{{ $l['id'] }}" name="out{{ $l['id'] }}" id="out{{ $l['id'] }}" @if($l['attendance_out'] && $l['attendance_out'] == 1) checked @endif onchange="inoutChange(this)">
                                     <label for="out{{ $l['id'] }}" class="toggle_switch">

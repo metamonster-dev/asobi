@@ -13,6 +13,7 @@ use App\RequestLog;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
@@ -231,17 +232,27 @@ class NoticeController extends Controller
         }
 
         if ($user->mtype == 'm') {
-            $readed_students = NoticeHistory::select(
-                'raon_member.idx',
-                'raon_member.id',
-                'raon_member.name'
-            )
-            ->join('raon_member', 'raon_member.idx', '=', 'notice_histories.sidx')
-            ->where('notice_histories.notice_id', $notice_id)
-            ->where('notice_histories.hidx', $user->hidx)
-            ->where('notice_histories.midx', $user->idx)
-            ->whereNotNull('notice_histories.sidx')
-            ->get();
+
+//            $readed_students = NoticeHistory::select(
+//                'raon_member.idx',
+//                'raon_member.id',
+//                'raon_member.name'
+//            )
+//            ->join('raon_member', 'raon_member.idx', '=', 'notice_histories.sidx')
+//            ->where('notice_histories.notice_id', $notice_id)
+//            ->where('notice_histories.hidx', $user->hidx)
+//            ->where('notice_histories.midx', $user->idx)
+//            ->whereNotNull('notice_histories.sidx')
+//            ->get();
+
+            $noticeHistorySidx = NoticeHistory::where('notice_histories.notice_id', $notice_id)
+                ->where('notice_histories.hidx', $user->hidx)
+                ->where('notice_histories.midx', $user->idx)
+                ->whereNotNull('notice_histories.sidx')
+                ->pluck('sidx')
+                ->toArray();
+
+            $readed_students = RaonMember::select('idx', 'id', 'name')->whereIn('idx', $noticeHistorySidx)->get();
 
             $readed_students_array = [];
 

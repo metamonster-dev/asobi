@@ -465,6 +465,8 @@ class AttendanceController extends Controller
 
         $appMainController = new AppMainController();
 
+//        dd($userType);
+
         if ($day == '' && $userType == 'm') {
             $req = Request::create('/api/isSchedule', 'GET', [
                 'user' => $user,
@@ -579,15 +581,14 @@ class AttendanceController extends Controller
 
     public function attendView(Request $request, $id)
     {
-        // 알람 통해서 이동했는데 다른 자녀일 경우 홈으로
-        if (session()->get('auth')['user_id'] != $id) {
-            return redirect('/');
-        }
-
-
         $ajax = $request->input('ajax') ?? 0;
         $list = $request->input('list') ?? 0;
         $ym = $request->input('ym') ?? date('Y-m');
+
+        // 알람 통해서 이동했는데 다른 자녀일 경우 홈으로
+        if (session()->get('auth')['user_id'] != $id && $ajax === 0) {
+            return redirect('/');
+        }
 
         $year = $month = "";
         if ($ym != '') {

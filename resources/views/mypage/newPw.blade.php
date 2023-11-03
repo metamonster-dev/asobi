@@ -20,13 +20,6 @@
     </div>
 </form>
 
-<div class="loading_wrap" id="loading" style="display: none">
-    <div class="loading_text">
-        <i class="loading_circle"></i>
-        <span>로딩중</span>
-    </div>
-</div>
-
 <script>
     function pw_form_chk(f) {
         const regPw = /^[a-zA-Z0-9]{4,}$/;

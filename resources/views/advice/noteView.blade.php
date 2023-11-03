@@ -244,13 +244,7 @@ ycommon.ajaxJson('get', action, data, undefined, function (res) {
                                 </div>
                             </div>
                             ${e.comment !== '댓글이 삭제되었습니다.' && e.writer_id == {{session('auth')['user_id']}} ? `
-                            <div class="position-relative">
-                                <button type="button" class="btn p-0 btn_more h-auto" onclick="btn_more(event, ${e.id})"><img src="/img/ic_more2.png" style="width: 1.6rem;"></button>
-                                <ul id="more_cont${e.id}" class="more_cont">
-                                    <li><button class="btn" onclick="btn_update(${e.id})">수정</button></li>
-                                    <li><button class="btn" onclick="btn_delete(${e.id})">삭제</button></li>
-                                </ul>
-                            </div>
+
                             ` : ''}
                         </div>
                         <p class="fs_14 line_h1_4 py-3 text-break" id="comment_wr${e.id}">${e.comment}</p>
@@ -281,13 +275,6 @@ ycommon.ajaxJson('get', action, data, undefined, function (res) {
                                     </div>
                                 </div>
                                 ${e.comment !== '댓글이 삭제되었습니다.'  && e.writer_id == {{session('auth')['user_id']}} ? `
-                                <div class="position-relative">
-                                    <button type="button" class="btn p-0 btn_more h-auto" onclick="btn_more(event, ${e.id})"><img src="/img/ic_more2.png" style="width: 1.6rem;"></button>
-                                    <ul id="more_cont${e.id}" class="more_cont">
-                                        <li><button class="btn" onclick="btn_update(${e.id})">수정</button></li>
-                                        <li><button class="btn" onclick="btn_delete(${e.id})">삭제</button></li>
-                                    </ul>
-                                </div>
                                 ` : ''}
                             </div>
                             <p class="fs_14 line_h1_4 py-3 text-break" id="comment_wr${e.id}">${e.comment}</p>

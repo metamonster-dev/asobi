@@ -76,6 +76,7 @@ if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== 
         padding: 10px 20px;
         cursor: pointer;
         border-radius: 1rem;
+        z-index: 99999;
     }
 
     div > iframe {
@@ -120,16 +121,36 @@ if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== 
                     <li>
                         <div class="att_img">
 
-                            @if(isset($l['video_id']) && $l['video_id'])
-                                <div class="area video_area video_download expand_button thumnail_img mySlide slide-number{{ $j }}">
-                                    <img src="/img/loading.gif" alt="">
-                                </div>
-                                @php $k = $k + 1; @endphp
-                            @elseif(isset($l['file_path']) && $l['file_path'])
-                                <div class="area_img rounded overflow-hidden expand_button mySlide slide-number{{ $j }}">
-                                    <img src="{{ $l['file_path'] }}" class="w-100">
-                                </div>
-                                <a onclick="javascript:ycommon.downloadImage(os,'/album/downloadFile/{{ $l['file_id'] }}','{{ $l['file_path'] }}');" class="btn btn_dl"><img src="/img/ic_download.svg"></a>
+                                @if(isset($l['video_id']) && $l['video_id'])
+                                    @if ($phpisMobile) <div class="area video_area video_download expand_button thumnail_img mySlide slide-number{{ $j }}">
+                                    @else <div class="area video_area" id="vimeo{{ $k }}" data-vimeo="{{ $l['video_id'] }}">
+                                    @endif
+                                        <img src="/img/loading.gif" alt="" @if ($phpisMobile) @else class="loading_img" @endif>
+                                    </div>
+                                    @php $k = $k + 1; @endphp
+                                @elseif(isset($l['file_path']) && $l['file_path'])
+                                    <div class="area_img rounded overflow-hidden @if ($phpisMobile) expand_button @endif mySlide slide-number{{ $j }}">
+                                        <img src="{{ $l['file_path'] }}" class="w-100">
+                                    </div>
+                                    <a onclick="javascript:ycommon.downloadImage(os,'/album/downloadFile/{{ $l['file_id'] }}','{{ $l['file_path'] }}');" class="btn btn_dl"><img src="/img/ic_download.svg"></a>
+
+{{--                            @else--}}
+
+{{--                                    @if(isset($l['video_id']) && $l['video_id'])--}}
+{{--                                        <a href="javascript:;" onclick="bigImgShow('{{ $l['file_path'] }}', '{{ $j }}', 'video')">--}}
+{{--                                            <div class="area video_area" id="vimeo{{ $k }}" data-vimeo="{{ $l['video_id'] }}">--}}
+{{--                                                <img src="/img/loading.gif" class="loading_img">--}}
+{{--                                            </div>--}}
+{{--                                        </a>--}}
+{{--                                        @php $k = $k + 1; @endphp--}}
+{{--                                    @elseif(isset($l['file_path']) && $l['file_path'])--}}
+{{--                                        <a href="javascript:;" onclick="bigImgShow('{{ $l['file_path'] }}', '{{ $j }}', 'image')">--}}
+{{--                                            <div class="area_img rounded overflow-hidden">--}}
+{{--                                                <img src="{{ $l['file_path'] }}" class="w-100">--}}
+{{--                                            </div>--}}
+{{--                                        </a>--}}
+{{--                                        <a onclick="javascript:ycommon.downloadImage(os,'/album/downloadFile/{{ $l['file_id'] }}','{{ $l['file_path'] }}');" class="btn btn_dl"><img src="/img/ic_download.svg"></a>--}}
+{{--                            @endif--}}
 
 
 
@@ -268,33 +289,57 @@ if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== 
 </div>
 
 <!-- Swiper -->
-<div class="swiper mySwiper">
-    <div class="swiper-wrapper">
-        @if(isset($row['file']) && is_array($row['file']) && count($row['file']) > 0)
-            @php $k = 0; $j=0; @endphp
-            @foreach($row['file'] as $l)
-                @if(isset($l['video_id']) && $l['video_id'])
-                    <div class="swiper-slide @if($phpisMobile)thumnail_img @endif">
-                        <button class="closeButton" onclick="closeFullscreen()">X</button>
-                        <img src="/img/loading.gif" class="loading_img">
-                        <div class="area video_area video_none" id="vimeo{{ $k }}" data-vimeo="{{ $l['video_id'] }}"></div>
-                    </div>
-                    @php $k = $k + 1; @endphp
-                @elseif(isset($l['file_path']) && $l['file_path'])
-                    <div class="swiper-slide">
-                        <button class="closeButton" onclick="closeFullscreen()">X</button>
-                        <div class="area_img rounded overflow-hidden pinch_zoom">
-                            <img src="{{ $l['file_path'] }}" class="w-100 ">
+@if ($phpisMobile)
+    <div class="swiper mySwiper">
+        <div class="swiper-wrapper">
+            @if(isset($row['file']) && is_array($row['file']) && count($row['file']) > 0)
+                @php $k = 0; $j=0; @endphp
+                @foreach($row['file'] as $l)
+                    @if(isset($l['video_id']) && $l['video_id'])
+                        <div class="swiper-slide @if($phpisMobile)thumnail_img @endif">
+                            <button class="closeButton" onclick="closeFullscreen()">X</button>
+                            <img src="/img/loading.gif" class="loading_img">
+                            <div class="area video_area video_none" id="vimeo{{ $k }}" data-vimeo="{{ $l['video_id'] }}"></div>
                         </div>
-                        <a onclick="javascript:ycommon.downloadImage(os,'/album/downloadFile/{{ $l['file_id'] }}','{{ $l['file_path'] }}');" class="btn btn_dl"><img src="/img/ic_download.svg"></a>
-                    </div>
-                @endif
-            @endforeach
-        @endif
+                        @php $k = $k + 1; @endphp
+                    @elseif(isset($l['file_path']) && $l['file_path'])
+                        <div class="swiper-slide">
+                            <button class="closeButton" onclick="closeFullscreen()">X</button>
+                            <div class="area_img rounded swiper-zoom-container">
+                                <img src="{{ $l['file_path'] }}" class="w-100" id="test">
+                            </div>
+                            <a onclick="javascript:ycommon.downloadImage(os,'/album/downloadFile/{{ $l['file_id'] }}','{{ $l['file_path'] }}');" class="btn btn_dl"><img src="/img/ic_download.svg"></a>
+                        </div>
+                    @endif
+                @endforeach
+            @endif
+        </div>
+    </div>
+@else
+@endif
+
+<div class="loading_wrap" id="loading" style="display: none">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
     </div>
 </div>
 
 <script>
+    var originalElem = document.getElementById("test");
+    var elem = document.createElement("img");
+    elem.onload = () => {
+        originalElem.parentElement
+            .querySelector(".swiper-zoom-container")
+            .appendChild(elem);
+        originalElem.parentElement
+            .querySelector(".swiper-zoom-container")
+            .classList.add("zoomed");
+        originalElem.parentElement
+            .querySelector(".swiper-zoom-container")
+            .appendChild(originalElem);
+    };
+
     $(window).on("load", function() {
         getVimeoVideo();
     });
@@ -380,13 +425,6 @@ if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== 
                                         </div>
                                     </div>
                                     ${e.comment !== '댓글이 삭제되었습니다.' && e.writer_id == {{session('auth')['user_id']}} ? `
-                                    <div class="position-relative">
-                                        <button type="button" class="btn p-0 btn_more h-auto" onclick="btn_more(event, ${e.id})"><img src="/img/ic_more2.png" style="width: 1.6rem;"></button>
-                                        <ul id="more_cont${e.id}" class="more_cont">
-                                            <li><button class="btn" onclick="btn_update(${e.id})">수정</button></li>
-                                            <li><button class="btn" onclick="btn_delete(${e.id})">삭제</button></li>
-                                        </ul>
-                                    </div>
                                     ` : ''}
                                 </div>
                                 <p class="fs_14 line_h1_4 py-3 text-break" id="comment_wr${e.id}">${e.comment}</p>
@@ -417,13 +455,6 @@ if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== 
                                             </div>
                                         </div>
                                         ${e.comment !== '댓글이 삭제되었습니다.'  && e.writer_id == {{session('auth')['user_id']}} ? `
-                                        <div class="position-relative">
-                                            <button type="button" class="btn p-0 btn_more h-auto" onclick="btn_more(event, ${e.id})"><img src="/img/ic_more2.png" style="width: 1.6rem;"></button>
-                                            <ul id="more_cont${e.id}" class="more_cont">
-                                                <li><button class="btn" onclick="btn_update(${e.id})">수정</button></li>
-                                                <li><button class="btn" onclick="btn_delete(${e.id})">삭제</button></li>
-                                            </ul>
-                                        </div>
                                         ` : ''}
                                     </div>
                                     <p class="fs_14 line_h1_4 py-3 text-break" id="comment_wr${e.id}">${e.comment}</p>
@@ -574,7 +605,9 @@ if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== 
     });
 
     var swiper = new Swiper(".mySwiper", {
-
+        zoom: {
+            maxRatio: 5
+        }
     });
 
     // var myPinchZoom = new PinchZoom.default(document.querySelector('.swiper'));
@@ -583,6 +616,9 @@ if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== 
         document.querySelector(".swiper").classList.remove("fullscreen");
         document.querySelector(".swiper").style.display = "none";
         document.querySelector(".expand_button").style.display = "block";
+
+        // document.querySelector("body").style.overflowY = 'none';
+
         swiper.update(); // 스와이퍼 업데이트
     }
 
@@ -591,6 +627,9 @@ if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== 
             elem.addEventListener("click", () => {
                 document.querySelector(".swiper").style.display = 'block';
                 document.querySelector(".swiper").classList.toggle("fullscreen");
+
+                // document.querySelector("body").style.overflowY = 'hidden';
+
                 swiper.update(); // 스와이퍼 업데이트
             })
         })
@@ -602,6 +641,11 @@ if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== 
         }
     }
 
+    document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+        element.addEventListener('click', function(event) {
+            $('#loading').show();
+        });
+    });
 </script>
 
 

@@ -17,11 +17,11 @@
     @else
     <a href="/attend" class="btn btn-lg btn-light_gray text-light">출석부 관리</a>
     @endif
+    <a href="/education" class="btn btn-lg btn-light_gray text-light">교육정보</a>
+    <a href="/event" class="btn btn-lg btn-light_gray text-light">이벤트</a>
     @if(isset(session('auth')['user_type']) && session('auth')['user_type'] !=='s')
     <a href="/counsel" class="btn btn-lg btn-light_gray text-light">상담일지</a>
     @endif
-    <a href="/education" class="btn btn-lg btn-light_gray text-light">교육정보</a>
-    <a href="/event" class="btn btn-lg btn-light_gray text-light">이벤트</a>
 </div>
 
 <script>

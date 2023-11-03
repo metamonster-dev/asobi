@@ -421,7 +421,7 @@ function getVimeoVideo () {
                         byline: false,
                         portrait: false,
                         controls: false,
-                        playsinline: false,
+                        // playsinline: false,
                     }
                     const player = new Vimeo.Player(elId, options);
                     // player.on('play', function() {
@@ -429,10 +429,10 @@ function getVimeoVideo () {
                     // });
 
                     // 로드 되자마자 자동 재생 방지
-                    player.on('loaded', function () {
-                        player.pause().then(function (){
-                        });
-                    });
+                    // player.on('loaded', function () {
+                        // player.pause().then(function (){
+                        // });
+                    // });
 
                     player.on('ended', function() {
                         $('#playButton'+i).show();
@@ -478,24 +478,42 @@ function getVimeoVideo () {
                     $(`.video_area#vimeo${i}`).append(playButton + pauseButton + downloadButton);
 
                     function isMobile(){
-                        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);}
+                        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                    }
 
-                    player.loadVideo(num).then(function () {
-                        document.querySelector('iframe').width = '100%';
-                        document.querySelector('iframe').height = '100%';
+                    function isAndroid(){
+                        return /Android|android/i.test(navigator.userAgent);
+                    }
 
-                        if (!isMobile()) {
-                            document.querySelector('.loading_img').style.display = 'none';
-                        }
-                        document.querySelector('.video_none').style.display = 'block';
-                    })
+                    if (isMobile()) {
+                        player.loadVideo(num).then(function () {
+                            document.querySelector('iframe').width = '100%';
+                            document.querySelector('iframe').height = '100%';
 
-                    $(document).on('click','#playButton'+i,function (){
-                        let $this = $(this)
-                        player.play().then(function (){
-                            $this.addClass('plaing');
-                            $this.hide();
-                            document.getElementById('pauseButton'+i).style.opacity = '0';
+                            // if (!isMobile()) {
+                            //     document.querySelector('.loading_img').style.display = 'none';
+                            // }
+                            document.querySelector('.video_none').style.display = 'block';
+                        })
+                    }
+
+                    player.ready().then(function () {
+                        $(document).on('click','#playButton'+i,function (){
+                            let $this = $(this)
+                                player.play().then(function (){
+                                    $this.addClass('plaing');
+                                    $this.hide();
+                                    document.getElementById('pauseButton'+i).style.opacity = '0';
+
+                                    if (isMobile()) {
+                                        player.requestFullscreen().then(function() {
+
+                                        }).catch(function(error) {
+                                            alert(error);
+                                        });
+                                    }
+
+                                });
                         });
                     });
 

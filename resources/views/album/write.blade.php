@@ -46,7 +46,7 @@ $hd_bg = "2";
                     <div class="ip_tit d-flex align-items-center justify-content-between">
                         <h5>작성일자</h5>
                     </div>
-                    <input type="date" name="ymd" id="ymd" value="{{ $ymd }}" max="<?php echo date("Y-m-d") ?>" class="form-control text-dark_gray">
+                    <input type="date" name="ymd" id="ymd" value="{{ $ymd }}" max="<?php echo date("Y-m-d") ?>" class="form-control text-dark_gray" @if($mode == 'u')readonly @endif>
                 </div>
             </div>
             <div class="form-group ip_wr mt-4 mt-lg-5 mb-0 mb-lg-4">
@@ -473,6 +473,9 @@ $hd_bg = "2";
                     }
                 }
             }
+
+            $('#loading').show();
+
             let id = $(this).data('id');
             ycommon.previewImage(e, id, upload_cont-delete_ids.length+tmp_file_ids.length);
         });
@@ -522,6 +525,12 @@ $hd_bg = "2";
             $('#loading').show();
         });
     });
+
+    // document.querySelectorAll('.addBtn').forEach((elem) => {
+    //     elem.addEventListener('click', (e) => {
+    //         $('#loading').show();
+    //     })
+    // })
 </script>
 
 

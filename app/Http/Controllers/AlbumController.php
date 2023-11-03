@@ -681,16 +681,16 @@ class AlbumController extends Controller
             \App::make('helper')->alert($error);
         }
 
-        if (isset($res->original['file'])) {
-            foreach ($res->original['file'] as $key => $file) {
-                if (!$res->original['file'][$key]['file_path']) {
+//        if (isset($res->original['file'])) {
+//            foreach ($res->original['file'] as $key => $file) {
+//                if (!$res->original['file'][$key]['file_path']) {
     //                $res->original['file'][$key]['file_path'] =  'https://player.vimeo.com/video/876261885?title=0&byline=0&portrait=0&controls=0&app_id=122963';
-                    $res->original['file'][$key]['file_path'] =  'https://player.vimeo.com/video/'.$file['video_id'].'?title=0&byline=0&portrait=0&controls=0&app_id=122963';
+//                    $res->original['file'][$key]['file_path'] =  'https://player.vimeo.com/video/'.$file['video_id'].'?title=0&byline=0&portrait=0&controls=0&app_id=122963';
     //                $res->original['file'][$key]['file_path'] =  'https://player.vimeo.com/video/877749641?h=4780982f4f';
     //                $res->original['file'][$key]['file_path'] =  'https://new.api.asobiedu.co.kr/video/sample.mp4';
-                }
-            }
-        }
+//                }
+//            }
+//        }
 
 
 //        dd($res->original);
