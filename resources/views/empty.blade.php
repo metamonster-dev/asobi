@@ -15,6 +15,13 @@
     <link rel="stylesheet" href="./src/styles.css" />
 </head>
 <body>
+
+<style>
+    body {
+        overflow-y: hidden;
+    }
+</style>
+
 <!-- Swiper -->
 <div class="swiper-container">
     <div class="swiper-wrapper">

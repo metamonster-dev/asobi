@@ -68,8 +68,8 @@ if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== 
 
     .closeButton {
         position: absolute;
-        top: 20px;
-        right: 20px;
+        top: 5px;
+        left: 0;
         background: transparent;
         color: black;
         border: none;
@@ -297,14 +297,36 @@ if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== 
                 @foreach($row['file'] as $l)
                     @if(isset($l['video_id']) && $l['video_id'])
                         <div class="swiper-slide @if($phpisMobile)thumnail_img @endif">
-                            <button class="closeButton" onclick="closeFullscreen()">X</button>
+                            <button class="closeButton" onclick="closeFullscreen()">
+                                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <g clip-path="url(#clip0_3569_2209)">
+                                        <path d="M16.9913 12L9 19.9943L17 28" stroke="#6B7280" stroke-width="1.6" stroke-miterlimit="10" stroke-linecap="square"/>
+                                    </g>
+                                    <defs>
+                                        <clipPath id="clip0_3569_2209">
+                                            <rect width="24" height="24" fill="white" transform="translate(8 8)"/>
+                                        </clipPath>
+                                    </defs>
+                                </svg>
+                            </button>
                             <img src="/img/loading.gif" class="loading_img">
                             <div class="area video_area video_none" id="vimeo{{ $k }}" data-vimeo="{{ $l['video_id'] }}"></div>
                         </div>
                         @php $k = $k + 1; @endphp
                     @elseif(isset($l['file_path']) && $l['file_path'])
                         <div class="swiper-slide">
-                            <button class="closeButton" onclick="closeFullscreen()">X</button>
+                            <button class="closeButton" onclick="closeFullscreen()">
+                                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <g clip-path="url(#clip0_3569_2209)">
+                                        <path d="M16.9913 12L9 19.9943L17 28" stroke="#6B7280" stroke-width="1.6" stroke-miterlimit="10" stroke-linecap="square"/>
+                                    </g>
+                                    <defs>
+                                        <clipPath id="clip0_3569_2209">
+                                            <rect width="24" height="24" fill="white" transform="translate(8 8)"/>
+                                        </clipPath>
+                                    </defs>
+                                </svg>
+                            </button>
                             <div class="area_img rounded swiper-zoom-container">
                                 <img src="{{ $l['file_path'] }}" class="w-100" id="test">
                             </div>
@@ -628,8 +650,6 @@ if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== 
                 document.querySelector(".swiper").style.display = 'block';
                 document.querySelector(".swiper").classList.toggle("fullscreen");
 
-                // document.querySelector("body").style.overflowY = 'hidden';
-
                 swiper.update(); // 스와이퍼 업데이트
             })
         })
@@ -641,11 +661,11 @@ if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== 
         }
     }
 
-    document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
-        element.addEventListener('click', function(event) {
-            $('#loading').show();
-        });
-    });
+    // document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+    //     element.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
 </script>
 
 

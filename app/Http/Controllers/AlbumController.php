@@ -778,7 +778,12 @@ class AlbumController extends Controller
 //        \App::make('helper')->vardump($upload_files);
 //        exit;
 
-        if ($ymd == "") \App::make('helper')->alert('작성일자를 입력해주세요.');
+//        if ($mode == 'u') {
+//
+//        } else {
+//            if ($ymd == "") \App::make('helper')->alert('작성일자를 입력해주세요.');
+//        }
+
         $ymdArr = explode('-', $ymd);
         $year = $ymdArr[0]??-1;
         $month = $ymdArr[1]??-1;

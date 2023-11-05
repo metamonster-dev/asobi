@@ -19,13 +19,15 @@ class VimeoController extends Controller
     {
         $client = new Vimeo(config('vimeo.client_id'), config('vimeo.client_secret'), config('vimeo.access_token'));
 
-        $uri = $client->upload($file->getPathName());
+//        $uri = $client->upload($file->getPathName());
+
+        $uri = $client->upload($file->getPathName(), array(
+            'embed' => array(
+                'end_screen' => array('type' => 'empty')
+            )
+        ));
 
         $result = Str::replaceFirst('/videos/', '', $uri);
-//        \App::make('helper')->log('result');
-//        var_dump('result');
-//        \App::make('helper')->log($result);
-//        var_dump($result);
 
         return $result;
     }

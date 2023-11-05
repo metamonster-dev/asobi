@@ -38,11 +38,11 @@ $hd_bg = "1";
 
             <div class="grid02_list">
                 <div>
-                    <div class="ip_wr">
+                    <div class="ip_wr" @if ($mode=="u") style="display: none;" @endif>
                         <div class="ip_tit d-flex align-items-center justify-content-between">
                             <h5>작성일자</h5>
                         </div>
-                        <input type="date" name="ymd" id="ymd" value="{{ $ymd }}" max="<?php echo date("Y-m-d") ?>" @if($mode == "u")readonly="readonly"@endif class="form-control text-dark_gray" >
+                        <input type="date" name="ymd" id="ymd" value="{{ $ymd }}" max="<?php echo date("Y-m-d") ?>" class="form-control text-dark_gray" >
                     </div>
 
                     <div class="form-group ip_wr mt-4 mt-lg-5 mb-0 mb-lg-4">

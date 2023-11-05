@@ -6,6 +6,14 @@ class="body"
 <?php
 $title = "앨범 작성";
 $hd_bg = "2";
+$userAgent = $_SERVER['HTTP_USER_AGENT'];
+
+$phpisIOS = false;
+if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== false || strpos($userAgent, 'iPod') !== false) {
+    $phpisIOS = true;
+} else {
+    $phpisIOS = false;
+}
 ?>
 @include('common.headm04')
 @include('album.preview')
@@ -42,11 +50,11 @@ $hd_bg = "2";
                     </div>
                     <input id="title" name="title" type="text" value="{{ $row['title'] ?? '' }}" class="form-control text-dark_gray" placeholder="제목을 입력해주세요">
                 </div>
-                <div class="ip_wr">
+                <div class="ip_wr" @if ($mode=="u") style="display: none;" @endif>
                     <div class="ip_tit d-flex align-items-center justify-content-between">
                         <h5>작성일자</h5>
                     </div>
-                    <input type="date" name="ymd" id="ymd" value="{{ $ymd }}" max="<?php echo date("Y-m-d") ?>" class="form-control text-dark_gray" @if($mode == 'u')readonly @endif>
+                    <input type="date" name="ymd" id="ymd" value="{{ $ymd }}" max="<?php echo date("Y-m-d") ?>" class="form-control text-dark_gray">
                 </div>
             </div>
             <div class="form-group ip_wr mt-4 mt-lg-5 mb-0 mb-lg-4">
@@ -97,7 +105,7 @@ $hd_bg = "2";
                                 $studentId = $l['id'];
                                 $isChecked = false;
                                 if (is_array($row['student'])) {
-                                    $isChecked = in_array($studentId, array_column($row['student'], 'id'));
+                                    $isChecked = in_array($studentId, array_column($row['student'], 'idx'));
                                 }
                             }
                         @endphp
@@ -514,17 +522,23 @@ $hd_bg = "2";
         @endif
     });
 
-    document.querySelectorAll('a').forEach(function(anchor) {
-        anchor.addEventListener('click', function(event) {
-            $('#loading').show();
-        });
-    });
+    // document.querySelectorAll('form').forEach(function(anchor) {
+    //     anchor.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
 
-    document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
-        element.addEventListener('click', function(event) {
-            $('#loading').show();
-        });
-    });
+    // document.querySelectorAll('a').forEach(function(anchor) {
+    //     anchor.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
+    //
+    // document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+    //     element.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
 
     // document.querySelectorAll('.addBtn').forEach((elem) => {
     //     elem.addEventListener('click', (e) => {
