@@ -166,16 +166,19 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
         autoSearch(data, "searchList", "searchText", sClick, undefined, xClick);
     });
 
-    document.querySelectorAll('a').forEach(function(anchor) {
-        anchor.addEventListener('click', function(event) {
-            $('#loading').show();
-        });
-    });
-
-    document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
-        element.addEventListener('click', function(event) {
-            $('#loading').show();
-        });
+    // document.querySelectorAll('a').forEach(function(anchor) {
+    //     anchor.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
+    //
+    // document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+    //     element.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
+    document.querySelector('.back_button').addEventListener('click', function(event) {
+        $('#loading').show();
     });
 </script>
 

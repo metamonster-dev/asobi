@@ -59,7 +59,8 @@ class AlbumController extends Controller
                 ->when($search_text != "", function ($q) use ($search_text) {
                     $q->where('title','like','%'.$search_text.'%');
                 })
-                ->orderByDesc('created_at')
+//                ->orderByDesc('created_at')
+                ->orderByRaw('CONCAT(year, "-", month, "-", day) DESC')
                 ->get();
         } else {
             $rs = Album::with('files')
@@ -71,7 +72,8 @@ class AlbumController extends Controller
                 ->whereJsonContains('sidx', json_encode($user->idx))
                 ->where('year', $year)
                 ->where('month', $month)
-                ->orderByDesc('created_at')
+//                ->orderByDesc('created_at')
+                ->orderByRaw('CONCAT(year, "-", month, "-", day) DESC')
                 ->get();
         }
 

@@ -103,7 +103,7 @@ if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== 
             </div>
             @if(isset(session('auth')['user_type']) && (session('auth')['user_type'] =='m' || session('auth')['user_type'] =='a'))
             <!-- ※ 수정, 삭제 버튼은 교육원, 본사일 때 노출 -->
-            <div class="position-relative d-block d-lg-none">
+            <div class="position-relative d-lg-none commentDisable">
                 <button type="button" class="btn p-0 btn_more h-auto"><img src="/img/ic_more.png" style="width: 1.6rem;"></button>
                 <ul class="more_cont">
                     <li><button class="btn" onclick="location.href='/album/write/{{ $id }}'">수정</button></li>
@@ -122,14 +122,16 @@ if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== 
                         <div class="att_img">
 
                                 @if(isset($l['video_id']) && $l['video_id'])
-                                    @if ($phpisMobile) <div class="area video_area video_download expand_button thumnail_img mySlide slide-number{{ $j }}">
-                                    @else <div class="area video_area" id="vimeo{{ $k }}" data-vimeo="{{ $l['video_id'] }}">
-                                    @endif
+{{--                                    @if ($phpisMobile) <div class="area video_area video_download expand_button thumnail_img mySlide slide-number{{ $j }}">--}}
+{{--                                    @else <div class="area video_area" id="vimeo{{ $k }}" data-vimeo="{{ $l['video_id'] }}">--}}
+{{--                                    @endif--}}
+                                <div class="area video_area video_download expand_button thumnail_img{{$k}} mySlide slide-number{{ $j }}">
                                         <img src="/img/loading.gif" alt="" @if ($phpisMobile) @else class="loading_img" @endif>
                                     </div>
                                     @php $k = $k + 1; @endphp
                                 @elseif(isset($l['file_path']) && $l['file_path'])
-                                    <div class="area_img rounded overflow-hidden @if ($phpisMobile) expand_button @endif mySlide slide-number{{ $j }}">
+{{--                                    <div class="area_img rounded overflow-hidden @if ($phpisMobile) expand_button @endif mySlide slide-number{{ $j }}">--}}
+                                        <div class="area_img rounded overflow-hidden expand_button mySlide slide-number{{ $j }}">
                                         <img src="{{ $l['file_path'] }}" class="w-100">
                                     </div>
                                     <a onclick="javascript:ycommon.downloadImage(os,'/album/downloadFile/{{ $l['file_id'] }}','{{ $l['file_path'] }}');" class="btn btn_dl"><img src="/img/ic_download.svg"></a>
@@ -244,9 +246,9 @@ if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== 
         <!-- ※ 수정, 삭제 버튼은 교육원, 본사일 때 노출 -->
         <div class="botton_btns d-none d-lg-flex pt_80 pb-4">
             @if(isset(session('auth')['user_type']) && (session('auth')['user_type'] =='m' || session('auth')['user_type'] =='a'))
-            <button type="button" class="btn btn-primary" onclick="location.href='/album/write/{{ $id }}'">수정</button>
+            <button type="button" class="btn btn-primary commentDisable" onclick="location.href='/album/write/{{ $id }}'">수정</button>
             <button type="button" class="btn btn-gray text-white" onclick="location.href='{{ $back_link }}'">목록</button>
-            <button type="button" class="btn btn-gray text-white" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/album/delete/{{ $id }}';})">삭제</button>
+            <button type="button" class="btn btn-gray text-white commentDisable" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/album/delete/{{ $id }}';})">삭제</button>
             @else
             <button type="button" class="btn btn-gray text-white" onclick="location.href='{{ $back_link }}'">목록</button>
             @endif
@@ -289,15 +291,16 @@ if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== 
 </div>
 
 <!-- Swiper -->
-@if ($phpisMobile)
+{{--@if ($phpisMobile)--}}
     <div class="swiper mySwiper">
         <div class="swiper-wrapper">
             @if(isset($row['file']) && is_array($row['file']) && count($row['file']) > 0)
                 @php $k = 0; $j=0; @endphp
                 @foreach($row['file'] as $l)
                     @if(isset($l['video_id']) && $l['video_id'])
-                        <div class="swiper-slide @if($phpisMobile)thumnail_img @endif">
-                            <button class="closeButton" onclick="closeFullscreen()">
+{{--                        <div class="swiper-slide @if($phpisMobile)thumnail_img @endif">--}}
+                        <div class="swiper-slide">
+                        <button class="closeButton" onclick="closeFullscreen()">
                                 <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <g clip-path="url(#clip0_3569_2209)">
                                         <path d="M16.9913 12L9 19.9943L17 28" stroke="#6B7280" stroke-width="1.6" stroke-miterlimit="10" stroke-linecap="square"/>
@@ -309,7 +312,7 @@ if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== 
                                     </defs>
                                 </svg>
                             </button>
-                            <img src="/img/loading.gif" class="loading_img">
+                            <img src="/img/loading.gif" class="loading_img pc_loading_img">
                             <div class="area video_area video_none" id="vimeo{{ $k }}" data-vimeo="{{ $l['video_id'] }}"></div>
                         </div>
                         @php $k = $k + 1; @endphp
@@ -337,8 +340,8 @@ if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== 
             @endif
         </div>
     </div>
-@else
-@endif
+{{--@else--}}
+{{--@endif--}}
 
 <div class="loading_wrap" id="loading" style="display: none">
     <div class="loading_text">
@@ -426,6 +429,11 @@ if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== 
             let data = res.list;
             // console.log(res);
             // console.log(data);
+            if (res.count > 0) {
+                document.querySelectorAll('.commentDisable').forEach((elem) => {
+                    elem.style.display = 'none';
+                })
+            }
 
             let commentListHtml = '';
             let replyListHtml = '';
@@ -447,6 +455,13 @@ if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== 
                                         </div>
                                     </div>
                                     ${e.comment !== '댓글이 삭제되었습니다.' && e.writer_id == {{session('auth')['user_id']}} ? `
+                                    <div class="position-relative">
+                                        <button type="button" class="btn p-0 btn_more h-auto" onclick="btn_more(event, ${e.id})"><img src="/img/ic_more2.png" style="width: 1.6rem;"></button>
+                                        <ul id="more_cont${e.id}" class="more_cont">
+                                            <li><button class="btn" onclick="btn_update(${e.id})">수정</button></li>
+                                            <li><button class="btn" onclick="btn_delete(${e.id})">삭제</button></li>
+                                        </ul>
+                                    </div>
                                     ` : ''}
                                 </div>
                                 <p class="fs_14 line_h1_4 py-3 text-break" id="comment_wr${e.id}">${e.comment}</p>
@@ -477,6 +492,13 @@ if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== 
                                             </div>
                                         </div>
                                         ${e.comment !== '댓글이 삭제되었습니다.'  && e.writer_id == {{session('auth')['user_id']}} ? `
+                                        <div class="position-relative">
+                                            <button type="button" class="btn p-0 btn_more h-auto" onclick="btn_more(event, ${e.id})"><img src="/img/ic_more2.png" style="width: 1.6rem;"></button>
+                                            <ul id="more_cont${e.id}" class="more_cont">
+                                                <li><button class="btn" onclick="btn_update(${e.id})">수정</button></li>
+                                                <li><button class="btn" onclick="btn_delete(${e.id})">삭제</button></li>
+                                            </ul>
+                                        </div>
                                         ` : ''}
                                     </div>
                                     <p class="fs_14 line_h1_4 py-3 text-break" id="comment_wr${e.id}">${e.comment}</p>
@@ -661,11 +683,9 @@ if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== 
         }
     }
 
-    // document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
-    //     element.addEventListener('click', function(event) {
-    //         $('#loading').show();
-    //     });
-    // });
+    document.querySelector('.back_button').addEventListener('click', function(event) {
+        $('#loading').show();
+    });
 </script>
 
 

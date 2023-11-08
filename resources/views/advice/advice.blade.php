@@ -272,6 +272,9 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
     //         $('#loading').show();
     //     });
     // });
+    document.querySelector('.back_button').addEventListener('click', function(event) {
+        $('#loading').show();
+    });
 </script>
 
 @endsection

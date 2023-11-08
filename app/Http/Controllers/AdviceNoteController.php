@@ -1871,7 +1871,6 @@ class AdviceNoteController extends Controller
 
     public function writeAction(Request $request)
     {
-        dd(1);
         $mode = $request->input('mode') ?? '';
         $id = $request->input('id') ?? '';
         $userId = $request->input('userId') ?? '';

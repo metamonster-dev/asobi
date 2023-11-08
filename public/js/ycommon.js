@@ -1230,7 +1230,12 @@ var ycommon = (function(ycommon, $, window) {
     }
 
     ycommon.setUploadCount = function (upload_cont) {
-        $('#uploadCount').text(ycommon.getUploadCount(upload_cont));
+        if (parseInt(ycommon.getUploadCount(upload_cont)) > 10) {
+            $('#uploadCount').text(10);
+        } else {
+            $('#uploadCount').text(ycommon.getUploadCount(upload_cont));
+        }
+
     }
 
     /* 2번째 이미지 */

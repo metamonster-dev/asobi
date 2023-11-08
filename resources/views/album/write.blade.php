@@ -60,7 +60,7 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
             <div class="form-group ip_wr mt-4 mt-lg-5 mb-0 mb-lg-4">
                 <div class="ip_tit d-flex align-items-center">
                     <h5 class="mr-3">사진·동영상</h5>
-                    <p class="fs_13 text-light"><span id="uploadCount">0</span>/20</p>
+                    <p class="fs_13 text-light"><span id="uploadCount">0</span>/10</p>
                 </div>
                 <div class="scroll_wrap none_scroll_bar_lg">
                     <div class="input-group-prepend" id="imgUpload">
@@ -132,9 +132,7 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
                         </div>
                     </li>
                 @endif
-
             </ul>
-
 
             <div class="cmt_wr note_btns pt-0 pt_lg_50 pb-0 pb-lg-4">
                 <button type="submit" id="fsubmit" class="btn btn-primary">전송</button>
@@ -401,15 +399,10 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
 
         var i = 0;
         $(".addBtn").on('click', function(e) {
-            if (ycommon.getUploadCount(upload_cont-delete_ids.length+tmp_file_ids.length) >= 10) {
-                jalert("사진 동영상은 10개까지만 등록 가능합니다.");
-                return;
-            }
-
-            if (document.querySelectorAll('input[name="upload_files[]"]').length > 10) {
-                jalert("사진 동영상은 10개까지만 등록 가능합니다.");
-                return;
-            }
+            // if (ycommon.getUploadCount(upload_cont-delete_ids.length+tmp_file_ids.length) > 10) {
+            //     jalert("사진 동영상은 10개까지만 등록 가능합니다.");
+            //     return;
+            // }
 
             let addForm = '<div class="image-upload2 mr-3" data-id="'+i+'" id="image-upload-'+i+'">'+
                 '<label id="label_upload_file_'+i+'" for="upload_file_'+i+'">' +
@@ -425,7 +418,6 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
             $('#label_upload_file_'+i).trigger('click');
             i++;
         });
-
 
         @if(isset($row['file']) && is_array($row['file']) && count($row['file']) > 0)
 
@@ -462,7 +454,15 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
         },100);
         @endif
 
+
         $(document).on('change', '.upload_files', function(e) {
+            let entireCount = parseInt(document.getElementById('uploadCount').innerText);
+
+            if (entireCount + this.files.length > 10) {
+                jalert("사진 동영상은 10개까지만 등록 가능합니다.");
+                return;
+            }
+
             const imageMaxSize = 10 * 1024 * 1024; // 10MB
             const videoMaxSize = 10 * 10 * 1024 * 1024; // 100MB
 
@@ -540,11 +540,9 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
     //     });
     // });
 
-    // document.querySelectorAll('.addBtn').forEach((elem) => {
-    //     elem.addEventListener('click', (e) => {
-    //         $('#loading').show();
-    //     })
-    // })
+    document.querySelector('.back_button').addEventListener('click', function(event) {
+        $('#loading').show();
+    });
 </script>
 
 

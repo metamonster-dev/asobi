@@ -73,13 +73,19 @@ class CounselingController extends Controller
             ->where('midx', $user->idx)
             ->where('mtype', 's')
             ->where('s_status', 'Y')
+            ->when($search_user_id != "", function ($q) use ($search_user_id) {
+                $q->where('raon_member.idx', $search_user_id);
+            })
             ->pluck('uid');
 
         $maxCreated = DB::table('counselings')
             ->select(DB::raw('MAX(created_at) as ccreated_at'), 'sidx as uid')
             ->groupBy('sidx', DB::raw('YEAR(created_at)'), DB::raw('MONTH(created_at)'))
             ->whereIn('sidx', $uids)
-            ->whereRaw("DATE_FORMAT(created_at, '%Y-%m') = '{$year_month}'")
+//            ->whereRaw("DATE_FORMAT(created_at, '%Y-%m') = '{$year_month}'")
+            ->when($year_month, function ($q) use ($year_month) {
+                $q->whereRaw("DATE_FORMAT(created_at, '%Y-%m') = '{$year_month}'");
+            })
             ->orderBy('sidx')
             ->get();
 

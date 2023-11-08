@@ -6,8 +6,8 @@ class="body"
 <?php
 $title = "공지사항 상세";
 $hd_bg = "3";
-//$back_link = '/asobiNotice';
-$back_link = $_SERVER['HTTP_REFERER'];
+$back_link = '/asobiNotice';
+//$back_link = $_SERVER['HTTP_REFERER'];
 ?>
 @include('common.headm03')
 
@@ -78,6 +78,10 @@ $back_link = $_SERVER['HTTP_REFERER'];
     //         $('#loading').show();
     //     });
     // });
+    document.querySelector('.back_button').addEventListener('click', function(event) {
+        $('#loading').show();
+    });
+
 </script>
 
 @endsection

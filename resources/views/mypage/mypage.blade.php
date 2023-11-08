@@ -131,6 +131,10 @@ $back_link = "/";
         });
     });
 
+    document.querySelector('.back_button').addEventListener('click', function(event) {
+        $('#loading').show();
+    });
+
     // document.querySelectorAll('button').forEach((elem) => {
     //     elem.addEventListener('click', () => {
     //         $('#loading').show();

@@ -43,8 +43,8 @@ $test = '/advice?ym='.$date.'&search_user_id='.$row['student'].'&search_text='.$
 
                 <ul class="more_cont">
                     <li><button class="btn" onclick="UrlCopy()">공유</button></li>
-                    <li><button class="btn" onclick="location.href='/advice/note/write/{{ $id }}'">수정</button></li>
-                    <li><button class="btn" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/advice/delete/{{ $id }}';})">삭제</button></li>
+                    <li><button class="btn commentDisable" onclick="location.href='/advice/note/write/{{ $id }}'">수정</button></li>
+                    <li><button class="btn commentDisable" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/advice/delete/{{ $id }}';})">삭제</button></li>
                 </ul>
             </div>
             @endif
@@ -81,14 +81,14 @@ $test = '/advice?ym='.$date.'&search_user_id='.$row['student'].'&search_text='.$
                 </ul>
             </div>
             @endif
-            <p class="wh_pre fs_15 line_h1_4">{!! nl2br($row['content']) !!}</p>
+            <p class="wh_pre fs_15 line_h1_4">{!! $row['content'] !!}</p>
         </div>
         <!-- ※ 수정, 삭제 버튼은 교육원일 때만 노출 -->
         <div class="botton_btns d-none d-lg-flex pt_80 pb-4">
             @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='m')
-            <button type="button" class="btn btn-primary" onclick="location.href='/advice/note/write/{{ $id }}'">수정</button>
+            <button type="button" class="btn btn-primary commentDisable" onclick="location.href='/advice/note/write/{{ $id }}'">수정</button>
             <button type="button" class="btn btn-gray text-white" onclick="location.href='@if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='s') /advice/list @else {{ $back_link }} @endif'">목록</button>
-            <button type="button" class="btn btn-gray text-white" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/advice/delete/{{ $id }}';})">삭제</button>
+            <button type="button" class="btn btn-gray text-white commentDisable" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/advice/delete/{{ $id }}';})">삭제</button>
             @else
             <button type="button" class="btn btn-gray text-white" onclick="location.href='@if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='s') /advice/list @else {{ $back_link }} @endif'">목록</button>
             @endif
@@ -221,8 +221,11 @@ let action = `/api/adviceNote/comment/list?user=${userId}&id={{$id}}`;
 let data = '';
 ycommon.ajaxJson('get', action, data, undefined, function (res) {
     let data = res.list;
-    console.log(res);
-    // console.log(data);
+    if (res.count > 0) {
+        document.querySelectorAll('.commentDisable').forEach((elem) => {
+            elem.style.display = 'none';
+        })
+    }
 
     let commentListHtml = '';
     let replyListHtml = '';
@@ -244,7 +247,13 @@ ycommon.ajaxJson('get', action, data, undefined, function (res) {
                                 </div>
                             </div>
                             ${e.comment !== '댓글이 삭제되었습니다.' && e.writer_id == {{session('auth')['user_id']}} ? `
-
+                            <div class="position-relative">
+                                <button type="button" class="btn p-0 btn_more h-auto" onclick="btn_more(event, ${e.id})"><img src="/img/ic_more2.png" style="width: 1.6rem;"></button>
+                                <ul id="more_cont${e.id}" class="more_cont">
+                                    <li><button class="btn" onclick="btn_update(${e.id})">수정</button></li>
+                                    <li><button class="btn" onclick="btn_delete(${e.id})">삭제</button></li>
+                                </ul>
+                            </div>
                             ` : ''}
                         </div>
                         <p class="fs_14 line_h1_4 py-3 text-break" id="comment_wr${e.id}">${e.comment}</p>
@@ -275,6 +284,13 @@ ycommon.ajaxJson('get', action, data, undefined, function (res) {
                                     </div>
                                 </div>
                                 ${e.comment !== '댓글이 삭제되었습니다.'  && e.writer_id == {{session('auth')['user_id']}} ? `
+                                <div class="position-relative">
+                                    <button type="button" class="btn p-0 btn_more h-auto" onclick="btn_more(event, ${e.id})"><img src="/img/ic_more2.png" style="width: 1.6rem;"></button>
+                                    <ul id="more_cont${e.id}" class="more_cont">
+                                        <li><button class="btn" onclick="btn_update(${e.id})">수정</button></li>
+                                        <li><button class="btn" onclick="btn_delete(${e.id})">삭제</button></li>
+                                    </ul>
+                                </div>
                                 ` : ''}
                             </div>
                             <p class="fs_14 line_h1_4 py-3 text-break" id="comment_wr${e.id}">${e.comment}</p>
@@ -424,16 +440,20 @@ window.addEventListener('message', (event) => {
     }
 });
 
-    document.querySelectorAll('a').forEach(function(anchor) {
-        anchor.addEventListener('click', function(event) {
-            $('#loading').show();
-        });
-    });
+    // document.querySelectorAll('a').forEach(function(anchor) {
+    //     anchor.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
+    //
+    // document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+    //     element.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
 
-    document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
-        element.addEventListener('click', function(event) {
-            $('#loading').show();
-        });
+    document.querySelector('.back_button').addEventListener('click', function(event) {
+        $('#loading').show();
     });
 
 </script>
