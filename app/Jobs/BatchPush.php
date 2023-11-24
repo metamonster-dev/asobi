@@ -15,6 +15,7 @@ class BatchPush implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+//    public int $tries = 3;
     protected $push_data;
 
     /**
@@ -34,8 +35,6 @@ class BatchPush implements ShouldQueue
      */
     public function handle()
     {
-        //
-//        \App::make('helper')->log('handle=', ['push_data' => $this->push_data], 'batchPush');
         $push = new PushMessageController($this->push_data['type'] ?? '', $this->push_data['type_id'] ?? '', $this->push_data['param']??[]);
         $push->push();
     }

@@ -4,6 +4,10 @@ class="body"
 @endsection
 @section('contents')
 <?php
+
+//    echo phpinfo();
+//    exit();
+
 $n_menu = '5';
 $title = "FAQ";
 $hd_bg = "8";

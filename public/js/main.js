@@ -89,7 +89,7 @@ $(".modal_bg").on("click", function(e) {
 
 // 로딩 show-hide
 function loadingShow() {
-    $("#loading").show();
+    // $("#loading").show();
 }
 function loadingHide() {
     $("#loading").hide();
@@ -499,8 +499,10 @@ function getVimeoVideo () {
                     //     })
                     // }
 
-                    document.querySelector(`.thumnail_img${i} > img`).src = src;
-                    document.querySelector(`.thumnail_img${i} > img`).style.height = '100%';
+                    if (document.querySelector('.mySwiper')) {
+                        document.querySelector(`.thumnail_img${i} > img`).src = src;
+                        document.querySelector(`.thumnail_img${i} > img`).style.height = '100%';
+                    }
 
                     // 다운로드 버튼 넣기
                     if (document.querySelectorAll('.video_download')) {

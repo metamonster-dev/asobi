@@ -51,11 +51,13 @@ $hd_bg = "1";
                     <ul class="more_cont">
                         @if(isset(session('auth')['user_type']) && (session('auth')['user_type'] =='m' || session('auth')['user_type'] == 'a'))
                         <li><button class="btn" onclick="UrlCopy()">공유</button></li>
-                            @if(session('auth')['user_type'] == 'a')
+                            @if(session('auth')['user_type'] == 'a' && !$row)
                             <li><button class="btn" onclick="location.href='/advice/letter/write/{{ $id }}?userId={{ $userId }}'">수정</button></li>
                             @endif
                         @endif
+                        @if(!$row)
                         <li><button class="btn" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/advice/delete/{{ $id }}';})">삭제</button></li>
+                        @endif
                     </ul>
                 </div>
             @endif
@@ -167,11 +169,11 @@ $hd_bg = "1";
         </div>
         <!-- ※ 삭제 버튼은 교육원, 본사일 때 노출 -->
         <div class="botton_btns d-none d-lg-flex pt_80">
-            @if(isset(session('auth')['user_type']) && (session('auth')['user_type'] =='m' || session('auth')['user_type'] == 'a'))
+            @if(isset(session('auth')['user_type']) && (session('auth')['user_type'] =='m' || session('auth')['user_type'] == 'a') && !$row)
             <button type="button" class="btn btn-primary" onclick="location.href='/advice/letter/write/{{ $id }}'">수정</button>
             @endif
             <button type="button" class="btn btn-gray text-white" onclick="location.href='@if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='s') /advice/list @else /advice @endif'">목록</button>
-            @if(isset(session('auth')['user_type']) && (session('auth')['user_type'] =='m' || session('auth')['user_type'] =='a'))
+            @if(isset(session('auth')['user_type']) && (session('auth')['user_type'] =='m' || session('auth')['user_type'] =='a') && !$row)
             <button type="button" class="btn btn-gray text-white" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/advice/delete/{{ $id }}';})">삭제</button>
             @endif
         </div>
@@ -186,6 +188,14 @@ $hd_bg = "1";
             window.ReactNativeWebView.postMessage(
                 JSON.stringify({targetFunc: "copy",url: url})
             );
+
+            let action = `/api/share?link=${url}&id=${id}`;
+            let data = '';
+
+            ycommon.ajaxJson('get', action, data, undefined, function (res) {
+
+            })
+
         }else {
             var tempInput = $('<input>');
             tempInput.css({

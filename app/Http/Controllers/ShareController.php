@@ -177,26 +177,26 @@ class ShareController extends Controller
             $response = "json"
         );
 
-//        \App::make('helper')->log('webDeepLink', ['res' => $res], 'webDeepLink');
-
         if (isset($res['shortLink'])) {
-            $advice_note_share_history = AdviceNoteShareHistory::where('advice_note_id', $id)->first();
+            if ($id != '') {
+                $advice_note_share_history = AdviceNoteShareHistory::where('advice_note_id', $id)->first();
 
-            $nowDate = date('Y-m-d H:i:s', time());
+                $nowDate = date('Y-m-d H:i:s', time());
 
-            if ($advice_note_share_history) {
-                $advice_note_share_history->shared_at = $nowDate;
-                $advice_note_share_history->updated_at = $nowDate;
-            } else {
-                $advice_note_share_history = new AdviceNoteShareHistory;
+                if ($advice_note_share_history) {
+                    $advice_note_share_history->shared_at = $nowDate;
+                    $advice_note_share_history->updated_at = $nowDate;
+                } else {
+                    $advice_note_share_history = new AdviceNoteShareHistory;
 
-                $advice_note_share_history->advice_note_id = $id;
-                $advice_note_share_history->shared_at = $nowDate;
-                $advice_note_share_history->created_at = $nowDate;
+                    $advice_note_share_history->advice_note_id = $id;
+                    $advice_note_share_history->shared_at = $nowDate;
+                    $advice_note_share_history->created_at = $nowDate;
+                }
+
+                $advice_note_share_history->save();
             }
-
-            $advice_note_share_history->save();
-
+//
             $result = Arr::add($result, 'result', 'success');
             $result = Arr::add($result, 'shortLink', $res['shortLink']);
             return response()->json($result);

@@ -19,8 +19,6 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
 } else {
     $phpisIOS = false;
 }
-
-echo $phpisIOS;
 ?>
 @include('common.headm02')
 
@@ -62,7 +60,7 @@ echo $phpisIOS;
                             @endif
 
                             <div class="ip_sch_wr col-6 col-lg-7 px-0">
-                                <input type="text" name="search_text" id="search_text" value="{{ $search_text }}" class="form-control form-control-lg ip_search" autocomplete="off" >
+                                <input type="text" name="search_text" id="search_text" value="{{ $search_text }}" class="form-control form-control-lg ip_search" autocomplete="off" @if ($device_kind == 'iOS' || $phpisIOS)style="height: var(--height_md);"@endif>
                                 <button type="submit" class="btn btn_sch btn_sch2"></button>
                             </div>
                         </div>

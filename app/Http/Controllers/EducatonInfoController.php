@@ -10,6 +10,7 @@ use App\EducatonInfo;
 use App\CommonComment;
 use App\EditorFile;
 use App\File;
+use App\UserAppInfo;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -105,7 +106,7 @@ class EducatonInfoController extends Controller
                 if ($vimeo_id) {
                     $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                 } else {
-                    $file = \App::make('helper')->rotateImage($file);
+//                    $file = \App::make('helper')->rotateImage($file);
                     $file_path = \App::make('helper')->putResizeS3(File::FILE_DIR, $file);
                 }
 
@@ -325,7 +326,7 @@ class EducatonInfoController extends Controller
                 if ($vimeo_id) {
                     $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                 } else {
-                    $file = \App::make('helper')->rotateImage($file);
+//                    $file = \App::make('helper')->rotateImage($file);
                     $file_path = \App::make('helper')->putResizeS3(File::FILE_DIR, $file, 1160,180);
                 }
 
@@ -470,6 +471,37 @@ class EducatonInfoController extends Controller
 
     public function education()
     {
+//        $rs = RaonMember::where(function($query) {
+//            $query->where('mtype', 's')->where('s_status', 'Y');
+//        })->orWhere(function($query) {
+//            $query->where('mtype', 'm')->where('m_status', 'Y');
+//        })->orWhere(function($query) {
+//            $query->where('mtype', 'h')->where('h_status', 'Y');
+//        })
+//            ->pluck('idx')
+//            ->toArray();
+//
+//        $arr_push = UserAppInfo::whereIn('user_id', $rs)
+//            ->where('notice_alarm', 'Y')
+//            ->whereNotNull('push_key')
+//            ->take(10)
+//            ->pluck('push_key')
+//            ->toArray();
+//
+//        $arr_push = array_unique($arr_push);
+//        $arr_push = array_values($arr_push);
+//
+//        $myId = UserAppInfo::where('user_id', '132895')->where('device_kind', 'iOS')->pluck('push_key')->toArray();
+//
+//        $arr_push = array_merge($myId, $arr_push);
+
+//        $arr_push = array_unique($arr_push);
+//        $arr_push = array_values($arr_push);
+
+//        dd($arr_push);
+
+
+
         $req = Request::create('/api/educatonInfo/list', 'GET');
 
         $res = $this->index($req);

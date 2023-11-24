@@ -29,6 +29,7 @@ class UserAppInfoController extends Controller
         $super_admin_pw = "*AFD73585CBB4EC0494555BAE49FD5D791E3586EA";
         $test_admin_pw = "*C8D709673378AC05EAE76AA8CD81DAC2CD73A58F";
 
+//        mem_id
         $login_id = $request->input('login_id');
         $password = $request->input('password');
 
@@ -70,7 +71,8 @@ class UserAppInfoController extends Controller
 
         if (empty($user) || ($user->mtype === 's' && $user->status === 'D')) {
             $result = Arr::add($result, 'result', 'fail');
-            $result = Arr::add($result, 'error', '패스워드를 확인해주세요!');
+//            $result = Arr::add($result, 'error', '패스워드를 확인해주세요!');
+            $result = Arr::add($result, 'error', '아소비 베타 테스트 앱 입니다. 다른 아소비 앱을 다운 받아주세요!');
             return response()->json($result);
         }
 
@@ -267,23 +269,16 @@ class UserAppInfoController extends Controller
                 ->first();
 
             if ($userAppInfo) {
-                var_dump(2);
-                var_dump($userAppInfo->user_id);
                 $userAppInfo->device_kind = $device_kind;
                 $userAppInfo->device_type = $device_type;
                 $userAppInfo->device_id = $device_id;
                 $userAppInfo->push_key = $push_key;
-
-                var_dump($userAppInfo->id);
-
                 $userAppInfo->save();
             } else {
                 $userAppInfo = new UserAppInfo($payload);
                 $userAppInfo->save();
             }
         }
-
-//        dd('end');
 
         $result = Arr::add($result, 'push_alarm', $userAppInfo->push_alarm);
         $result = Arr::add($result, 'notice_alarm', $userAppInfo->notice_alarm);

@@ -37,7 +37,7 @@ class="body"
           </div>
           <div class="pt-5 d-flex d-lg-none align-items-center justify-content-center">
             <p class="border-right"><a href="/auth/findId" class="text-light mx-3">아이디 찾기</a></p>
-            <p class="border-right"><a href="/auth/findPw" class="text-light mx-3">비밀번호 찾기</a></p>
+{{--            <p class="border-right"><a href="/auth/findPw" class="text-light mx-3">비밀번호 찾기</a></p>--}}
 {{--            <p class=""><a href="/auth/join" class="text-light mx-3">입회신청</a></p>--}}
           </div>
         </form>
@@ -57,11 +57,11 @@ class="body"
 </div>
 
 <script>
-    document.querySelectorAll('form').forEach(form => {
-        form.addEventListener('submit', function(event) {
-            $('#loading').show();
-        });
-    });
+    // document.querySelectorAll('form').forEach(form => {
+    //     form.addEventListener('submit', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
 </script>
 
 @endsection

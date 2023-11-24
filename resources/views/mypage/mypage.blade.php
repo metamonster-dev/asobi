@@ -127,7 +127,7 @@ $back_link = "/";
     document.querySelectorAll('form').forEach(form => {
         form.addEventListener('submit', function(event) {
             $('#loading').show();
-            $('#loading2').show();
+            // $('#loading2').show();
         });
     });
 

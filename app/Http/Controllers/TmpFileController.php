@@ -136,7 +136,7 @@ class TmpFileController extends Controller
                     $file->delete();
                 }
             }
-        } elseif ($type == '4') {
+        } elseif ($type == '4' || $type == '5') {
             //기존 파일 확인
             $files = File::where('type', $type)
                 ->where('type_id', '=', $user_id)
@@ -176,7 +176,7 @@ class TmpFileController extends Controller
 //                    $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                     $file_path = \App::make('helper')->putVideoS3($file_dir, $file);
                 } else {
-                    $file = \App::make('helper')->rotateImage($file);
+//                    $file = \App::make('helper')->rotateImage($file);
                     $file_path = \App::make('helper')->putResizeS3($file_dir, $file, 1160,180);
                 }
 

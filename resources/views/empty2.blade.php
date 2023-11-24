@@ -1,84 +1,78 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="utf-8" />
-    <title>Image and Video Viewer</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1" />
-    <style>
-        /* CSS 스타일링 */
-        body, html {
-            height: 100%;
-            margin: 0;
-            font-family: Arial, sans-serif;
-        }
-
-        .container {
-            display: flex;
-            height: 100%;
-            overflow-x: scroll;
-            scroll-snap-type: x mandatory;
-        }
-
-        .item {
-            min-width: 100%;
-            height: 100%;
-            scroll-snap-align: start;
-            position: relative;
-        }
-
-        img, video {
-            max-width: 100%;
-            max-height: 100%;
-            margin: auto;
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-        }
-    </style>
-</head>
-
-<body>
-<!-- HTML 구조 -->
-<div class="container">
-    <div class="item">
-        <img src="https://via.placeholder.com/150" alt="Image 1">
-    </div>
-    <div class="item">
-        <video controls>
-            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
-            Your browser does not support the video tag.
-        </video>
-    </div>
-</div>
-
-<!-- JavaScript (스와이프 기능 추가) -->
 <script>
-    const container = document.querySelector('.container');
-    let isDragging = false;
-    let startPosition = 0;
+    var files = e.target.files;
+    var filesArr = Array.prototype.slice.call(files);
 
-    container.addEventListener('mousedown', (e) => {
-        isDragging = true;
-        startPosition = e.pageX - container.offsetLeft;
+    filesArr.forEach(function (f, i) {
+        var reader = new FileReader();
+        reader.onload = function (e) {
+
+            // 썸네일을 보여줄 캔버스 엘리먼트 생성
+            var canvas = document.createElement('canvas');
+            var ctx = canvas.getContext('2d');
+            canvas.width = 160; // 썸네일 너비
+            canvas.height = 90; // 썸네일 높이
+
+            $("#image-upload-" + id2).addClass('on');
+
+            let html = '<div class="att_img mb-4" id="imageVideo' + id2 + '">' +
+                '<div class="rounded overflow-hidden">' +
+                '<video preload="metadata">' +
+                '<source src="' + e.target.result + '#t=0.001' + '" class="w-100" type="video/mp4">' +
+                '</video>' +
+                '</div>' +
+                '</div>';
+            // console.log(html);
+
+            $("#imageVideo").append(html);
+
+            console.log(document.getElementById('imageVideo'+id2));
+
+            video.addEventListener('loadeddata', function() {
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                var thumbnailDataUrl = canvas.toDataURL();
+
+                // 이미지 엘리먼트를 생성하여 썸네일 추가
+                var thumbnailImg = document.createElement('img');
+                thumbnailImg.src = thumbnailDataUrl;
+
+                // 이미지 엘리먼트를 비디오 아래에 추가
+                var parentDiv = document.getElementById('image-upload-' + id2);
+                parentDiv.appendChild(thumbnailImg);
+            });
+
+            if (i == 0) {
+                $("#image-upload-" + id2).find('.del').after('<video preload="metadata"><source src="' + e.target.result + '#t=0.001' + '" type="video/mp4"/></video>');
+            } else {
+                let addForm = '<div class="image-upload2 mr-3 on" data-id="' + id2 + '" id="image-upload-' + id2 + '">' +
+                    '<label id="label_upload_file_' + id2 + '" for="upload_file_' + id2 + '">' +
+                    '<div class="upload-icon2">' +
+                    '<button type="button" class="btn del"></button>' +
+                    '<video preload="metadata"><source src="' + e.target.result + '#t=0.001' + '" type="video/mp4"/></video>' +
+                    '</div>' +
+                    '</label>' +
+                    '</div>';
+
+                video.addEventListener('loadeddata', function() {
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    var thumbnailDataUrl = canvas.toDataURL();
+
+                    // 이미지 엘리먼트를 생성하여 썸네일 추가
+                    var thumbnailImg = document.createElement('img');
+                    thumbnailImg.src = thumbnailDataUrl;
+
+                    // 이미지 엘리먼트를 비디오 아래에 추가
+                    var parentDiv = document.getElementById('image-upload-' + id2);
+                    parentDiv.appendChild(thumbnailImg);
+                });
+
+                $('#imgUpload').append(addForm);
+            }
+
+
+            ycommon.setUploadCount(upload_cont);
+        }
+
+        reader.readAsDataURL(f);
     });
 
-    container.addEventListener('mouseup', () => {
-        isDragging = false;
-    });
-
-    container.addEventListener('mouseleave', () => {
-        isDragging = false;
-    });
-
-    container.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-        e.preventDefault();
-        const currentPosition = e.pageX - container.offsetLeft;
-        const distance = currentPosition - startPosition;
-        container.scrollLeft += distance;
-        startPosition = currentPosition;
-    });
 </script>
-</body>
-
-</html>

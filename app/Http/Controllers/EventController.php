@@ -763,7 +763,7 @@ class EventController extends Controller
                 $result = Arr::add($result, "list.{$index}.image", $row->file_path ? \App::make('helper')->getImage($row->file_path): null);
 
                 $status_text = "진행중";
-                if ($row->status == "0" || strtotime($row->end) < time()) $status_text = "종료";
+                if ($row->status == "0" || date('Y-m-d', strtotime($row->end)) < date('Y-m-d', time())) $status_text = "종료";
                 else if ($row->status == "1" && strtotime($row->start) > time()) $status_text = "대기";
                 $result = Arr::add($result, "list.{$index}.status_text", $status_text);
                 $result = Arr::add($result, "list.{$index}.date_range", date('Y.m.d', strtotime($row->start))." ~ ".date('Y.m.d', strtotime($row->end)) );
@@ -876,6 +876,6 @@ class EventController extends Controller
 
     public function empty()
     {
-        return view('empty');
+        return view('empty2');
     }
 }

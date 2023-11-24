@@ -54,7 +54,10 @@ class PushMessageController extends Controller
                 if ($student) {
                     $arr_push = UserAppInfo::where('user_id', $student->idx)
                         ->where('advice_alarm', 'Y')
+                        ->where('updated_at', '>=', now()->subMonths(6))
                         ->whereNotNull('push_key')
+                        ->orderByDesc('updated_at')
+                        ->distinct('push_key')
                         ->pluck('push_key')
                         ->toArray();
 
@@ -171,7 +174,11 @@ class PushMessageController extends Controller
 
                     $arr_push = UserAppInfo::whereIn('user_id', $rs)
                         ->where('notice_alarm', 'Y')
+                        ->where('push_key', '!=', 'web')
+                        ->where('updated_at', '>=', now()->subMonths(6))
                         ->whereNotNull('push_key')
+                        ->orderByDesc('updated_at')
+                        ->distinct('push_key')
                         ->pluck('push_key')
                         ->toArray();
 
@@ -185,7 +192,11 @@ class PushMessageController extends Controller
 
                     $arr_push = UserAppInfo::whereIn('user_id', $rs)
                         ->where('notice_alarm', 'Y')
+                        ->where('push_key', '!=', 'web')
+                        ->where('updated_at', '>=', now()->subMonths(6))
                         ->whereNotNull('push_key')
+                        ->orderByDesc('updated_at')
+                        ->distinct('push_key')
                         ->pluck('push_key')
                         ->toArray();
                     $body = "[공지] {$row->title}";
@@ -205,7 +216,6 @@ class PushMessageController extends Controller
 //                            ->pluck('idx')
 //                            ->toArray();
 
-                        // array_push?
                         $rs = RaonMember::where(function($query) {
                             $query->where('mtype', 's')->where('s_status', 'Y');
                                 })->orWhere(function($query) {
@@ -219,7 +229,11 @@ class PushMessageController extends Controller
 
                     $arr_push = UserAppInfo::whereIn('user_id', $rs)
                         ->where('notice_alarm', 'Y')
+                        ->where('push_key', '!=', 'web')
+                        ->where('updated_at', '>=', now()->subMonths(6))
                         ->whereNotNull('push_key')
+                        ->orderByDesc('updated_at')
+                        ->distinct('push_key')
                         ->pluck('push_key')
                         ->toArray();
                     $body = "[공지] {$row->title}";
@@ -229,42 +243,21 @@ class PushMessageController extends Controller
                     $arr_push = array_unique($arr_push);
                     $arr_push = array_values($arr_push);
 
-                    $chunks = array_chunk($arr_push, 1000);
+                    $pushLog = new PushLog([
+                        'type' => $this->type,
+                        'type_id' => $this->type_id,
+                        'receivers' => json_encode($arr_push)
+                    ]);
 
-                    foreach ($chunks as $chunk) {
-                        $pushLog = new PushLog([
-                            'type' => $this->type,
-                            'type_id' => $this->type_id,
-                            'receivers' => json_encode($chunk)
-                        ]);
+                    $pushLog->save();
 
-                        $pushLog->save();
-
-                        if (env('APP_ENV') != 'dev') {
-                            $handler = App::make(FcmHandler::class);
-                            $handler->setReceivers($chunk);
-                            $handler->setMessage(['title' => $title, 'body' => $body, 'type'=>$this->type, 'id'=>$row->id]);
-                            $handler->setMessageData(['title' => $title, 'message' => $body, 'type'=>$this->type, 'id'=>$row->id]);
-                            $handler->sendMessage();
-                        }
+                    if (env('APP_ENV') != 'dev') {
+                        $handler = App::make(FcmHandler::class);
+                        $handler->setReceivers($arr_push);
+                        $handler->setMessage(['title' => $title, 'body' => $body, 'type'=>$this->type, 'id'=>$row->id]);
+                        $handler->setMessageData(['title' => $title, 'message' => $body, 'type'=>$this->type, 'id'=>$row->id]);
+                        $handler->sendMessage();
                     }
-
-//                    $pushLog = new PushLog([
-//                        'type' => $this->type,
-//                        'type_id' => $this->type_id,
-//                        'receivers' => json_encode($arr_push)
-//                    ]);
-//
-//                    $pushLog->save();
-//
-//                    if (env('APP_ENV') != 'dev') {
-//                        $handler = App::make(FcmHandler::class);
-//                        $handler->setReceivers($arr_push);
-//                        $handler->setMessage(['title' => $title, 'body' => $body, 'type'=>$this->type, 'id'=>$row->id]);
-//                        $handler->setMessageData(['title' => $title, 'message' => $body, 'type'=>$this->type, 'id'=>$row->id]);
-//                        $handler->sendMessage();
-//                    }
-
                 }
             }
         }
@@ -286,9 +279,19 @@ class PushMessageController extends Controller
 
                     $rs = array_merge($branch_rs, $center_rs);
 
+//                    $arr_push = UserAppInfo::whereIn('user_id', $rs)
+//                        ->where('notice_alarm', 'Y')
+//                        ->whereNotNull('push_key')
+//                        ->pluck('push_key')
+//                        ->toArray();
+
                     $arr_push = UserAppInfo::whereIn('user_id', $rs)
                         ->where('notice_alarm', 'Y')
+                        ->where('push_key', '!=', 'web')
+                        ->where('updated_at', '>=', now()->subMonths(6))
                         ->whereNotNull('push_key')
+                        ->orderByDesc('updated_at')
+                        ->distinct('push_key')
                         ->pluck('push_key')
                         ->toArray();
                 } else if ($row->read_center == 'Y') {
@@ -298,9 +301,19 @@ class PushMessageController extends Controller
                         ->pluck('idx')
                         ->toArray();
 
+//                    $arr_push = UserAppInfo::whereIn('user_id', $rs)
+//                        ->where('notice_alarm', 'Y')
+//                        ->whereNotNull('push_key')
+//                        ->pluck('push_key')
+//                        ->toArray();
+
                     $arr_push = UserAppInfo::whereIn('user_id', $rs)
                         ->where('notice_alarm', 'Y')
+                        ->where('push_key', '!=', 'web')
+                        ->where('updated_at', '>=', now()->subMonths(6))
                         ->whereNotNull('push_key')
+                        ->orderByDesc('updated_at')
+                        ->distinct('push_key')
                         ->pluck('push_key')
                         ->toArray();
                 }
@@ -507,10 +520,32 @@ class PushMessageController extends Controller
         {
             $row = EducatonInfo::find($this->type_id);
             if ($row) {
-                $arr_push = UserAppInfo::where('adu_info_alarm', 'Y')
+//                $arr_push = UserAppInfo::where('adu_info_alarm', 'Y')
+//                    ->whereNotNull('push_key')
+//                    ->pluck('push_key')
+//                    ->toArray();
+
+                $rs = RaonMember::where(function($query) {
+                    $query->where('mtype', 's')->where('s_status', 'Y');
+                })->orWhere(function($query) {
+                    $query->where('mtype', 'm')->where('m_status', 'Y');
+                })->orWhere(function($query) {
+                    $query->where('mtype', 'h')->where('h_status', 'Y');
+                })
+                    ->pluck('idx')
+                    ->toArray();
+
+                $arr_push = UserAppInfo::whereIn('user_id', $rs)
+                    ->where('adu_info_alarm', 'Y')
+                    ->where('push_key', '!=', 'web')
+                    ->where('updated_at', '>=', now()->subMonths(6))
                     ->whereNotNull('push_key')
+                    ->orderByDesc('updated_at')
+                    ->distinct('push_key')
                     ->pluck('push_key')
                     ->toArray();
+
+//                $arr_push = UserAppInfo::where('user_id', '132895')->where('device_kind', 'iOS')->pluck('push_key')->toArray();
 
                 $body = "교육정보 '{$row->subject}'이 등록되었습니다.";
 
@@ -518,9 +553,6 @@ class PushMessageController extends Controller
                     $arr_push = array_unique($arr_push);
                     $arr_push = array_values($arr_push);
 
-                    $chunks = array_chunk($arr_push, 1000);
-
-                    foreach ($chunks as $chunk) {
                         $pushLog = new PushLog([
                             'type' => $this->type,
                             'type_id' => $this->type_id,
@@ -536,8 +568,6 @@ class PushMessageController extends Controller
                             $handler->setMessageData(['title'=> $title, 'message'=> $body, 'type'=> $this->type, 'id'=> $row->id]);
                             $handler->sendMessage();
                         }
-                    }
-
                 }
             }
         }
@@ -548,8 +578,28 @@ class PushMessageController extends Controller
         {
             $row = Event::find($this->type_id);
             if ($row) {
-                $arr_push = UserAppInfo::where('event_alarm', 'Y')
+//                $arr_push = UserAppInfo::where('event_alarm', 'Y')
+//                    ->whereNotNull('push_key')
+//                    ->pluck('push_key')
+//                    ->toArray();
+
+                $rs = RaonMember::where(function($query) {
+                    $query->where('mtype', 's')->where('s_status', 'Y');
+                })->orWhere(function($query) {
+                    $query->where('mtype', 'm')->where('m_status', 'Y');
+                })->orWhere(function($query) {
+                    $query->where('mtype', 'h')->where('h_status', 'Y');
+                })
+                    ->pluck('idx')
+                    ->toArray();
+
+                $arr_push = UserAppInfo::whereIn('user_id', $rs)
+                    ->where('event_alarm', 'Y')
+                    ->where('push_key', '!=', 'web')
+                    ->where('updated_at', '>=', now()->subMonths(6))
                     ->whereNotNull('push_key')
+                    ->orderByDesc('updated_at')
+                    ->distinct('push_key')
                     ->pluck('push_key')
                     ->toArray();
 
@@ -559,26 +609,21 @@ class PushMessageController extends Controller
                     $arr_push = array_unique($arr_push);
                     $arr_push = array_values($arr_push);
 
-                    $chunks = array_chunk($arr_push, 1000);
+                    $pushLog = new PushLog([
+                        'type' => $this->type,
+                        'type_id' => $this->type_id,
+                        'receivers' => json_encode($arr_push)
+                    ]);
 
-                    foreach ($chunks as $chunk) {
-                        $pushLog = new PushLog([
-                            'type' => $this->type,
-                            'type_id' => $this->type_id,
-                            'receivers' => json_encode($arr_push)
-                        ]);
+                    $pushLog->save();
 
-                        $pushLog->save();
-
-                        if (env('APP_ENV') != 'dev') {
-                            $handler = App::make(FcmHandler::class);
-                            $handler->setReceivers($arr_push);
-                            $handler->setMessage(['title'=> $title, 'body'=> $body, 'type'=> $this->type, 'id'=> $row->id]);
-                            $handler->setMessageData(['title'=> $title, 'message'=> $body, 'type'=> $this->type, 'id'=> $row->id]);
-                            $handler->sendMessage();
-                        }
+                    if (env('APP_ENV') != 'dev') {
+                        $handler = App::make(FcmHandler::class);
+                        $handler->setReceivers($arr_push);
+                        $handler->setMessage(['title'=> $title, 'body'=> $body, 'type'=> $this->type, 'id'=> $row->id]);
+                        $handler->setMessageData(['title'=> $title, 'message'=> $body, 'type'=> $this->type, 'id'=> $row->id]);
+                        $handler->sendMessage();
                     }
-
                 }
             }
         }

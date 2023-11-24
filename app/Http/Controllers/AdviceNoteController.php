@@ -126,7 +126,7 @@ class AdviceNoteController extends Controller
             $result = Arr::add($result, 'letter_count', count($letterArr));
 
             foreach ($rs as $index => $row) {
-                $userMemberDetail = RaonMember::where('idx', $row->id)->first();
+                $userMemberDetail = RaonMember::where('idx', $row->idx)->first();
                 $profile_image = $userMemberDetail->user_picture ?? '';
 
                 $result = Arr::add($result, "list.{$index}.id", $row->idx);
@@ -833,7 +833,7 @@ class AdviceNoteController extends Controller
                     if ($vimeo_id) {
                         $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                     } else {
-                        $file = \App::make('helper')->rotateImage($file);
+//                        $file = \App::make('helper')->rotateImage($file);
                         $file_path = \App::make('helper')->putResizeS3(AdviceFile::FILE_DIR, $file);
                     }
 
@@ -951,7 +951,7 @@ class AdviceNoteController extends Controller
                 if ($vimeo_id) {
                     $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                 } else {
-                    $file = \App::make('helper')->rotateImage($file);
+//                    $file = \App::make('helper')->rotateImage($file);
                     $file_path = \App::make('helper')->putResizeS3(AdviceFile::FILE_DIR, $file);
                 }
 
@@ -1680,8 +1680,20 @@ class AdviceNoteController extends Controller
         ]);
     }
 
-    public function letterView($user_id, $id)
+    public function letterView(Request $request, $user_id, $id)
     {
+        $isCopy = $request->input('iscopy');
+
+        if ($isCopy) {
+            $adviceNoteShareHistory = AdviceNoteShareHistory::where('advice_note_id', $id)->first();
+
+            if ($adviceNoteShareHistory) {
+                $adviceNoteShareHistory->confirmed_at = date('Y-m-d H:i:s', time());
+
+                $adviceNoteShareHistory->save();
+            }
+        }
+
         // 알람 통해서 이동했는데 다른 자녀일 경우 홈으로
         if (session()->get('auth')['user_type'] == 's') {
             if (session()->get('auth')['user_id'] != $user_id) {

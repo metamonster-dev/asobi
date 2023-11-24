@@ -6,6 +6,7 @@ class="body"
 <?php
 $title = "가정통신문 작성";
 $hd_bg = "1";
+$type = 'letterWrite';
 // /advice/letter/write?ym=2023-09
 // /advice/143205/letter/view/962603
 
@@ -14,6 +15,18 @@ if ($id && $userId) {
 } else {
     $back_link = '/advice';
 }
+
+$device_type = session('auth')['device_type'] ?? '';
+$device_kind = session('auth')['device_kind'] ?? '';
+
+$userAgent = $_SERVER['HTTP_USER_AGENT'];
+$phpisIOS = false;
+if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== false || strpos($userAgent, 'iPod') !== false) {
+    $phpisIOS = true;
+} else {
+    $phpisIOS = false;
+}
+
 ?>
 @include('common.headm04')
 @include('advice.letterPreview')
@@ -35,7 +48,7 @@ if ($id && $userId) {
                 <button type="button" class="btn btn-md border border-primary text-primary px-5 mr-3" onclick="jalert2('임시저장을 하시겠습니까?', '임시저장', tmpSave);">임시저장</button>
                     @endif
                 @endif
-                <button type="button" class="btn btn-md border border-primary text-primary px-5"onclick="getAdvicePreview()">미리보기</button>
+{{--                <button type="button" class="btn btn-md border border-primary text-primary px-5"onclick="getAdvicePreview()">미리보기</button>--}}
             </div>
         </div>
 
@@ -75,13 +88,13 @@ if ($id && $userId) {
                     <div class="ip_tit d-flex align-items-center justify-content-between">
                         <h5>아소비 교육원 알림</h5>
                     </div>
-                    <textarea id="prefix_content" name="prefix_content" class="form-control" placeholder="내용을 입력해주세요" rows="5">{{ $row['prefix_content']??'' }}</textarea>
+                    <textarea id="prefix_content" name="prefix_content" class="form-control" placeholder="내용을 입력해주세요" rows="5" {{ $row ? 'readonly' : ''}}>{{ $row['prefix_content']??'' }}</textarea>
                 </div>
                 <div class="ip_wr">
                     <div class="ip_tit d-flex align-items-center justify-content-between">
                         <h5>교육정보</h5>
                     </div>
-                    <textarea id="this_month_education_info" name="this_month_education_info" class="form-control" placeholder="내용을 입력해주세요" rows="5">{{ $row['this_month_education_info']??'' }}</textarea>
+                    <textarea id="this_month_education_info" name="this_month_education_info" class="form-control" placeholder="내용을 입력해주세요" rows="5" {{ $row ? 'readonly' : ''}}>{{ $row['this_month_education_info']??'' }}</textarea>
                 </div>
                 <!-- // 본사일 때 작성시 -->
                 @endif
@@ -142,7 +155,7 @@ if ($id && $userId) {
                 @endif
             @endif
             <div class="cmt_wr note_btns pt-0 pt_lg_50 pb-0 pb-lg-4">
-                <button type="submit" id="fsubmit" class="btn btn-primary">전송</button>
+                <button type="submit" id="fsubmit" class="btn btn-primary" {{ $row ? 'disabled' : ''}}>전송</button>
                 <button type="button" class="d-none d-lg-block btn btn-gray text-white" onclick="location.href='/advice'">목록</button>
                 @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='m')
                     @if($mode == 'w')

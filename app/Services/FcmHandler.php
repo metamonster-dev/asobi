@@ -59,7 +59,7 @@ class FcmHandler
             $response->merge($responsePartial);
           }
 
-          usleep(1);
+          sleep(1);
         }
       } else {
         $response = $this->_sendMessage($this->receivers);

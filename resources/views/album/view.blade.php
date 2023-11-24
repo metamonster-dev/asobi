@@ -122,15 +122,11 @@ if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== 
                         <div class="att_img">
 
                                 @if(isset($l['video_id']) && $l['video_id'])
-{{--                                    @if ($phpisMobile) <div class="area video_area video_download expand_button thumnail_img mySlide slide-number{{ $j }}">--}}
-{{--                                    @else <div class="area video_area" id="vimeo{{ $k }}" data-vimeo="{{ $l['video_id'] }}">--}}
-{{--                                    @endif--}}
                                 <div class="area video_area video_download expand_button thumnail_img{{$k}} mySlide slide-number{{ $j }}">
                                         <img src="/img/loading.gif" alt="" @if ($phpisMobile) @else class="loading_img" @endif>
                                     </div>
                                     @php $k = $k + 1; @endphp
                                 @elseif(isset($l['file_path']) && $l['file_path'])
-{{--                                    <div class="area_img rounded overflow-hidden @if ($phpisMobile) expand_button @endif mySlide slide-number{{ $j }}">--}}
                                         <div class="area_img rounded overflow-hidden expand_button mySlide slide-number{{ $j }}">
                                         <img src="{{ $l['file_path'] }}" class="w-100">
                                     </div>

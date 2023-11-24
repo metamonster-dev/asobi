@@ -212,6 +212,7 @@ EEE;
             echo "<script type=\"text/javascript\">
                     $(document).ready(function(){
                         jalert_url('".$msg."', 'back', '알림');
+
                     });
                 </script>";
         } else {

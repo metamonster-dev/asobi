@@ -22,6 +22,12 @@ class CheckLogin
         $userId = ($request->input('userId')) ? $request->input('userId') : "";
         $deviceId = ($request->input('deviceId')) ? $request->input('deviceId') : "";
         $deviceKind = ($request->input('os')) ? $request->input('os') : "";
+
+//        var_dump($fcmToken);
+//        var_dump($userId);
+//        var_dump($deviceId);
+//        dd($deviceKind);
+
         if ($deviceKind) {
             if ($deviceKind == 'ios') $deviceKind = "iOS";
             else $deviceKind = "android";
@@ -52,7 +58,9 @@ class CheckLogin
 
             // 앱 자동로그인이면..
             } else {
-                if ($fcmToken == "") return redirect('/auth/login');
+
+//                if ($fcmToken == "") return redirect('/auth/login');
+                if ($fcmToken == "") return redirect('/auth/login?fcmToken='.$fcmToken.'&deviceId='.$deviceId.'&os='.$deviceKind.'&deviceType='.$deviceType);
 
                 //디비에 로그인한 정보가 있는지 확인..
                 $rs = UserAppInfo::where('user_id', $userId)

@@ -59,8 +59,8 @@ class AlbumController extends Controller
                 ->when($search_text != "", function ($q) use ($search_text) {
                     $q->where('title','like','%'.$search_text.'%');
                 })
-//                ->orderByDesc('created_at')
                 ->orderByRaw('CONCAT(year, "-", month, "-", day) DESC')
+                ->orderByDesc('created_at')
                 ->get();
         } else {
             $rs = Album::with('files')
@@ -72,8 +72,8 @@ class AlbumController extends Controller
                 ->whereJsonContains('sidx', json_encode($user->idx))
                 ->where('year', $year)
                 ->where('month', $month)
-//                ->orderByDesc('created_at')
                 ->orderByRaw('CONCAT(year, "-", month, "-", day) DESC')
+                ->orderByDesc('created_at')
                 ->get();
         }
 
@@ -362,12 +362,10 @@ class AlbumController extends Controller
                     $vimeo_id = $vimeo->upload_simple($file);
                 }
 
-
-
                 if ($vimeo_id) {
                     $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                 } else {
-                    $file = \App::make('helper')->rotateImage($file);
+//                    $file = \App::make('helper')->rotateImage($file);
                     $file_path = \App::make('helper')->putResizeS3(AlbumFile::FILE_DIR, $file);
                 }
 
@@ -488,7 +486,7 @@ class AlbumController extends Controller
                 if ($vimeo_id) {
                     $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                 } else {
-                    $file = \App::make('helper')->rotateImage($file);
+//                    $file = \App::make('helper')->rotateImage($file);
                     $file_path = \App::make('helper')->putResizeS3(AlbumFile::FILE_DIR, $file);
                 }
 
@@ -833,6 +831,7 @@ class AlbumController extends Controller
             ];
 
             $tmpFileIds = $request->input('tmp_file_ids');
+
             // 임시저장 폴더 request당 폴더를 만들고 api 리퀘스트가 끝나면 폴더를 삭제하여 임시파일을 삭제한다.
             $tmpSaveFilePath = 'tmp/'.Str::uuid()."/";
 

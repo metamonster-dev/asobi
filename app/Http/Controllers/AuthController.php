@@ -14,8 +14,6 @@ class AuthController extends Controller
         $os = ($request->input('os')) ? $request->input('os') : "web";
         $deviceType = ($request->input('deviceType')) ? $request->input('deviceType') : "web";
 
-//        echo $deviceType;
-
         return view('auth/login',[
             'device_kind' => $os,
             'device_type' => $deviceType,
