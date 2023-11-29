@@ -292,7 +292,7 @@ $back_link = "/event";
 
         document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
             element.addEventListener('click', function(event) {
-                $('#loading').show();
+                // $('#loading').show();
             });
         });
     </script>

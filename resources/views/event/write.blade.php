@@ -162,6 +162,14 @@ $back_link = "/event";
         </form>
     </div>
 </article>
+
+<div class="loading_wrap" id="loading" style="display: none;">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
 <script>
     var delete_ids = [];
@@ -313,6 +321,8 @@ $back_link = "/event";
                 return false;
             }
         }
+
+        $('#loading').show();
 
         return true;
     }

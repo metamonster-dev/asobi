@@ -87,6 +87,13 @@ $back_link = "/education";
     </div>
 </article>
 
+<div class="loading_wrap" id="loading" style="display: none;">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
+
 <script>
 var delete_ids = [];
 var upload_cont = 0;
@@ -149,6 +156,8 @@ function frm_form_chk(f) {
         oEditor.focus();
         return false;
     }
+
+    $('#loading').show();
 
     return true;
 }

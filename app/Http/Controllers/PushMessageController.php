@@ -553,21 +553,21 @@ class PushMessageController extends Controller
                     $arr_push = array_unique($arr_push);
                     $arr_push = array_values($arr_push);
 
-                        $pushLog = new PushLog([
-                            'type' => $this->type,
-                            'type_id' => $this->type_id,
-                            'receivers' => json_encode($arr_push)
-                        ]);
+                    $pushLog = new PushLog([
+                        'type' => $this->type,
+                        'type_id' => $this->type_id,
+                        'receivers' => json_encode($arr_push)
+                    ]);
 
-                        $pushLog->save();
+                    $pushLog->save();
 
-                        if (env('APP_ENV') != 'dev') {
-                            $handler = App::make(FcmHandler::class);
-                            $handler->setReceivers($arr_push);
-                            $handler->setMessage(['title'=> $title, 'body'=> $body, 'type'=> $this->type, 'id'=> $row->id]);
-                            $handler->setMessageData(['title'=> $title, 'message'=> $body, 'type'=> $this->type, 'id'=> $row->id]);
-                            $handler->sendMessage();
-                        }
+                    if (env('APP_ENV') != 'dev') {
+                        $handler = App::make(FcmHandler::class);
+                        $handler->setReceivers($arr_push);
+                        $handler->setMessage(['title'=> $title, 'body'=> $body, 'type'=> $this->type, 'id'=> $row->id]);
+                        $handler->setMessageData(['title'=> $title, 'message'=> $body, 'type'=> $this->type, 'id'=> $row->id]);
+                        $handler->sendMessage();
+                    }
                 }
             }
         }
@@ -595,6 +595,7 @@ class PushMessageController extends Controller
 
                 $arr_push = UserAppInfo::whereIn('user_id', $rs)
                     ->where('event_alarm', 'Y')
+                    ->where('push_alarm', 'Y')
                     ->where('push_key', '!=', 'web')
                     ->where('updated_at', '>=', now()->subMonths(6))
                     ->whereNotNull('push_key')

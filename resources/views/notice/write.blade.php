@@ -4,8 +4,18 @@ class="body"
 @endsection
 @section('contents')
 <?php
+ini_set('memory_limit', '-1');
 $title = "회원 공지 작성";
 $hd_bg = "3";
+
+$userAgent = $_SERVER['HTTP_USER_AGENT'];
+
+$phpisIOS = false;
+if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== false || strpos($userAgent, 'iPod') !== false) {
+    $phpisIOS = true;
+} else {
+    $phpisIOS = false;
+}
 ?>
 @include('common.headm04')
 @include('notice.preview')
@@ -123,6 +133,13 @@ $hd_bg = "3";
     </div>
 </article>
 
+<div class="loading_wrap" id="loading" style="display: none;">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
+
 <script>
     var delete_ids = [];
     var tmp_file_ids = [];
@@ -199,6 +216,8 @@ $hd_bg = "3";
         }
 
         ycommon.setDeleteUploadFile(multiform_delete_idx);
+
+        $('#loading').show();
 
         return true;
     }
@@ -396,7 +415,7 @@ $hd_bg = "3";
                 '</label>' +
                 '</div>';
 
-            addForm += '<input id="upload_file_'+i+'" multiple="multiple" name="upload_files[]" class="upload_files d-none" data-id="'+i+'" type="file" accept="image/*,video/*" />';
+            addForm += '<input id="upload_file_'+i+'" <?=$phpisIOS === true ? '' : 'multiple="multiple"'?> name="upload_files[]" class="upload_files d-none" data-id="'+i+'" type="file" accept="image/*,video/*" />';
 
             $('#imgUpload').append(addForm)
             $('#label_upload_file_'+i).trigger('click');

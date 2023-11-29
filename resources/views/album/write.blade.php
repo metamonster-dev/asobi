@@ -4,8 +4,10 @@ class="body"
 @endsection
 @section('contents')
 <?php
+ini_set('memory_limit', '-1');
 $title = "앨범 작성";
 $hd_bg = "2";
+
 $userAgent = $_SERVER['HTTP_USER_AGENT'];
 
 $phpisIOS = false;
@@ -17,6 +19,24 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
 ?>
 @include('common.headm04')
 @include('album.preview')
+
+<style>
+    /*img {*/
+    /*    max-width: 200px;*/
+    /*    max-height: 200px;*/
+    /*    padding: 5px;*/
+    /*    vertical-align: middle;*/
+    /*    text-align: center;*/
+    /*}*/
+
+    /*@supports (object-fit: cover) {*/
+    /*    img {*/
+    /*        width: 200px;*/
+    /*        height: 200px;*/
+    /*        object-fit: cover;*/
+    /*    }*/
+    /*}*/
+</style>
 
 <article class="sub_pg">
     <div class="container pt-4 pt_lg_50">
@@ -412,7 +432,8 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
                 '</label>' +
                 '</div>';
 
-            addForm += '<input id="upload_file_'+i+'" multiple="multiple" name="upload_files[]" class="upload_files d-none" data-id="'+i+'" type="file" accept="image/*,video/*" />';
+            addForm += '<input id="upload_file_'+i+'" <?=$phpisIOS === true ? '' : 'multiple="multiple"'?> name="upload_files[]" class="upload_files d-none" data-id="'+i+'" type="file" accept="image/*,video/*" />';
+            // addForm += '<input id="upload_file_'+i+'" multiple="multiple" name="upload_files[]" class="upload_files d-none" data-id="'+i+'" type="file" accept="image/*,video/*" />';
 
             $('#imgUpload').append(addForm)
             $('#label_upload_file_'+i).trigger('click');

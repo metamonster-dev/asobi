@@ -12,10 +12,19 @@ class="body"
         <form class="login-form" name="login-form" id="login-form" method="POST" action="/auth/loginAction">
 
             <input type="hidden" name="temp" id="" value="" />
-            <input type="hidden" name="device_kind" id="device_kind" value="{{ $device_kind }}" />
-            <input type="hidden" name="device_type" id="device_type" value="{{ $device_type }}" />
-            <input type="hidden" name="device_id" id="device_id" value="{{ $device_id }}" />
-            <input type="hidden" name="push_key" id="push_key" value="{{ $push_key }}" />
+
+            @if ($_SERVER['REMOTE_ADDR'] === '183.101.245.76')
+                <input type="text" name="device_kind" id="device_kind" value="{{ $device_kind }}" />
+                <input type="text" name="device_type" id="device_type" value="{{ $device_type }}" />
+                <input type="text" name="device_id" id="device_id" value="{{ $device_id }}" />
+                <input type="text" name="push_key" id="push_key" value="{{ $push_key }}" />
+            @else
+                <input type="hidden" name="device_kind" id="device_kind" value="{{ $device_kind }}" />
+                <input type="hidden" name="device_type" id="device_type" value="{{ $device_type }}" />
+                <input type="hidden" name="device_id" id="device_id" value="{{ $device_id }}" />
+                <input type="hidden" name="push_key" id="push_key" value="{{ $push_key }}" />
+
+            @endif
 
           <input type="text" name="login_id" id="login_id" class="form-control log_id mb-4" placeholder="아이디(전화번호)를 입력해주세요.">
           <input type="password" name="password" id="password" class="form-control log_pw" placeholder="비밀번호를 입력해주세요.">

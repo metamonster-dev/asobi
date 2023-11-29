@@ -603,6 +603,19 @@ class UserAppInfoController extends Controller
             return response()->json($result);
         }
 
+
+//        $phone = str_replace('-', '', $user->mobilephone);
+//
+//        $rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $phone)
+//            ->where('mtype', 's')
+//            ->pluck('idx')
+//            ->toArray();
+//
+//        $user_info = UserAppInfo::whereIn('user_id', $rs)
+//            ->where('device_id', $device_id)
+//            ->get();
+
+
         $user_info = UserAppInfo::where('user_id', $user->idx)
             ->where('device_id', $device_id)
             ->first();
@@ -618,7 +631,7 @@ class UserAppInfoController extends Controller
         $user_info->save();
 
         // @20210928 한명이상 입회한 학부모 경우 나머지 학생도 출석알림 동기화
-        if ($kind === 'attendance') {
+//        if ($kind === 'attendance') {
             if ($user->mobilephone) {
                 $child_users = RaonMember::where('mobilephone', $user->mobilephone)
                     ->where('mtype', 's')
@@ -626,19 +639,21 @@ class UserAppInfoController extends Controller
                     ->get();
 
                 if ($child_users->count()) {
-                    $child_users->map(function($child_user) use($device_id, $push) {
-                        $child_user_info = UserAppInfo::where('user_id', $child_user->id)
+                    $child_users->map(function($child_user) use($kind, $device_id, $push) {
+                        $child_user_info = UserAppInfo::where('user_id', $child_user->idx)
                             ->where('device_id', $device_id)
                             ->first();
 
                         if ($child_user_info) {
-                            $child_user_info->attendance_alarm = $push;
+//                            $child_user_info->attendance_alarm = $push;
+                            $push_column = $kind."_alarm";
+                            $child_user_info->$push_column = $push;
                             $child_user_info->save();
                         }
                     });
                 }
             }
-        }
+//        }
 
         $result = Arr::add($result, 'result', 'success');
 //        $result = Arr::add($result, 'push_column', $push_column);
