@@ -1114,117 +1114,289 @@ var ycommon = (function(ycommon, $, window) {
 
         var files = e.target.files;
         var filesArr = Array.prototype.slice.call(files);
-        filesArr.forEach(function(f,i) {
-            // console.log(f);
-            if(f.type.match("image.*")) {
-                if(f.size >= 10 * 1024 * 1024) {
-                    alert("이미지는 10메가 이하만 가능합니다.");
-                    return;
-                }
-            } else if (f.type.match("video.*")) {
-                if(f.size >= 10 * 10 * 1024 * 1024) {
-                    alert("비디오는 100메가 이하만 가능합니다.");
-                    return;
-                }
-            } else {
-                alert("확장자는 이미지 및 비디오만 가능합니다.");
-                return;
+
+
+        async function processFiles(filesArr) {
+            for (let i=0; i < filesArr.length; i++) {
+                await readFile(i, filesArr[i]); // 각 파일을 처리하는 함수 호출 (비동기 처리)
             }
+        }
 
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                let id2 = id;
-                if (i > 0) {
-                    id2 = id+"_"+i;
-                } else if (i == 0) {
-                    $('#label_upload_file_'+id).attr('for','00');
-                }
-                multiform_idx.push(id2);
+        processFiles(filesArr) // 파일 처리 함수 호출
+            .then(() => {
+                // 모든 파일 처리가 완료된 후에 실행할 작업
+                // console.log('모든 파일 처리 완료');
+            })
+            .catch((error) => {
+                // 에러 처리
+                // console.error('파일 처리 중 에러 발생:', error);
+            });
 
-                $("#image-upload-"+id2).addClass('on');
-                if (e.target.result.match("video.*")) {
-                    let html = '<div class="att_img mb-4" id="imageVideo'+id2+'">' +
-                        '<div class="rounded overflow-hidden">' +
-                            '<video>' +
-                                '<source src="'+e.target.result+'" class="w-100">' +
-                            '</video>' +
-                        '</div>' +
-                    '</div>' ;
-                    // console.log(html);
-                    $("#imageVideo").append(html);
 
-                    if (i == 0) {
-                        if (device === 'ios') {
-                            // $("#image-upload-"+id2).find('.del').after('<img src="'+e.target.result+'"><video><source src="'+e.target.result+'"/></video>');
-                            $("#image-upload-"+id2).find('.del').after('<video preload="none"><source src="'+e.target.result+'"/></video>');
-                        } else {
-                            $("#image-upload-"+id2).find('.del').after('<video preload="metadata"><source src="'+e.target.result+'#t=0.1'+'"/></video>');
-                        }
-                    } else {
-                        if (device === 'ios') {
-                            let addForm = '<div class="image-upload2 mr-3 on" data-id="'+id2+'" id="image-upload-'+id2+'">'+
-                                '<label id="label_upload_file_'+id2+'" for="upload_file_'+id2+'">' +
-                                '<div class="upload-icon2">' +
-                                '<button type="button" class="btn del"></button>' +
-                                // '<canvas style="display:none;"></canvas>'+
-                                // '<img src="'+e.target.result+'">'+
-                                '<video preload="none"><source src="'+e.target.result+'"/></video>' +
-                                '</div>' +
-                                '</label>' +
-                                '</div>';
-                            $('#imgUpload').append(addForm);
-                        } else {
-                            let addForm = '<div class="image-upload2 mr-3 on" data-id="'+id2+'" id="image-upload-'+id2+'">'+
-                                '<label id="label_upload_file_'+id2+'" for="upload_file_'+id2+'">' +
-                                '<div class="upload-icon2">' +
-                                '<button type="button" class="btn del"></button>' +
-                                '<video preload="metadata"><source src="'+e.target.result+'#t=0.1'+'"/></video>' +
-                                '</div>' +
-                                '</label>' +
-                                '</div>';
-                            $('#imgUpload').append(addForm);
-                        }
+        function readFile(i, f) {
+            return new Promise((resolve, reject) => {
+                if(f.type.match("image.*")) {
+                    if(f.size >= 10 * 1024 * 1024) {
+                        alert("이미지는 10메가 이하만 가능합니다.");
+                        return;
                     }
-
-                    const thisVideo = document.querySelector('.image-upload2[data-id="' + id2 + '"] video');
-                    // const thisVideoThumbnail = document.querySelector('.image-upload2[data-id="' + id2 + '"] canvas');
-                    // const thisVideoDiv = document.querySelector('.image-upload2[data-id="' + id2 + '"]');
-                    // const firstChild = document.querySelector('#label_upload_file_'+ id2 +'');
-
-                    thisVideo.load();
-                    thisVideo.pause();
+                } else if (f.type.match("video.*")) {
+                    if(f.size >= 10 * 10 * 1024 * 1024) {
+                        alert("비디오는 100메가 이하만 가능합니다.");
+                        return;
+                    }
                 } else {
-                    let html = '<div class="att_img mb-4" id="imageVideo'+id2+'">' +
-                        '<div class="rounded overflow-hidden">' +
-                            '<img src="'+e.target.result+'" class="w-100">' +
-                        '</div>' +
-                    '</div>' ;
-                    // console.log(html);
-                    $("#imageVideo").append(html);
+                    alert("확장자는 이미지 및 비디오만 가능합니다.");
+                    return;
+                }
 
-                    if (i == 0) {
-                        $("#image-upload-"+id2).find('.del').after('<img src="'+e.target.result+'" />');
-                    } else {
-                        let addForm = '<div class="image-upload2 mr-3 on" data-id="'+id2+'" id="image-upload-'+id2+'">'+
-                            '<label id="label_upload_file_'+id2+'" for="upload_file_'+id2+'">' +
-                            '<div class="upload-icon2">' +
-                            '<button type="button" class="btn del"></button>' +
-                            '<img src="'+e.target.result+'" />' +
-                            '</div>' +
-                            '</label>' +
-                            '</div>';
-                        $('#imgUpload').append(addForm);
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    let id2 = id;
+                    if (i > 0) {
+                        id2 = id+"_"+i;
+                    } else if (i == 0) {
+                        $('#label_upload_file_'+id).attr('for','00');
                     }
-                }
+                    multiform_idx.push(id2);
 
-                if (document.getElementById('loading')) {
-                    document.getElementById('loading').style.display = 'none';
-                }
-                ycommon.setUploadCount(upload_cont);
-            }
+                    $("#image-upload-"+id2).addClass('on');
 
-            reader.readAsDataURL(f);
-        });
+                    const arrayBuffer = e.target.result;// ArrayBuffer를 Blob으로 변환
+                    const blob = new Blob([arrayBuffer], { type: f.type });
+                    const imageUrl = URL.createObjectURL(blob);
+
+                    // if (e.target.result.match("video.*")) {
+                    if (f.type.match("video.*")) {
+                        let html;
+                        if (device === 'ios') {
+                            html = '<div class="att_img mb-4" id="imageVideo'+id2+'">' +
+                                '<div class="rounded overflow-hidden">' +
+                                '<video>' +
+                                '<source src="'+imageUrl+'" class="w-100">' +
+                                '</video>' +
+                                '</div>' +
+                                '</div>' ;
+                        } else {
+                            html = '<div class="att_img mb-4" id="imageVideo'+id2+'">' +
+                                '<div class="rounded overflow-hidden">' +
+                                '<video>' +
+                                '<source src="'+imageUrl+'#t=0.1'+'" class="w-100">' +
+                                '</video>' +
+                                '</div>' +
+                                '</div>' ;
+                        }
+                        $("#imageVideo").append(html);
+
+                        const attImgTag = document.querySelector('.att_img video');
+                        attImgTag.load();
+                        attImgTag.pause();
+
+                        if (i == 0) {
+                            if (device === 'ios') {
+                                $("#image-upload-"+id2).find('.del').after('<video preload="none"><source src="' + imageUrl + '"/></video>');
+                            } else {
+                                $("#image-upload-"+id2).find('.del').after('<video preload="metadata"><source src="' + imageUrl + '#t=0.1'+'"/></video>');
+                            }
+                        } else {
+                            if (device === 'ios') {
+                                let addForm = '<div class="image-upload2 mr-3 on" data-id="'+id2+'" id="image-upload-'+id2+'">'+
+                                    '<label id="label_upload_file_'+id2+'" for="upload_file_'+id2+'">' +
+                                    '<div class="upload-icon2">' +
+                                    '<button type="button" class="btn del"></button>' +
+                                    '<video preload="none"><source src="' + imageUrl + '"/></video>' +
+                                    '</div>' +
+                                    '</label>' +
+                                    '</div>';
+                                $('#imgUpload').append(addForm);
+                            } else {
+                                let addForm = '<div class="image-upload2 mr-3 on" data-id="'+id2+'" id="image-upload-'+id2+'">'+
+                                    '<label id="label_upload_file_'+id2+'" for="upload_file_'+id2+'">' +
+                                    '<div class="upload-icon2">' +
+                                    '<button type="button" class="btn del"></button>' +
+                                    '<video preload="metadata"><source src="' + imageUrl +'#t=0.1'+'"/></video>' +
+                                    '</div>' +
+                                    '</label>' +
+                                    '</div>';
+                                $('#imgUpload').append(addForm);
+                            }
+                        }
+                        const thisVideo = document.querySelector('.image-upload2[data-id="' + id2 + '"] video');
+
+                        thisVideo.load();
+                        thisVideo.pause();
+                    } else {
+                        let html = '<div class="att_img mb-4" id="imageVideo'+id2+'">' +
+                            '<div class="rounded overflow-hidden">' +
+                            '<img src="'+imageUrl+'" class="w-100">' +
+                            '</div>' +
+                            '</div>' ;
+                        // console.log(html);
+                        $("#imageVideo").append(html);
+                        // $("#imageVideo").prepend(html);
+
+                        if (i == 0) {
+                            $("#image-upload-"+id2).find('.del').after('<img src="'+imageUrl+'" />');
+                        } else {
+                            let addForm = '<div class="image-upload2 mr-3 on" data-id="'+id2+'" id="image-upload-'+id2+'">'+
+                                '<label id="label_upload_file_'+id2+'" for="upload_file_'+id2+'">' +
+                                '<div class="upload-icon2">' +
+                                '<button type="button" class="btn del"></button>' +
+                                '<img src="'+imageUrl+'" />' +
+                                '</div>' +
+                                '</label>' +
+                                '</div>';
+                            $('#imgUpload').append(addForm);
+                        }
+                    }
+
+                    if (document.getElementById('loading')) {
+                        document.getElementById('loading').style.display = 'none';
+                    }
+
+                    ycommon.setUploadCount(upload_cont);
+
+                    resolve(); // 작업이 완료되면 resolve 호출
+                };
+                reader.onerror = function (error) {
+                    reject(error); // 에러 발생 시 reject 호출
+                };
+                reader.readAsArrayBuffer(f); // 파일 읽기 작업 시작
+            });
+        }
+
+
+
+
+
+        // filesArr.forEach(function(f,i) {
+        //     if(f.type.match("image.*")) {
+        //         if(f.size >= 10 * 1024 * 1024) {
+        //             alert("이미지는 10메가 이하만 가능합니다.");
+        //             return;
+        //         }
+        //     } else if (f.type.match("video.*")) {
+        //         if(f.size >= 10 * 10 * 1024 * 1024) {
+        //             alert("비디오는 100메가 이하만 가능합니다.");
+        //             return;
+        //         }
+        //     } else {
+        //         alert("확장자는 이미지 및 비디오만 가능합니다.");
+        //         return;
+        //     }
+        //
+        //     var reader = new FileReader();
+        //     reader.onload = function(e) {
+        //         console.log(i);
+        //
+        //         let id2 = id;
+        //         if (i > 0) {
+        //             id2 = id+"_"+i;
+        //         } else if (i == 0) {
+        //             $('#label_upload_file_'+id).attr('for','00');
+        //         }
+        //         multiform_idx.push(id2);
+        //
+        //         $("#image-upload-"+id2).addClass('on');
+        //
+        //         const arrayBuffer = e.target.result;// ArrayBuffer를 Blob으로 변환
+        //         const blob = new Blob([arrayBuffer], { type: f.type });
+        //         const imageUrl = URL.createObjectURL(blob);
+        //
+        //         // if (e.target.result.match("video.*")) {
+        //         if (f.type.match("video.*")) {
+        //             let html;
+        //             if (device === 'ios') {
+        //                 html = '<div class="att_img mb-4" id="imageVideo'+id2+'">' +
+        //                     '<div class="rounded overflow-hidden">' +
+        //                         '<video>' +
+        //                             '<source src="'+imageUrl+'" class="w-100">' +
+        //                         '</video>' +
+        //                     '</div>' +
+        //                 '</div>' ;
+        //             } else {
+        //                 html = '<div class="att_img mb-4" id="imageVideo'+id2+'">' +
+        //                     '<div class="rounded overflow-hidden">' +
+        //                         '<video>' +
+        //                             '<source src="'+imageUrl+'#t=0.1'+'" class="w-100">' +
+        //                         '</video>' +
+        //                     '</div>' +
+        //                 '</div>' ;
+        //             }
+        //             $("#imageVideo").append(html);
+        //
+        //             const attImgTag = document.querySelector('.att_img video');
+        //             attImgTag.load();
+        //             attImgTag.pause();
+        //
+        //             if (i == 0) {
+        //                 if (device === 'ios') {
+        //                     $("#image-upload-"+id2).find('.del').after('<video preload="none"><source src="' + imageUrl + '"/></video>');
+        //                 } else {
+        //                     $("#image-upload-"+id2).find('.del').after('<video preload="metadata"><source src="' + imageUrl + '#t=0.1'+'"/></video>');
+        //                 }
+        //             } else {
+        //                 if (device === 'ios') {
+        //                     let addForm = '<div class="image-upload2 mr-3 on" data-id="'+id2+'" id="image-upload-'+id2+'">'+
+        //                         '<label id="label_upload_file_'+id2+'" for="upload_file_'+id2+'">' +
+        //                         '<div class="upload-icon2">' +
+        //                         '<button type="button" class="btn del"></button>' +
+        //                         '<video preload="none"><source src="' + imageUrl + '"/></video>' +
+        //                         '</div>' +
+        //                         '</label>' +
+        //                         '</div>';
+        //                     $('#imgUpload').append(addForm);
+        //                 } else {
+        //                     let addForm = '<div class="image-upload2 mr-3 on" data-id="'+id2+'" id="image-upload-'+id2+'">'+
+        //                         '<label id="label_upload_file_'+id2+'" for="upload_file_'+id2+'">' +
+        //                         '<div class="upload-icon2">' +
+        //                         '<button type="button" class="btn del"></button>' +
+        //                         '<video preload="metadata"><source src="' + imageUrl +'#t=0.1'+'"/></video>' +
+        //                         '</div>' +
+        //                         '</label>' +
+        //                         '</div>';
+        //                     $('#imgUpload').append(addForm);
+        //                 }
+        //             }
+        //             const thisVideo = document.querySelector('.image-upload2[data-id="' + id2 + '"] video');
+        //
+        //             thisVideo.load();
+        //             thisVideo.pause();
+        //         } else {
+        //             let html = '<div class="att_img mb-4" id="imageVideo'+id2+'">' +
+        //                 '<div class="rounded overflow-hidden">' +
+        //                     '<img src="'+imageUrl+'" class="w-100">' +
+        //                 '</div>' +
+        //             '</div>' ;
+        //             // console.log(html);
+        //             $("#imageVideo").append(html);
+        //             // $("#imageVideo").prepend(html);
+        //
+        //             if (i == 0) {
+        //                 $("#image-upload-"+id2).find('.del').after('<img src="'+imageUrl+'" />');
+        //             } else {
+        //                 let addForm = '<div class="image-upload2 mr-3 on" data-id="'+id2+'" id="image-upload-'+id2+'">'+
+        //                     '<label id="label_upload_file_'+id2+'" for="upload_file_'+id2+'">' +
+        //                     '<div class="upload-icon2">' +
+        //                     '<button type="button" class="btn del"></button>' +
+        //                     '<img src="'+imageUrl+'" />' +
+        //                     '</div>' +
+        //                     '</label>' +
+        //                     '</div>';
+        //                 $('#imgUpload').append(addForm);
+        //             }
+        //         }
+        //
+        //         if (document.getElementById('loading')) {
+        //             document.getElementById('loading').style.display = 'none';
+        //         }
+        //
+        //         ycommon.setUploadCount(upload_cont);
+        //     }
+        //
+        //     // reader.readAsDataURL(f);
+        //     reader.readAsArrayBuffer(f);
+        // });
 
     }
 
