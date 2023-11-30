@@ -340,7 +340,7 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
             ycommon.ajaxJson('get', action, {user: userId, type: "4"}, undefined, function (data){
                 // console.log(data)
                 if (data.count !== undefined && data.count > 0) {
-                    let privewUploade = '<div class="image-upload2 on mr-3" data-id="{i}" id="image-upload-{i}">'+
+                    let privewUploade = '<div class="image-upload2 on mr-3 videoThumnail" data-id="{i}" id="image-upload-{i}">'+
                         '<label id="label_upload_file_{i}" for="upload_file_{i}">' +
                         '<div class="upload-icon2">' +
                         '<button type="button" class="btn del" data-tmpid="{image_id}"></button>' +
@@ -363,7 +363,7 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
                         privewUploadeTmp = privewUploadeTmp.replaceAll("{i}", data.list[i].file_id);
                         privewUploadeTmp = privewUploadeTmp.replaceAll('{image_id}', data.list[i].file_id);
                         if (data.list[i].vimeo_id == "video") {
-                            privewUploadeTmp = privewUploadeTmp.replaceAll('{image}', "<video><source src='"+data.list[i].file_path+"' /></video>");
+                            privewUploadeTmp = privewUploadeTmp.replaceAll('{image}', "<video preload='metadata'><source src='"+data.list[i].file_path+'#t=0.1'+"' /></video>");
                         } else {
                             privewUploadeTmp = privewUploadeTmp.replaceAll('{image}', "<img src='"+data.list[i].file_path+"' />");
                         }
@@ -371,13 +371,30 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
                         previewHtmlTmp = previewHtml;
                         previewHtmlTmp = previewHtmlTmp.replaceAll("{i}", data.list[i].file_id);
                         if (data.list[i].vimeo_id == "video") {
-                            previewHtmlTmp = previewHtmlTmp.replaceAll('{imageVideo}', '<video><source src="'+data.list[i].file_path+'" class="w-100"></video>');
+                            previewHtmlTmp = previewHtmlTmp.replaceAll('{imageVideo}', '<video preload="metadata"><source src="'+data.list[i].file_path+"#t=0.1"+'" class="w-100"></video>');
                         } else {
                             previewHtmlTmp = previewHtmlTmp.replaceAll('{imageVideo}', '<img src="'+data.list[i].file_path+'" class="w-100">');
                         }
 
                         $('#imgUpload').append(privewUploadeTmp)
                         $('#imageVideo').append(previewHtmlTmp)
+
+                        const attImgTag = document.querySelector('.att_img video');
+                        if (attImgTag) {
+                            attImgTag.load();
+                            attImgTag.pause();
+                        }
+
+                        const videoThumnailTag = document.querySelectorAll('.videoThumnail');
+
+                        videoThumnailTag.forEach((elem) => {
+                            let videoTag = elem.querySelector('video');
+
+                            if (videoTag) {
+                                videoTag.load();
+                                videoTag.pause();
+                            }
+                        })
                     }
                     setTimeout(function (){
                         ycommon.setUploadCount(tmp_file_ids.length);
@@ -432,8 +449,8 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
                 '</label>' +
                 '</div>';
 
-            addForm += '<input id="upload_file_'+i+'" <?=$phpisIOS === true ? '' : 'multiple="multiple"'?> name="upload_files[]" class="upload_files d-none" data-id="'+i+'" type="file" accept="image/*,video/*" />';
-            // addForm += '<input id="upload_file_'+i+'" multiple="multiple" name="upload_files[]" class="upload_files d-none" data-id="'+i+'" type="file" accept="image/*,video/*" />';
+            {{--addForm += '<input id="upload_file_'+i+'" <?=$phpisIOS === true ? '' : 'multiple="multiple"'?> name="upload_files[]" class="upload_files d-none" data-id="'+i+'" type="file" accept="image/*,video/*" />';--}}
+            addForm += '<input id="upload_file_'+i+'" multiple="multiple" name="upload_files[]" class="upload_files d-none" data-id="'+i+'" type="file" accept="image/*,video/*" />';
 
             $('#imgUpload').append(addForm)
             $('#label_upload_file_'+i).trigger('click');
@@ -487,6 +504,8 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
             const imageMaxSize = 10 * 1024 * 1024; // 10MB
             const videoMaxSize = 10 * 10 * 1024 * 1024; // 100MB
 
+            let breaker = false;
+            let videoCount = 0;
             for (var i = 0; i < this.files.length; i++) {
                 if (this.files[i].type.startsWith('image/')) {
                     if (this.files[i].size > imageMaxSize) {
@@ -495,6 +514,19 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
                         return;
                     }
                 } else if (this.files[i].type.startsWith('video/')) {
+                    videoCount++;
+                    document.querySelectorAll('video').forEach((elem) => {
+                        if (elem) {
+                            breaker = true;
+                        }
+                    })
+
+                    if (breaker) {
+                        jalert('동영상은 하나만 첨부할 수 있습니다.');
+                        this.value = '';
+                        return;
+                    }
+
                     if (this.files[i].size > videoMaxSize) {
                         jalert('파일 크기가 너무 큽니다. 100MB 이하의 파일을 선택하세요.');
                         this.value = '';
@@ -502,6 +534,25 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
                     }
                 }
             }
+
+            if (videoCount > 1) {
+                jalert('동영상은 하나만 첨부할 수 있습니다.');
+                this.value = '';
+                return;
+            }
+
+            // let breaker = false;
+            // document.querySelectorAll('video').forEach((elem) => {
+            //     if (elem && this.files[0].type.startsWith('video/')) {
+            //         breaker = true;
+            //     }
+            // })
+            //
+            // if (breaker) {
+            //     jalert('동영상은 하나만 첨부할 수 있습니다.');
+            //     this.value = '';
+            //     return;
+            // }
 
             $('#loading').show();
 
@@ -536,7 +587,7 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
 
         @if($mode == 'w')
         let tmpData = ycommon.getData('album');
-        // 임시 저장 내용 있을 때 alert 띄워주기
+        // 임시 저장 내용 있을 때 alert 띄워주된
         if (tmpData != null) {
             jalert2('임시 저장된 내용을 불러오시겠습니까?', '불러오기', setTmpSave);
         }

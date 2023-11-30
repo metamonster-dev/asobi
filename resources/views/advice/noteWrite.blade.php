@@ -321,7 +321,7 @@ $hd_bg = "1";
         ycommon.ajaxJson('get', action, {user: userId, type: "3"}, undefined, function (data){
             // console.log(data)
             if (data.count !== undefined && data.count > 0) {
-                let privewUploade = '<div class="image-upload2 on mr-3" data-id="{i}" id="image-upload-{i}">'+
+                let privewUploade = '<div class="image-upload2 on mr-3 videoThumnail" data-id="{i}" id="image-upload-{i}">'+
                     '<label id="label_upload_file_{i}" for="upload_file_{i}">' +
                     '<div class="upload-icon2">' +
                     '<button type="button" class="btn del" data-tmpid="{image_id}"></button>' +
@@ -359,6 +359,23 @@ $hd_bg = "1";
 
                     $('#imgUpload').append(privewUploadeTmp)
                     $('#imageVideo').append(previewHtmlTmp)
+
+                    const attImgTag = document.querySelector('.att_img video');
+                    if (attImgTag) {
+                        attImgTag.load();
+                        attImgTag.pause();
+                    }
+
+                    const videoThumnailTag = document.querySelectorAll('.videoThumnail');
+
+                    videoThumnailTag.forEach((elem) => {
+                        let videoTag = elem.querySelector('video');
+
+                        if (videoTag) {
+                            videoTag.load();
+                            videoTag.pause();
+                        }
+                    })
                 }
                 setTimeout(function (){
                     ycommon.setUploadCount(tmp_file_ids.length);
@@ -458,10 +475,9 @@ $hd_bg = "1";
             const imageMaxSize = 10 * 1024 * 1024; // 10MB
             const videoMaxSize = 10 * 10 * 1024 * 1024; // 100MB
 
+            let breaker = false;
+            let videoCount = 0;
             for (var i = 0; i < this.files.length; i++) {
-
-                console.log(this.files[i].type);
-
                 if (this.files[i].type.startsWith('image/')) {
                     if (this.files[i].size > imageMaxSize) {
                         jalert('파일 크기가 너무 큽니다. 10MB 이하의 파일을 선택하세요.');
@@ -469,6 +485,19 @@ $hd_bg = "1";
                         return;
                     }
                 } else if (this.files[i].type.startsWith('video/')) {
+                    videoCount++;
+                    document.querySelectorAll('video').forEach((elem) => {
+                        if (elem) {
+                            breaker = true;
+                        }
+                    })
+
+                    if (breaker) {
+                        jalert('동영상은 하나만 첨부할 수 있습니다.');
+                        this.value = '';
+                        return;
+                    }
+
                     if (this.files[i].size > videoMaxSize) {
                         jalert('파일 크기가 너무 큽니다. 100MB 이하의 파일을 선택하세요.');
                         this.value = '';
@@ -476,6 +505,27 @@ $hd_bg = "1";
                     }
                 }
             }
+
+            if (videoCount > 1) {
+                jalert('동영상은 하나만 첨부할 수 있습니다.');
+                this.value = '';
+                return;
+            }
+
+            // let breaker = false;
+            // document.querySelectorAll('video').forEach((elem) => {
+            //     if (elem && this.files[0].type.startsWith('video/')) {
+            //         breaker = true;
+            //     }
+            // })
+            //
+            // if (breaker) {
+            //     jalert('동영상은 하나만 첨부할 수 있습니다.');
+            //     this.value = '';
+            //     return;
+            // }
+
+            $('#loading').show();
 
             let id = $(this).data('id');
             ycommon.previewImage(e, id, upload_cont-delete_ids.length+tmp_file_ids.length);
