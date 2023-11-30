@@ -595,7 +595,6 @@ class PushMessageController extends Controller
 
                 $arr_push = UserAppInfo::whereIn('user_id', $rs)
                     ->where('event_alarm', 'Y')
-                    ->where('push_alarm', 'Y')
                     ->where('push_key', '!=', 'web')
                     ->where('updated_at', '>=', now()->subMonths(6))
                     ->whereNotNull('push_key')
