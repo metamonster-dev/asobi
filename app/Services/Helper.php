@@ -458,24 +458,46 @@ EEE;
         // 회전 된 이미지 그대로 보여주기
         $exif = exif_read_data($file);
 
-        if($exif && isset($exif['Orientation'])) {
+        if(isset($exif['Orientation'])) {
             $orientation = $exif['Orientation'];
 
             if($orientation != 1){
                 $img = imagecreatefromjpeg($file);
 
-                // 이미지를 회전시키기
-                switch($orientation){
-                    case 3:
-                        $img = imagerotate($img, 180, 0);
-                        break;
-                    case 6:
-                        $img = imagerotate($img, -90, 0);
-                        break;
-                    case 8:
-                        $img = imagerotate($img, 90, 0);
-                        break;
+                if (in_array($exif['Orientation'], [3, 4])) {
+                    $img = imagerotate($img, 180, 0);
                 }
+                if (in_array($exif['Orientation'], [5, 6])) {
+                    $img = imagerotate($img, -90, 0);
+                }
+                if (in_array($exif['Orientation'], [7, 8])) {
+                    $img = imagerotate($img, 90, 0);
+                }
+                if (in_array($exif['Orientation'], [2, 5, 7, 4])) {
+                    imageflip($img, IMG_FLIP_HORIZONTAL);
+                }
+
+                // 이미지를 회전시키기
+//                switch($orientation){
+//                    case 3:
+//                    case 4:
+//                        $img = imagerotate($img, 180, 0);
+//                        break;
+//                    case 5:
+//                    case 6:
+//                        $img = imagerotate($img, -90, 0);
+//                        break;
+//                    case 7:
+//                    case 8:
+//                        $img = imagerotate($img, 90, 0);
+//                        break;
+//                    case 2:
+//                    case 4:
+//                    case 5:
+//                    case 7:
+//                        imageflip($img, IMG_FLIP_HORIZONTAL);
+//                        break;
+//                }
 
                 $tempPath = tempnam(sys_get_temp_dir(), 'rotated_image');
                 imagejpeg($img, $tempPath);
