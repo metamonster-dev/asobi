@@ -11,11 +11,17 @@ class="body"
         </div>
         <form class="login-form" name="login-form" id="login-form" method="POST" action="/auth/loginAction">
 
-            <input type="hidden" name="temp" id="" value="" />
-            <input type="hidden" name="device_kind" id="device_kind" value="{{ $device_kind }}" />
-            <input type="hidden" name="device_type" id="device_type" value="{{ $device_type }}" />
-            <input type="hidden" name="device_id" id="device_id" value="{{ $device_id }}" />
-            <input type="hidden" name="push_key" id="push_key" value="{{ $push_key }}" />
+            <?php if ($_SERVER['REMOTE_ADDR'] === '183.101.245.76') : ?>
+                <input type="text" name="device_kind" id="device_kind" value="{{ session('auth')['device_kind'] ?? $device_kind }}" />
+                <input type="text" name="device_type" id="device_type" value="{{ session('auth')['device_type'] ?? $device_type }}" />
+                <input type="text" name="device_id" id="device_id" value="{{ session('auth')['device_id'] ?? $device_id }}" />
+                <input type="text" name="push_key" id="push_key" value="{{ session('auth')['push_key'] ?? $push_key }}" />
+            <?php else : ?>
+                <input type="hidden" name="device_kind" id="device_kind" value="{{ $device_kind }}" />
+                <input type="hidden" name="device_type" id="device_type" value="{{ $device_type }}" />
+                <input type="hidden" name="device_id" id="device_id" value="{{ $device_id }}" />
+                <input type="hidden" name="push_key" id="push_key" value="{{ $push_key }}" />
+            <?php endif; ?>
 
           <input type="text" name="login_id" id="login_id" class="form-control log_id mb-4" placeholder="아이디(전화번호)를 입력해주세요.">
           <input type="password" name="password" id="password" class="form-control log_pw" placeholder="비밀번호를 입력해주세요.">
@@ -37,7 +43,7 @@ class="body"
           </div>
           <div class="pt-5 d-flex d-lg-none align-items-center justify-content-center">
             <p class="border-right"><a href="/auth/findId" class="text-light mx-3">아이디 찾기</a></p>
-{{--            <p class="border-right"><a href="/auth/findPw" class="text-light mx-3">비밀번호 찾기</a></p>--}}
+            <p class="border-right"><a href="/auth/findPw" class="text-light mx-3">비밀번호 찾기</a></p>
 {{--            <p class=""><a href="/auth/join" class="text-light mx-3">입회신청</a></p>--}}
           </div>
         </form>
@@ -57,11 +63,15 @@ class="body"
 </div>
 
 <script>
-    // document.querySelectorAll('form').forEach(form => {
-    //     form.addEventListener('submit', function(event) {
-    //         $('#loading').show();
-    //     });
-    // });
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function(event) {
+            $('#loading').show();
+        });
+    });
+
+    window.onload = function () {
+        alert("현재 접속량이 많아 일시적으로 느려질 수 있습니다.");
+    }
 </script>
 
 @endsection

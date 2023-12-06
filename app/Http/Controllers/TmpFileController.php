@@ -12,6 +12,7 @@ use App\Models\RaonMember;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Validator;
 
@@ -82,9 +83,11 @@ class TmpFileController extends Controller
 
     public function store(Request $request)
     {
+
         $result = array();
         $user_id = $request->input('user');
         $user = RaonMember::whereIdx($user_id)->first();
+        $isSetTmp = $request->input('isSetTmp') ?? false;
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -136,7 +139,7 @@ class TmpFileController extends Controller
                     $file->delete();
                 }
             }
-        } elseif ($type == '4' || $type == '5') {
+        } elseif ($isSetTmp === 'false') {
             //기존 파일 확인
             $files = File::where('type', $type)
                 ->where('type_id', '=', $user_id)
@@ -177,7 +180,7 @@ class TmpFileController extends Controller
                     $file_path = \App::make('helper')->putVideoS3($file_dir, $file);
                 } else {
                     $file = \App::make('helper')->rotateImage($file);
-//                    $file_path = \App::make('helper')->putResizeS3($file_dir, $file, 1160,180);
+//                    $file_path = \App::make('helper')->putResizeS3($file_dir, $file, 1160, 180);
                     $file_path = \App::make('helper')->putResizeS3($file_dir, $file);
                 }
 

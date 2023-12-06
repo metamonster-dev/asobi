@@ -112,7 +112,7 @@ class BatchPost implements ShouldQueue
                     if ($vimeo_id) {
                         $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                     } else {
-//                        $file = \App::make('helper')->rotateImage($file);
+                        $file = \App::make('helper')->rotateImage($file);
                         $file_path = \App::make('helper')->putResizeS3(AdviceFile::FILE_DIR, $file);
                     }
 

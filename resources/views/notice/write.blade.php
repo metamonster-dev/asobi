@@ -147,6 +147,7 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
     var upload_cont = 0;
     var multiform_idx = [];
     var multiform_delete_idx = [];
+    let isSetTmp = false;
 
     @if(isset($row['file']) && is_array($row['file']) && count($row['file']) > 0)
         upload_cont = {{ count($row['file']) }}
@@ -219,6 +220,9 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
 
         $('#loading').show();
 
+        ycommon.deleteData('album');
+        ycommon.deleteData('file');
+
         return true;
     }
 
@@ -249,13 +253,14 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
     }
 
     function tmpSave() {
-        ycommon.deleteData('file');
+        // ycommon.deleteData('file');
 
         let multiform_delete_idx2 = ycommon.getMultiformDeleteIdxs(multiform_delete_idx);
         if ($('.upload_files').length > 0 || tmp_file_delete_ids.length > 0) {
             const formData = new FormData();
             formData.append("user", userId);
             formData.append("type", '5');
+            formData.append("isSetTmp", isSetTmp);
             if ($('.upload_files').length > 0) {
                 for(let i=0; i < $('.upload_files').length; i++) {
                     let del_keys = [];
@@ -274,30 +279,52 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
             if (tmp_file_delete_ids.length > 0) {
                 formData.append("delete_files", tmp_file_delete_ids.join(','));
             }
+
+            $('#loading').show();
+
             let action = `/api/tmpFileSave`;
-            ycommon.ajaxJson('post', action, formData, undefined, undefined,undefined,function (jqXHR, textStatus, errorThrown){
+            ycommon.ajaxJson('post', action, formData, undefined, function () {
+                let title = $('#title').val();
+                let ymd = $('#ymd').val();
+                // let content = $('#content').val();
+                let content = CKEDITOR.instances.content.getData();
+                ycommon.setData('notice',{
+                    title: title,
+                    content: content,
+                    ymd: ymd,
+                });
+
+                $('#loading').hide();
+                jalert("임시저장 되었습니다.");
+            },undefined,function (jqXHR, textStatus, errorThrown){
+                $('#loading').hide();
                 jalert("파일 임시저장에 실패하였습니다.");
-            },undefined,undefined,{processData:false, contentType: false});
+            }, 30000,undefined,{processData:false, contentType: false});
 
             ycommon.setData('file', {
                 file: 'Y'
             });
         }
 
-
-        let title = $('#title').val();
-        let ymd = $('#ymd').val();
-        // let content = $('#content').val();
-        let content = CKEDITOR.instances.content.getData();
-        ycommon.setData('notice',{
-            title: title,
-            content: content,
-            ymd: ymd,
-        });
-        jalert("임시저장 되었습니다.");
+        // let title = $('#title').val();
+        // let ymd = $('#ymd').val();
+        // // let content = $('#content').val();
+        // let content = CKEDITOR.instances.content.getData();
+        // ycommon.setData('notice',{
+        //     title: title,
+        //     content: content,
+        //     ymd: ymd,
+        // });
+        // jalert("임시저장 되었습니다.");
     }
 
     function setTmpSave() {
+        ycommon.setData('file', {
+            file: 'Y'
+        });
+
+        isSetTmp = true;
+
         // console.log("임시 저장 불러오기!!!");
         let tmpData = ycommon.getData('notice');
         if (tmpData.title !== undefined) $('#title').val(tmpData.title);
@@ -337,7 +364,7 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
                         privewUploadeTmp = privewUploadeTmp.replaceAll("{i}", data.list[i].file_id);
                         privewUploadeTmp = privewUploadeTmp.replaceAll('{image_id}', data.list[i].file_id);
                         if (data.list[i].vimeo_id == "video") {
-                            privewUploadeTmp = privewUploadeTmp.replaceAll('{image}', "<video><source src='" + data.list[i].file_path + "' /></video>");
+                            privewUploadeTmp = privewUploadeTmp.replaceAll('{image}', "<video><source src='" + data.list[i].file_path+'#t=0.1'+"' /></video>");
                         } else {
                             privewUploadeTmp = privewUploadeTmp.replaceAll('{image}', "<img src='" + data.list[i].file_path + "' />");
                         }
@@ -345,7 +372,7 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
                         previewHtmlTmp = previewHtml;
                         previewHtmlTmp = previewHtmlTmp.replaceAll("{i}", data.list[i].file_id);
                         if (data.list[i].vimeo_id == "video") {
-                            previewHtmlTmp = previewHtmlTmp.replaceAll('{imageVideo}', '<video><source src="' + data.list[i].file_path + '" class="w-100"></video>');
+                            previewHtmlTmp = previewHtmlTmp.replaceAll('{imageVideo}', '<video><source src="' + data.list[i].file_path +"#t=0.1"+'" class="w-100"></video>');
                         } else {
                             previewHtmlTmp = previewHtmlTmp.replaceAll('{imageVideo}', '<img src="' + data.list[i].file_path + '" class="w-100">');
                         }

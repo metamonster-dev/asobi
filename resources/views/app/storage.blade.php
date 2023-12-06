@@ -90,6 +90,7 @@ $back_link = "/app";
                 num2 = pullsize;
                 name = 'bytes';
             }
+            // alert(Math.ceil(data));
             // console.log(Math.ceil(data));
             num = Math.ceil(num2).toString().replace(regexp, ',');
 
@@ -118,22 +119,22 @@ $back_link = "/app";
     $(window).on("load", function () {
         TmpFileSize();
 
-        document.addEventListener('message', (event) => {
-            const data = JSON.parse(event.data);
-            // alert('wqe',event.data);
-            let Total = parseInt(data.appDirectorySize);
-            TmpFileSize(Total);
-        });
-
-        window.addEventListener('message', (event) => {
-            if (event.origin !== undefined && event.origin == "https://player.vimeo.com") {
-                return false;
-            }
-            const data = JSON.stringify(event.data);
-            // alert(data);
-            let Total = parseInt(data.appDirectorySize);
-            TmpFileSize(Total);
-        });
+        // document.addEventListener('message', (event) => {
+        //     const data = JSON.parse(event.data);
+        //     // alert('wqe',event.data);
+        //     let Total = parseInt(data.appDirectorySize);
+        //     TmpFileSize(Total);
+        // });
+        //
+        // window.addEventListener('message', (event) => {
+        //     if (event.origin !== undefined && event.origin == "https://player.vimeo.com") {
+        //         return false;
+        //     }
+        //     const data = JSON.stringify(event.data);
+        //     // alert(data);
+        //     let Total = parseInt(data.appDirectorySize);
+        //     TmpFileSize(Total);
+        // });
     })
 </script>
 

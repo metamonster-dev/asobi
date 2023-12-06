@@ -3,8 +3,8 @@
     class="body"
 @endsection
 @section('contents')
-{{--    @if(isset(session('auth')['auto_login']) && isset(session('auth')['device_kind']) && session('auth')['auto_login'] =='1' && session('auth')['device_kind'] != 'web')--}}
-        @if(isset(session('auth')['auto_login']) && session('auth')['auto_login'] =='1')
+    {{--    @if(isset(session('auth')['auto_login']) && isset(session('auth')['device_kind']) && session('auth')['auto_login'] =='1' && session('auth')['device_kind'] != 'web')--}}
+    @if(isset(session('auth')['auto_login']) && session('auth')['auto_login'] =='1')
         <script>
             $(function () {
                 window.webViewBridge.send('auto_login', {mt_id: "{{ session('auth')['user_id'] }}"}, function (res) {
@@ -15,13 +15,18 @@
                 {{--console.log({{session('auth')['user_id']}});--}}
             });
         </script>
-        @endif
+    @endif
 
     <?php
     $n_menu = '1';
-    ?>
-    @include('common.headm01')
 
+    if (isset($_SESSION['error'])) {
+        echo '<script>alert("' . $_SESSION['error'] . '")</script>';
+        unset($_SESSION['error']);
+    }
+    ?>
+
+    @include('common.headm01')
     <article class="idx_pg">
         <div class="container pt-5 pt_lg_50">
             <div class="d-block d-lg-flex idx_wrap">
@@ -41,11 +46,11 @@
                         <div class="mb-4 bg-light_gray rounded-xl position-relative">
                             <div class="idx_info_box d-flex align-items-center justify-content-start">
                                 <div class="ch_img rect rounded-circle mr-4">
-                                @if(isset($main['picture']) && $main['picture'] !='')
-                                    <img src="{{ $main['picture'] ?? '' }}" alt="프로필이미지">
-                                @else
-                                    <img src="/img/profile_default.png" alt="프로필이미지">
-                                @endif
+                                    @if(isset($main['picture']) && $main['picture'] !='')
+                                        <img src="{{ $main['picture'] ?? '' }}" alt="프로필이미지">
+                                    @else
+                                        <img src="/img/profile_default.png" alt="프로필이미지">
+                                    @endif
                                 </div>
                                 <div class="">
                                     <h2 class="tit_h2 ff_lotte fw_400 mb-2 line_text line1_text">{{ $main['user_name'] ?? '' }}</h2>
@@ -85,21 +90,21 @@
                             @if(isset(session('auth')['user_type']) && (session('auth')['user_type'] =='h' || session('auth')['user_type'] =='a'))
                                 <div class="idx_notice_btns mt-0 mt-lg-4 mb-4 mb-lg-0">
                                     @if(session('auth')['user_type'] =='a')
-                                    <div class="position-relative mr-3 m_select_wrap">
-                                        <div class="input_wrap">
-                                            <input type="text" id="searchText"
-                                                class="form-control custom-select m_select" autocomplete='off'
-                                                placeholder="지사 선택">
-                                            <button class="m_delete"><img src="/img/ic_delete_sm.png"></button>
+                                        <div class="position-relative mr-3 m_select_wrap">
+                                            <div class="input_wrap">
+                                                <input type="text" id="searchText"
+                                                       class="form-control custom-select m_select" autocomplete='off'
+                                                       placeholder="지사 선택">
+                                                <button class="m_delete"><img src="/img/ic_delete_sm.png"></button>
+                                            </div>
+                                            <ul id="searchList" class="m_select_list none_scroll_bar"></ul>
                                         </div>
-                                        <ul id="searchList" class="m_select_list none_scroll_bar"></ul>
-                                    </div>
                                     @endif
                                     <div class="position-relative m_select_wrap">
                                         <div class="input_wrap">
                                             <input type="text" id="searchText2"
-                                                class="form-control custom-select m_select" autocomplete='off'
-                                                placeholder="교육원 선택">
+                                                   class="form-control custom-select m_select" autocomplete='off'
+                                                   placeholder="교육원 선택">
                                             <button class="m_delete"><img src="/img/ic_delete_sm.png"></button>
                                         </div>
                                         <ul id="searchList2" class="m_select_list none_scroll_bar"></ul>
@@ -161,28 +166,28 @@
                     <div class="row m_menu_wrap">
                         <div class="col col-6 m_menu">
                             @if(isset($main['adviceNote']) && $main['adviceNote'] == 'Y')
-                            <img src="/img/new_icon.png" class="new_icon">
+                                <img src="/img/new_icon.png" class="new_icon">
                             @endif
                             @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='s')
                                 <a href="/advice/list" class="">
-                            @else
-                                <a href="/advice" class="">
-                            @endif
-                                    <div class="menu_name">
-                                        <p class="fs_22 ff_lotte text-white">
-                                            알림장
-                                        </p>
-                                        <img src="/img/ic_arrow_right_w.png" style="max-width: 2rem;"
-                                            class="d-none d-lg-block">
-                                    </div>
-                                    <div class="menu_bg" style="">
-                                        <img src="/img/m_menu_1.png">
-                                    </div>
-                                </a>
+                                    @else
+                                        <a href="/advice" class="">
+                                            @endif
+                                            <div class="menu_name">
+                                                <p class="fs_22 ff_lotte text-white">
+                                                    알림장
+                                                </p>
+                                                <img src="/img/ic_arrow_right_w.png" style="max-width: 2rem;"
+                                                     class="d-none d-lg-block">
+                                            </div>
+                                            <div class="menu_bg" style="">
+                                                <img src="/img/m_menu_1.png">
+                                            </div>
+                                        </a>
                         </div>
                         <div class="col col-6 m_menu">
                             @if(isset($main['album']) && $main['album'] == 'Y')
-                            <img src="/img/new_icon.png" class="new_icon">
+                                <img src="/img/new_icon.png" class="new_icon">
                             @endif
                             <a href="/album" class="">
                                 <div class="menu_name">
@@ -190,7 +195,7 @@
                                         앨범
                                     </p>
                                     <img src="/img/ic_arrow_right_w.png" style="max-width: 2rem;"
-                                        class="d-none d-lg-block">
+                                         class="d-none d-lg-block">
                                 </div>
                                 <div class="menu_bg" style="">
                                     <img src="/img/m_menu_2.png">
@@ -199,7 +204,7 @@
                         </div>
                         <div class="col col-6 m_menu">
                             @if(isset($main['notice']) && $main['notice'] == 'Y')
-                            <img src="/img/new_icon.png" class="new_icon">
+                                <img src="/img/new_icon.png" class="new_icon">
                             @endif
                             <a href="/notice" class="">
                                 <div class="menu_name">
@@ -215,7 +220,7 @@
                                         @endif
                                     </p>
                                     <img src="/img/ic_arrow_right_w.png" style="max-width: 2rem;"
-                                        class="d-none d-lg-block">
+                                         class="d-none d-lg-block">
                                 </div>
                                 <div class="menu_bg" style="">
                                     <img src="/img/m_menu_3_1.png" class="d-none d-lg-block">
@@ -236,7 +241,7 @@
                                             <div class="menu_name">
                                                 <p class="fs_22 ff_lotte text-white">출석부</p>
                                                 <img src="/img/ic_arrow_right_w.png" style="max-width: 2rem;"
-                                                    class="d-none d-lg-block">
+                                                     class="d-none d-lg-block">
                                             </div>
                                             <div class="menu_bg" style="">
                                                 <img src="/img/m_menu_4.png">
@@ -245,7 +250,7 @@
                         </div>
                         <div class="col col-6 m_menu">
                             @if(isset($main['educatonInfo']) && $main['educatonInfo'] == 'Y')
-                            <img src="/img/new_icon.png" class="new_icon">
+                                <img src="/img/new_icon.png" class="new_icon">
                             @endif
                             <a href="/education" class="">
                                 <div class="menu_name">
@@ -253,7 +258,7 @@
                                         교육정보
                                     </p>
                                     <img src="/img/ic_arrow_right_w.png" style="max-width: 2rem;"
-                                        class="d-none d-lg-block">
+                                         class="d-none d-lg-block">
                                 </div>
                                 <div class="menu_bg" style="">
                                     <img src="/img/m_menu_5_1.png" class="d-none d-lg-block">
@@ -263,7 +268,7 @@
                         </div>
                         <div class="col col-6 m_menu">
                             @if(isset($main['event']) && $main['event'] == 'Y')
-                            <img src="/img/new_icon.png" class="new_icon">
+                                <img src="/img/new_icon.png" class="new_icon">
                             @endif
                             <a href="/event" class="pageMove">
                                 <div class="menu_name">
@@ -271,7 +276,7 @@
                                         이벤트
                                     </p>
                                     <img src="/img/ic_arrow_right_w.png" style="max-width: 2rem;"
-                                        class="d-none d-lg-block">
+                                         class="d-none d-lg-block">
                                 </div>
                                 <div class="menu_bg" style="">
                                     <img src="/img/m_menu_6.png">
@@ -285,7 +290,7 @@
                                     <div class="menu_name type02">
                                         <p class="fs_20 ff_lotte text-white">상담일지</p>
                                         <img src="/img/ic_arrow_right_w.png" style="max-width: 2rem;"
-                                            class="d-block d-lg-none">
+                                             class="d-block d-lg-none">
                                     </div>
                                     <div class="menu_bg d-none d-lg-block">
                                         <img src="/img/m_menu_7.png">
@@ -297,22 +302,22 @@
                 </div>
             </div>
             @if(isset($mainBanner) && count($mainBanner) > 0)
-            <div class="mt-4 mt-lg-5 rounded-lg overflow-hidden">
-                <div class="banner_slider">
-                    <div class="swiper-wrapper">
-                        @foreach($mainBanner as $l)
-                        <div class="swiper-slide">
-                            <div class="d-none d-lg-block banner_img cursor_pointer" style="background-image:url('{{ $l['image'] ?? '' }}')" onclick="document.location.href='/event/view/{{ $l['id'] ?? '' }}'"></div>
-                            <div class="d-none d-md-block d-lg-none banner_img cursor_pointer" style="background-image:url('{{ $l['image2'] ?? '' }}')" onclick="document.location.href='/event/view/{{ $l['id'] ?? '' }}'"></div>
-                            <div class="d-block d-md-none banner_img cursor_pointer" style="background-image:url('{{ $l['image3'] ?? '' }}')" onclick="document.location.href='/event/view/{{ $l['id'] ?? '' }}'"></div>
+                <div class="mt-4 mt-lg-5 rounded-lg overflow-hidden">
+                    <div class="banner_slider">
+                        <div class="swiper-wrapper">
+                            @foreach($mainBanner as $l)
+                                <div class="swiper-slide">
+                                    <div class="d-none d-lg-block banner_img cursor_pointer" style="background-image:url('{{ $l['image'] ?? '' }}')" onclick="document.location.href='/event/view/{{ $l['id'] ?? '' }}'"></div>
+                                    <div class="d-none d-md-block d-lg-none banner_img cursor_pointer" style="background-image:url('{{ $l['image2'] ?? '' }}')" onclick="document.location.href='/event/view/{{ $l['id'] ?? '' }}'"></div>
+                                    <div class="d-block d-md-none banner_img cursor_pointer" style="background-image:url('{{ $l['image3'] ?? '' }}')" onclick="document.location.href='/event/view/{{ $l['id'] ?? '' }}'"></div>
+                                </div>
+                            @endforeach
                         </div>
-                        @endforeach
                     </div>
                 </div>
-            </div>
             @endif
         </div>
-    </div>
+        </div>
 
         <div class="loading_wrap" id="loading" style="display: none">
             <div class="loading_text">
@@ -321,7 +326,7 @@
             </div>
         </div>
 
-</article>
+    </article>
 
     <script>
         function hClick(e) {
@@ -341,7 +346,7 @@
         }
 
         $(window).on("load", function () {
-        @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='a')
+            @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='a')
             // 지사 선택
             let action = '/api/branch';
             let data = {user: '1'};
@@ -354,9 +359,9 @@
                     autoSearch(autoSearchData, "searchList", "searchText", hClick, '{{ $branch }}');
                 }
             });
-        @endif
+            @endif
 
-        @if($branch != "")
+            @if($branch != "")
             // 교육원 선택
             let action2 = '/api/center';
             let data2 = {user: '{{ $branch }}'};
@@ -371,7 +376,7 @@
                     autoSearch([], "searchList2", "searchText2", mClick);
                 }
             });
-        @endif
+            @endif
         });
 
         document.querySelectorAll('a').forEach(function(anchor) {
@@ -385,6 +390,10 @@
                 // $('#loading').show();
             });
         });
+
+        window.onload = function () {
+            alert("현재 접속량이 많아 일시적으로 느려질 수 있습니다.");
+        }
     </script>
     <form name="selectAction" id="selectAction" method="POST" action="/main/selectAction">
         <input type="hidden" name="type" value=""/>

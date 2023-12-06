@@ -68,7 +68,7 @@ class CounselingController extends Controller
 //            ->orderBy('raon_member.name')
 //            ->get();
 
-        $uids = DB::connection('mysql2')->table('raon_member')
+        $uids = DB::connection('mysql')->table('raon_member')
             ->select('idx as uid')
             ->where('midx', $user->idx)
             ->where('mtype', 's')
@@ -90,7 +90,7 @@ class CounselingController extends Controller
             ->get();
 
         foreach ($maxCreated as $key => $value) {
-            $nameResult = DB::connection('mysql2')->table('raon_member')->select('name')->whereIdx($value->uid)->first();
+            $nameResult = DB::connection('mysql')->table('raon_member')->select('name')->whereIdx($value->uid)->first();
 
             $maxCreated[$key]->uname = $nameResult->name;
         }

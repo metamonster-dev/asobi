@@ -295,7 +295,7 @@ class AdviceNoteController extends Controller
                 $result = Arr::add($result, "this_month_education_info", null);
             }
 
-            $this_course = DB::connection('mysql2')->table('order AS o')
+            $this_course = DB::connection('mysql')->table('order AS o')
                 ->join('order_member_detail AS omd', 'omd.order_idx', '=', 'o.idx')
                 ->join('shopProduct AS sp', 'sp.idx', '=', 'omd.product_idx')
                 ->select('sp.name', 'sp.content')
@@ -310,7 +310,7 @@ class AdviceNoteController extends Controller
                 ->orderBy('omd.idx', 'ASC')
                 ->get();
 
-            $next_course = DB::connection('mysql2')->table('order AS o')
+            $next_course = DB::connection('mysql')->table('order AS o')
                 ->join('order_member_detail AS omd', 'omd.order_idx', '=', 'o.idx')
                 ->join('shopProduct AS sp', 'sp.idx', '=', 'omd.product_idx')
                 ->select('sp.name', 'sp.content')
@@ -474,7 +474,7 @@ class AdviceNoteController extends Controller
             $result = Arr::add($result, "this_month_education_info", null);
         }
 
-        $this_course = DB::connection('mysql2')->table('order AS o')
+        $this_course = DB::connection('mysql')->table('order AS o')
             ->join('order_member_detail AS omd', 'omd.order_idx', '=', 'o.idx')
             ->join('shopProduct AS sp', 'sp.idx', '=', 'omd.product_idx')
             ->select('sp.name', 'sp.content')
@@ -488,7 +488,7 @@ class AdviceNoteController extends Controller
             ->orderBy('omd.idx', 'ASC')
             ->get();
 
-        $next_course = DB::connection('mysql2')->table('order AS o')
+        $next_course = DB::connection('mysql')->table('order AS o')
             ->join('order_member_detail AS omd', 'omd.order_idx', '=', 'o.idx')
             ->join('shopProduct AS sp', 'sp.idx', '=', 'omd.product_idx')
             ->select('sp.name', 'sp.content')
@@ -528,27 +528,27 @@ class AdviceNoteController extends Controller
             ->count();
 
         // @2021-10-01 마지막주만 작성가능
-//        $now_year_month = date('Y-m');
-//        $last_day = date('t', strtotime($now_year_month . '-01'));
-//        $write_possible_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -5 day')));
-//        $now_date = strtotime(date('Y-m-d H:i:s', time()));
-//
-//        $result = Arr::add($result, "write_possible_date", date('Y-m-d H:i:s', $write_possible_date)."~");
-//
-////        $result = Arr::add($result, "now_year_month", $now_year_month);
-////        $result = Arr::add($result, "last_day", $last_day);
-////        $result = Arr::add($result, "now_date", $now_date);
-//
-//        if ($write_possible_date < $now_date) {
-//            $result = Arr::add($result, "write_possible", true);
-//            $result = Arr::add($result, "this_month_letter_count", $advice_note_letter);
-//        } else {
-//            $result = Arr::add($result, "write_possible", false);
-//            $result = Arr::add($result, "this_month_letter_count", 1);
-//        }
+        $now_year_month = date('Y-m');
+        $last_day = date('t', strtotime($now_year_month . '-01'));
+        $write_possible_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -5 day')));
+        $now_date = strtotime(date('Y-m-d H:i:s', time()));
 
-        $result = Arr::add($result, "write_possible", true);
-        $result = Arr::add($result, "this_month_letter_count", $advice_note_letter);
+        $result = Arr::add($result, "write_possible_date", date('Y-m-d H:i:s', $write_possible_date)."~");
+
+//        $result = Arr::add($result, "now_year_month", $now_year_month);
+//        $result = Arr::add($result, "last_day", $last_day);
+//        $result = Arr::add($result, "now_date", $now_date);
+
+        if ($write_possible_date < $now_date) {
+            $result = Arr::add($result, "write_possible", true);
+            $result = Arr::add($result, "this_month_letter_count", $advice_note_letter);
+        } else {
+            $result = Arr::add($result, "write_possible", false);
+            $result = Arr::add($result, "this_month_letter_count", 1);
+        }
+
+//        $result = Arr::add($result, "write_possible", true);
+//        $result = Arr::add($result, "this_month_letter_count", $advice_note_letter);
 
         return response()->json($result);
     }
@@ -575,21 +575,21 @@ class AdviceNoteController extends Controller
         $year = $request->input('year') ? sprintf('%04d',$request->input('year')) : $now->format('Y');
         $month = $request->input('month') ? sprintf('%02d',$request->input('month')) : $now->format('m');
 
-        // @2021-10-01 마지막주만 작성가능 -> 항상 작성 가능
-        $result = Arr::add($result, "write_possible", true);
+//         @2021-10-01 마지막주만 작성가능
+//        $result = Arr::add($result, "write_possible", true);
 
-//        $now_year_month = date('Y-m');
-//        $last_day = date('t', strtotime($now_year_month . '-01'));
-//        $write_possible_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -5 day')));
-//        $now_date = strtotime(date('Y-m-d H:i:s', time()));
-//
-//        $result = Arr::add($result, "write_possible_date", date('Y-m-d H:i:s', $write_possible_date)."~");
-//
-//        if ($write_possible_date < $now_date && $now_year_month == $year."-".$month) {
-//            $result = Arr::add($result, "write_possible", true);
-//        } else {
-//            $result = Arr::add($result, "write_possible", false);
-//        }
+        $now_year_month = date('Y-m');
+        $last_day = date('t', strtotime($now_year_month . '-01'));
+        $write_possible_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -5 day')));
+        $now_date = strtotime(date('Y-m-d H:i:s', time()));
+
+        $result = Arr::add($result, "write_possible_date", date('Y-m-d H:i:s', $write_possible_date)."~");
+
+        if ($write_possible_date < $now_date && $now_year_month == $year."-".$month) {
+            $result = Arr::add($result, "write_possible", true);
+        } else {
+            $result = Arr::add($result, "write_possible", false);
+        }
 
 //        $result = Arr::add($result, "write_possible", true);
 
@@ -699,43 +699,40 @@ class AdviceNoteController extends Controller
             $this_month = $this_date->format('Y-m');
             $next_month = $this_date->addMonth(1)->format('Y-m');
 
-//            $check_letter = AdviceNote::select(['id', 'sidx'])
-//                ->where('type', $type)
-//                ->whereIn('sidx', $student)
-//                ->where('this_month', $this_month)
-//                ->where('status', 'Y')
-//                ->get();
+            $check_letter = AdviceNote::select(['id', 'sidx'])
+                ->where('type', $type)
+                ->whereIn('sidx', $student)
+                ->where('this_month', $this_month)
+                ->where('status', 'Y')
+                ->get();
 
-//            if ($check_letter->count() < 1) {
-//                // @2021-10-01 마지막주만 작성가능
-//                $now_year_month = date('Y-m');
-//                if ($debug_write) $now_year_month = $year."-".$month;
-//
-////                $last_day = date('t', strtotime($now_year_month . '-01'));
-////                $write_possible_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -5 day')));
-////                $now_date = strtotime(date('Y-m-d H:i:s', time()));
-////
-////                if ($debug_write) $now_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -4 day')));
-////
-////                if ($write_possible_date < $now_date) {
-////                    $is_write = true;
-////                } else {
-////                    $is_write = false;
-////                    $write_not_possible = true;
-////                }
-//
-////                $is_write = true;
-//
-//
-////                unset($last_day);
-////                unset($write_possible_date);
-////                unset($now_date);
-//            } else {
-//                $is_write = false;
-//            }
+            if ($check_letter->count() < 1) {
+                // @2021-10-01 마지막주만 작성가능
+                $now_year_month = date('Y-m');
+                if ($debug_write) $now_year_month = $year."-".$month;
+
+                $last_day = date('t', strtotime($now_year_month . '-01'));
+                $write_possible_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -5 day')));
+                $now_date = strtotime(date('Y-m-d H:i:s', time()));
+
+                if ($debug_write) $now_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -4 day')));
+
+                if ($write_possible_date < $now_date) {
+                    $is_write = true;
+                } else {
+                    $is_write = false;
+                    $write_not_possible = true;
+                }
+
+                unset($last_day);
+                unset($write_possible_date);
+                unset($now_date);
+            } else {
+                $is_write = false;
+            }
         }
 
-        $is_write = true;
+//        $is_write = true;
 
         if (!$is_write) {
             if ($write_not_possible === true) {
@@ -833,7 +830,7 @@ class AdviceNoteController extends Controller
                     if ($vimeo_id) {
                         $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                     } else {
-//                        $file = \App::make('helper')->rotateImage($file);
+                        $file = \App::make('helper')->rotateImage($file);
                         $file_path = \App::make('helper')->putResizeS3(AdviceFile::FILE_DIR, $file);
                     }
 
@@ -951,7 +948,7 @@ class AdviceNoteController extends Controller
                 if ($vimeo_id) {
                     $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                 } else {
-//                    $file = \App::make('helper')->rotateImage($file);
+                    $file = \App::make('helper')->rotateImage($file);
                     $file_path = \App::make('helper')->putResizeS3(AdviceFile::FILE_DIR, $file);
                 }
 
@@ -1048,24 +1045,22 @@ class AdviceNoteController extends Controller
             $now_year_month = date('Y-m');
             if ($debug_write) $now_year_month = $year."-".$month;
 
-//            $last_day = date('t', strtotime($now_year_month . '-01'));
-//            $write_possible_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -5 day')));
-//            $now_date = strtotime(date('Y-m-d H:i:s', time()));
-//
-//            if ($debug_write) $now_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -4 day')));
-//
-//            if ($write_possible_date < $now_date) {
-//                $is_write = true;
-//            } else {
-//                $is_write = false;
-//                $write_not_possible = true;
-//            }
+            $last_day = date('t', strtotime($now_year_month . '-01'));
+            $write_possible_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -5 day')));
+            $now_date = strtotime(date('Y-m-d H:i:s', time()));
 
-            $is_write = true;
+            if ($debug_write) $now_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -4 day')));
 
-//            unset($last_day);
-//            unset($write_possible_date);
-//            unset($now_date);
+            if ($write_possible_date < $now_date) {
+                $is_write = true;
+            } else {
+                $is_write = false;
+                $write_not_possible = true;
+            }
+
+            unset($last_day);
+            unset($write_possible_date);
+            unset($now_date);
         }
 
         if (!$is_write) {
@@ -1239,24 +1234,22 @@ class AdviceNoteController extends Controller
             $now_year_month = date('Y-m');
             if ($debug_write) $now_year_month = $year."-".$month;
 
-//            $last_day = date('t', strtotime($now_year_month . '-01'));
-//            $write_possible_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -5 day')));
-//            $now_date = strtotime(date('Y-m-d H:i:s', time()));
-//
-//            if ($debug_write) $now_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -4 day')));
-//
-//            if ($write_possible_date < $now_date) {
-//                $batch_exec = 'Y';
-//            } else {
-//                $batch_exec = 'N';
-//                $write_not_possible = true;
-//            }
+            $last_day = date('t', strtotime($now_year_month . '-01'));
+            $write_possible_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -5 day')));
+            $now_date = strtotime(date('Y-m-d H:i:s', time()));
 
-            $batch_exec = 'Y';
+            if ($debug_write) $now_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -4 day')));
 
-//            unset($last_day);
-//            unset($write_possible_date);
-//            unset($now_date);
+            if ($write_possible_date < $now_date) {
+                $batch_exec = 'Y';
+            } else {
+                $batch_exec = 'N';
+                $write_not_possible = true;
+            }
+
+            unset($last_day);
+            unset($write_possible_date);
+            unset($now_date);
         }
 
         if ($batch_exec == 'N') {

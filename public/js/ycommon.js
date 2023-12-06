@@ -1074,7 +1074,7 @@ var ycommon = (function(ycommon, $, window) {
     ycommon.setDeleteUploadFile = function (multiform_delete_idx) {
 
         let multiform_delete_idx2 = ycommon.getMultiformDeleteIdxs(multiform_delete_idx);
-        console.log('multiform_delete_idx2', multiform_delete_idx2);
+        // console.log('multiform_delete_idx2', multiform_delete_idx2);
         for(let i=0; i < $('.upload_files').length; i++) {
             let del_keys = [];
             for(let j=0; j < multiform_delete_idx2.length; j++) {
@@ -1124,14 +1124,27 @@ var ycommon = (function(ycommon, $, window) {
 
         processFiles(filesArr) // 파일 처리 함수 호출
             .then(() => {
+                if (document.getElementById('loading')) {
+                    document.getElementById('loading').style.display = 'none';
+                    $('#loading').hide();
+                }
                 // 모든 파일 처리가 완료된 후에 실행할 작업
                 // console.log('모든 파일 처리 완료');
             })
             .catch((error) => {
                 // 에러 처리
                 // console.error('파일 처리 중 에러 발생:', error);
+                if (document.getElementById('loading')) {
+                    document.getElementById('loading').style.display = 'none';
+                    $('#loading').hide();
+                }
+
+                sendErrorToServer(error);
             });
 
+        function sendErrorToServer(error) {
+
+        }
 
         function readFile(i, f) {
             return new Promise((resolve, reject) => {
@@ -1252,6 +1265,7 @@ var ycommon = (function(ycommon, $, window) {
 
                     if (document.getElementById('loading')) {
                         document.getElementById('loading').style.display = 'none';
+                        $('#loading').hide();
                     }
 
                     ycommon.setUploadCount(upload_cont);
@@ -1259,6 +1273,11 @@ var ycommon = (function(ycommon, $, window) {
                     resolve(); // 작업이 완료되면 resolve 호출
                 };
                 reader.onerror = function (error) {
+                    if (document.getElementById('loading')) {
+                        document.getElementById('loading').style.display = 'none';
+                        $('#loading').hide();
+                    }
+
                     reject(error); // 에러 발생 시 reject 호출
                 };
                 reader.readAsArrayBuffer(f); // 파일 읽기 작업 시작

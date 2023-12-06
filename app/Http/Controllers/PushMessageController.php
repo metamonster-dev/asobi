@@ -577,7 +577,8 @@ class PushMessageController extends Controller
         else if ($this->type == 'event') // 어드민으로 테스트
         {
             $row = Event::find($this->type_id);
-            if ($row) {
+
+            if ($row && date('Y-m-d', strtotime($row->created_at)) >= date('Y-m-d', strtotime($row->start))) {
 //                $arr_push = UserAppInfo::where('event_alarm', 'Y')
 //                    ->whereNotNull('push_key')
 //                    ->pluck('push_key')
@@ -625,6 +626,14 @@ class PushMessageController extends Controller
                         $handler->sendMessage();
                     }
                 }
+            } else {
+                $pushLog = new PushLog([
+                    'type' => $this->type,
+                    'type_id' => $this->type_id,
+                    'receivers' => ''
+                ]);
+
+                $pushLog->save();
             }
         }
         else if ($this->type == 'eventComment')

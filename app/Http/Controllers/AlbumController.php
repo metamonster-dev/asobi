@@ -15,6 +15,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
@@ -188,7 +189,7 @@ class AlbumController extends Controller
         $result = Arr::add($result, "date", $this_date->format('Y.m.d')." ".\App::make('helper')->dayOfKo($this_date, 2));
         $result = Arr::add($result, "reg_date", $row->created_at->format(Album::REG_DATE_FORMAT));
 
-        if ($user->mtype == 'm') {
+        if ($user->mtype == 'm' || $user->mtype == 's') {
             $students = RaonMember::whereIn('idx', json_decode($row->sidx))->get();
             if ($students) {
                 foreach ($students as $student_index => $student) {
@@ -224,8 +225,6 @@ class AlbumController extends Controller
                 $result = Arr::add($result, "file.{$file_index}.video_id", $file->vimeo_id ? $file->vimeo_id : null);
             }
         }
-
-//        dd($result);
 
         if ($user->mtype == 's') {
             if ($row->histories->where('sidx', $user->idx)->count() === 0) {
@@ -365,7 +364,7 @@ class AlbumController extends Controller
                 if ($vimeo_id) {
                     $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                 } else {
-//                    $file = \App::make('helper')->rotateImage($file);
+                    $file = \App::make('helper')->rotateImage($file);
                     $file_path = \App::make('helper')->putResizeS3(AlbumFile::FILE_DIR, $file);
                 }
 
@@ -486,7 +485,7 @@ class AlbumController extends Controller
                 if ($vimeo_id) {
                     $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                 } else {
-//                    $file = \App::make('helper')->rotateImage($file);
+                    $file = \App::make('helper')->rotateImage($file);
                     $file_path = \App::make('helper')->putResizeS3(AlbumFile::FILE_DIR, $file);
                 }
 
@@ -666,7 +665,23 @@ class AlbumController extends Controller
             'user' => $uesrId
         ]);
         $res = $this->show($albumReq, $id);
+
         $student = $res->original['student'] ?? [];
+
+        // 알람 통해서 이동했는데 다른 자녀일 경우 홈으로
+        if (session()->get('auth')['user_type'] == 's') {
+            $myStudent = false;
+            foreach ($student as $stu) {
+                if (session()->get('auth')['user_id'] == $stu['idx']) {
+                    $myStudent = true;
+                }
+            }
+
+            if (!$myStudent) {
+                return redirect('/');
+            }
+        }
+
         $studentReadY = $studentReadN = [];
         foreach ($student as $stu) {
             if($stu['readed'] == "N") {
@@ -680,23 +695,6 @@ class AlbumController extends Controller
             $error = \App::make('helper')->getErrorMsg($res->original['error']);
             \App::make('helper')->alert($error);
         }
-
-//        if (isset($res->original['file'])) {
-//            foreach ($res->original['file'] as $key => $file) {
-//                if (!$res->original['file'][$key]['file_path']) {
-    //                $res->original['file'][$key]['file_path'] =  'https://player.vimeo.com/video/876261885?title=0&byline=0&portrait=0&controls=0&app_id=122963';
-//                    $res->original['file'][$key]['file_path'] =  'https://player.vimeo.com/video/'.$file['video_id'].'?title=0&byline=0&portrait=0&controls=0&app_id=122963';
-    //                $res->original['file'][$key]['file_path'] =  'https://player.vimeo.com/video/877749641?h=4780982f4f';
-    //                $res->original['file'][$key]['file_path'] =  'https://new.api.asobiedu.co.kr/video/sample.mp4';
-//                }
-//            }
-//        }
-
-
-//        dd($res->original);
-
-//        $res->original['file']['0']['file_path'] = 'https://player.vimeo.com/video/876261885';
-        //        $res->original['file']['0']['file_path'] = 'https://player.vimeo.com/video/876261885?title=0&byline=0&portrait=0&controls=0&app_id=122963';
 
         return view('album/view',[
             'row' => $res->original ?? [],
@@ -839,7 +837,7 @@ class AlbumController extends Controller
             // request에 업로드 파일을 merge하도록 한다.
             if ($tmpFileIds != "") {
                 $tmpFileIdArr = explode(",",$tmpFileIds);
-//                dd($tmpFileIdArr);
+
                 $fileDatas = File::whereIn('id',$tmpFileIdArr)->get();
                 if ($fileDatas) {
                     foreach ($fileDatas as $fileData) {

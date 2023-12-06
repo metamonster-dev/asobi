@@ -62,7 +62,9 @@ class MainController extends Controller
 
             if (session()->get('center')) {
                 $center = session()->get('center');
-            } else {
+            }
+
+            if (session()->get('branch') === '70') {
                 session(['center' => '86293']);
                 $center = '86293';
             }
@@ -117,7 +119,7 @@ class MainController extends Controller
         }
 
         try {
-            DB::connection('mysql2')->getPdo();
+            DB::connection('mysql')->getPdo();
             echo "Connection 2 is established.";
         } catch (\Exception $e) {
             die("Could not connect to the database. Please check your configuration.");

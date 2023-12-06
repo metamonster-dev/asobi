@@ -13,5 +13,5 @@ class ShopCategory extends Model
 
     protected $table = 'shopCategory';
 
-    protected $connection = 'mysql2';
+//    protected $connection = 'mysql2';
 }

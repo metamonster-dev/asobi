@@ -136,7 +136,7 @@ class AppMainController extends Controller
         }
 
         $calendar_years_array = array();
-        $calendar_years = DB::connection('mysql2')->table('schedule_studies')
+        $calendar_years = DB::connection('mysql')->table('schedule_studies')
             ->select(DB::raw("DISTINCT(DATE_FORMAT(`date`, '%Y')) AS year"))
             ->orderBy('date', 'asc')
             ->get();
@@ -148,7 +148,7 @@ class AppMainController extends Controller
         }
 
         if ($midx) {
-            $center_calendar_years = DB::connection('mysql2')->table('schedule_academy_studies')
+            $center_calendar_years = DB::connection('mysql')->table('schedule_academy_studies')
                 ->select(DB::raw("DISTINCT(DATE_FORMAT(`date`, '%Y')) AS year"))
                 ->where('midx', $midx)
                 ->orderBy('date', 'asc')
@@ -187,7 +187,7 @@ class AppMainController extends Controller
                     $center->franchisetype = $centerCenterDetail->franchisetype ?? '';
 
                     if ($center && $center->franchisetype == 'C') {
-                        $center_calendar_years = DB::connection('mysql2')->table('schedule_academy_studies')
+                        $center_calendar_years = DB::connection('mysql')->table('schedule_academy_studies')
                             ->select(DB::raw("DISTINCT(DATE_FORMAT(`date`, '%Y')) AS year"))
                             ->where('midx', $center->id)
                             ->orderBy('date', 'asc')
@@ -262,7 +262,7 @@ class AppMainController extends Controller
         }
 
         $calendar_years_array = array();
-        $calendar_years = DB::connection('mysql2')->table('schedule_studies')
+        $calendar_years = DB::connection('mysql')->table('schedule_studies')
             ->select(DB::raw("DISTINCT(DATE_FORMAT(`date`, '%Y')) AS year"))
             ->orderBy('date', 'asc')
             ->get();
@@ -274,7 +274,7 @@ class AppMainController extends Controller
         }
 
         if ($midx) {
-            $center_calendar_years = DB::connection('mysql2')->table('schedule_academy_studies')
+            $center_calendar_years = DB::connection('mysql')->table('schedule_academy_studies')
                 ->select(DB::raw("DISTINCT(DATE_FORMAT(`date`, '%Y')) AS year"))
                 ->where('midx', $midx)
                 ->orderBy('date', 'asc')
@@ -313,7 +313,7 @@ class AppMainController extends Controller
                     $center->franchisetype = $centerCenterDetail->franchisetype ?? '';
 
                     if ($center && $center->franchisetype == 'C') {
-                        $center_calendar_years = DB::connection('mysql2')->table('schedule_academy_studies')
+                        $center_calendar_years = DB::connection('mysql')->table('schedule_academy_studies')
                             ->select(DB::raw("DISTINCT(DATE_FORMAT(`date`, '%Y')) AS year"))
                             ->where('midx', $center->id)
                             ->orderBy('date', 'asc')

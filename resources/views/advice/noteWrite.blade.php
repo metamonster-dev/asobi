@@ -6,6 +6,8 @@ class="body"
 <?php
 $title = "알림장 작성";
 $hd_bg = "1";
+
+$currentDateTime = date('Y-m-d H:i:s');
 ?>
 @include('common.headm04')
 @include('advice.notePreview')
@@ -151,6 +153,7 @@ $hd_bg = "1";
     var upload_cont = 0;
     var multiform_idx = [];
     var multiform_delete_idx = [];
+    let isSetTmp = false;
 
     @if(isset($row['file']) && is_array($row['file']) && count($row['file']) > 0)
         upload_cont = {{ count($row['file']) }};
@@ -167,7 +170,11 @@ $hd_bg = "1";
         fsubmit = true;
         $("#fsubmit").prop('disabled',true);
 
-        const currentDate = new Date();
+        // const currentDate = new Date();
+
+        const currentDateTime = '<?php echo $currentDateTime; ?>';
+        const currentDate = new Date(currentDateTime);
+
         const ymdValue = new Date(f.ymd.value);
 
         // let upfileCnt = 0;
@@ -251,6 +258,9 @@ $hd_bg = "1";
 
         ycommon.setDeleteUploadFile(multiform_delete_idx);
 
+        ycommon.deleteData('album');
+        ycommon.deleteData('file');
+
         return true;
     }
 
@@ -265,6 +275,7 @@ $hd_bg = "1";
             const formData = new FormData();
             formData.append("user", userId);
             formData.append("type", '3');
+            formData.append("isSetTmp", isSetTmp);
             if ($('.upload_files').length > 0) {
                 for(let i=0; i < $('.upload_files').length; i++) {
                     let del_keys = [];
@@ -283,30 +294,57 @@ $hd_bg = "1";
                 formData.append("delete_files", tmp_file_delete_ids.join(','));
             }
 
+            $('#loading').show();
+
             let action = `/api/tmpFileSave`;
-            ycommon.ajaxJson('post', action, formData, undefined, undefined,undefined,function (jqXHR, textStatus, errorThrown){
+            ycommon.ajaxJson('post', action, formData, undefined, function () {
+                let content = $('#content').val();
+                let ymd = $('#ymd').val();
+                let studentChk = $('input[name="student[]"]:checked');
+                let student = [];
+                if (studentChk.length > 0) {
+                    for (let i=0; i<studentChk.length; i++) {
+                        if ($(studentChk[i]).val()) student.push($(studentChk[i]).val());
+                    }
+                }
+                ycommon.setData('advice',{
+                    content: content,
+                    ymd: ymd,
+                    student: student
+                });
+
+                $('#loading').hide();
+                jalert("임시저장 되었습니다.");
+            },undefined,function (jqXHR, textStatus, errorThrown){
+                $('#loading').hide();
                 jalert("파일 임시저장에 실패하였습니다.");
-            },undefined,undefined,{processData:false, contentType: false});
+            }, 30000,undefined,{processData:false, contentType: false});
         }
 
-        let content = $('#content').val();
-        let ymd = $('#ymd').val();
-        let studentChk = $('input[name="student[]"]:checked');
-        let student = [];
-        if (studentChk.length > 0) {
-            for (let i=0; i<studentChk.length; i++) {
-                if ($(studentChk[i]).val()) student.push($(studentChk[i]).val());
-            }
-        }
-        ycommon.setData('advice',{
-            content: content,
-            ymd: ymd,
-            student: student
-        });
-        jalert("임시저장 되었습니다.");
+        // let content = $('#content').val();
+        // let ymd = $('#ymd').val();
+        // let studentChk = $('input[name="student[]"]:checked');
+        // let student = [];
+        // if (studentChk.length > 0) {
+        //     for (let i=0; i<studentChk.length; i++) {
+        //         if ($(studentChk[i]).val()) student.push($(studentChk[i]).val());
+        //     }
+        // }
+        // ycommon.setData('advice',{
+        //     content: content,
+        //     ymd: ymd,
+        //     student: student
+        // });
+        // jalert("임시저장 되었습니다.");
     }
 
     function setTmpSave() {
+        ycommon.setData('file', {
+            file: 'Y'
+        });
+
+        isSetTmp = true;
+
         // console.log("임시 저장 불러오기!!!");
         let tmpData = ycommon.getData('advice');
         if (tmpData.content !== undefined) $('#content').val(tmpData.content);
@@ -344,7 +382,7 @@ $hd_bg = "1";
                     privewUploadeTmp = privewUploadeTmp.replaceAll("{i}", data.list[i].file_id);
                     privewUploadeTmp = privewUploadeTmp.replaceAll('{image_id}', data.list[i].file_id);
                     if (data.list[i].vimeo_id == "video") {
-                        privewUploadeTmp = privewUploadeTmp.replaceAll('{image}', "<video><source src='"+data.list[i].file_path+"' /></video>");
+                        privewUploadeTmp = privewUploadeTmp.replaceAll('{image}', "<video><source src='"+data.list[i].file_path+'#t=0.1'+"' /></video>");
                     } else {
                         privewUploadeTmp = privewUploadeTmp.replaceAll('{image}', "<img src='"+data.list[i].file_path+"' />");
                     }
@@ -352,7 +390,7 @@ $hd_bg = "1";
                     previewHtmlTmp = previewHtml;
                     previewHtmlTmp = previewHtmlTmp.replaceAll("{i}", data.list[i].file_id);
                     if (data.list[i].vimeo_id == "video") {
-                        previewHtmlTmp = previewHtmlTmp.replaceAll('{imageVideo}', '<video><source src="'+data.list[i].file_path+'" class="w-100"></video>');
+                        previewHtmlTmp = previewHtmlTmp.replaceAll('{imageVideo}', '<video><source src="'+data.list[i].file_path+"#t=0.1"+'" class="w-100"></video>');
                     } else {
                         previewHtmlTmp = previewHtmlTmp.replaceAll('{imageVideo}', '<img src="'+data.list[i].file_path+'" class="w-100">');
                     }

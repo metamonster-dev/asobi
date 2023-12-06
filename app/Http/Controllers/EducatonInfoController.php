@@ -106,7 +106,7 @@ class EducatonInfoController extends Controller
                 if ($vimeo_id) {
                     $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                 } else {
-//                    $file = \App::make('helper')->rotateImage($file);
+                    $file = \App::make('helper')->rotateImage($file);
                     $file_path = \App::make('helper')->putResizeS3(File::FILE_DIR, $file);
                 }
 
@@ -326,7 +326,7 @@ class EducatonInfoController extends Controller
                 if ($vimeo_id) {
                     $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                 } else {
-//                    $file = \App::make('helper')->rotateImage($file);
+                    $file = \App::make('helper')->rotateImage($file);
                     $file_path = \App::make('helper')->putResizeS3(File::FILE_DIR, $file, 1160,180);
                 }
 

@@ -172,5 +172,6 @@ Route::group(['prefix' => 'event', 'middleware' => 'checkLogin'], function () {
 // 라우터 정의되지 않으면 404 페이지
 // resources/views/errors/404.blade.php
 Route::fallback(function () {
-    abort(404);
+//    abort(404);
+    return view('errors.404');
 });

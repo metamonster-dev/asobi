@@ -77,7 +77,7 @@ $hd_bg = "3";
                 </ul>
             </div>
             @endif
-            <div class="editor_wrap fs_15">{!! $row['content'] !!}</div>
+            <div id="content" class="editor_wrap fs_15">{!! $row['content'] !!}</div>
 
             @if(isset(session('auth')['user_type']) && session('auth')['user_type'] !=='s')
             <!-- ※ 읽은 사람 확인은 학부모일 때 미노출 -->
@@ -191,6 +191,13 @@ $hd_bg = "3";
             $('#loading').show();
         });
     });
+
+    // content 안에 링크 자동으로 a태그 만들어주기
+    const content = document.getElementById('content').innerHTML;
+
+    const contentWithLinks = content.replace(/(http[s]?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
+
+    document.getElementById('content').innerHTML = contentWithLinks;
 </script>
 
 @endsection

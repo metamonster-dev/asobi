@@ -146,7 +146,6 @@ class UserController extends Controller
             return response()->json($result);
         }
 
-        // Todo: status
         $rs = RaonMember::where('mtype', 'm')->where('m_status', 'Y')->where('hidx', $user->idx)->orderBy('nickname')->get();
         $result = Arr::add($result, 'result', 'success');
         $result = Arr::add($result, 'count', $rs->count());
