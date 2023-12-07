@@ -240,7 +240,7 @@ include_once("./inc/head_style02.php");
                             <td class="align-middle">교육원 교재 배송 및 반품 업무</td>
                         </tr>
                         <tr>
-                            <td class="text-center align-middle border-right">(주)러빌</td>
+                            <td class="text-center align-middle border-right">코딩코리아</td>
                             <td class="align-middle">아소비 앱 개발 및 유지보수</td>
                         </tr>
                         <tr>
@@ -313,7 +313,7 @@ include_once("./inc/head_style02.php");
                         </tr>
                         <tr>
                             <td class="text-center align-middle border-right">
-                                <p class="wh_pre">- 성명 및 직위 : 박재원 부대표
+                                <p class="wh_pre">- 성명 및 직위 : 박성복 팀장
                                 - 연락처 : admin@asobi.co.kr</p>
                             </td>
                             <td class="align-middle">

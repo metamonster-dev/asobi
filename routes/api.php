@@ -200,3 +200,4 @@ Route::get('/tmpFileSize', [TmpFileController::class, 'fileSize']);
 Route::post('/tmpFileSave', [TmpFileController::class, 'store']);
 Route::post('/tmpFileDelete', [TmpFileController::class, 'destroy']);
 
+Route::post('/jsErrorLog', [TestController::class, 'jsErrorLog']);

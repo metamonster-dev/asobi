@@ -1115,7 +1115,6 @@ var ycommon = (function(ycommon, $, window) {
         var files = e.target.files;
         var filesArr = Array.prototype.slice.call(files);
 
-
         async function processFiles(filesArr) {
             for (let i=0; i < filesArr.length; i++) {
                 await readFile(i, filesArr[i]); // 각 파일을 처리하는 함수 호출 (비동기 처리)
@@ -1143,7 +1142,27 @@ var ycommon = (function(ycommon, $, window) {
             });
 
         function sendErrorToServer(error) {
+            const errorData = {
+                // message: error.message, // 에러 메시지
+                data: error.message, // 에러 메시지
+            };
 
+            // AJAX 요청 보내기
+            fetch('/api/jsErrorLog', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(errorData), // 오류 데이터를 JSON 형식으로 전송
+            }).then((response) => {
+                    if (!response.ok) {
+                        throw new Error('서버 응답 오류');
+                    }
+                    // 서버 응답 처리
+                })
+                .catch((error) => {
+                    console.error('서버로의 오류 보내기 실패:', error);
+                });
         }
 
         function readFile(i, f) {
@@ -1283,139 +1302,6 @@ var ycommon = (function(ycommon, $, window) {
                 reader.readAsArrayBuffer(f); // 파일 읽기 작업 시작
             });
         }
-
-
-
-
-
-        // filesArr.forEach(function(f,i) {
-        //     if(f.type.match("image.*")) {
-        //         if(f.size >= 10 * 1024 * 1024) {
-        //             alert("이미지는 10메가 이하만 가능합니다.");
-        //             return;
-        //         }
-        //     } else if (f.type.match("video.*")) {
-        //         if(f.size >= 10 * 10 * 1024 * 1024) {
-        //             alert("비디오는 100메가 이하만 가능합니다.");
-        //             return;
-        //         }
-        //     } else {
-        //         alert("확장자는 이미지 및 비디오만 가능합니다.");
-        //         return;
-        //     }
-        //
-        //     var reader = new FileReader();
-        //     reader.onload = function(e) {
-        //         console.log(i);
-        //
-        //         let id2 = id;
-        //         if (i > 0) {
-        //             id2 = id+"_"+i;
-        //         } else if (i == 0) {
-        //             $('#label_upload_file_'+id).attr('for','00');
-        //         }
-        //         multiform_idx.push(id2);
-        //
-        //         $("#image-upload-"+id2).addClass('on');
-        //
-        //         const arrayBuffer = e.target.result;// ArrayBuffer를 Blob으로 변환
-        //         const blob = new Blob([arrayBuffer], { type: f.type });
-        //         const imageUrl = URL.createObjectURL(blob);
-        //
-        //         // if (e.target.result.match("video.*")) {
-        //         if (f.type.match("video.*")) {
-        //             let html;
-        //             if (device === 'ios') {
-        //                 html = '<div class="att_img mb-4" id="imageVideo'+id2+'">' +
-        //                     '<div class="rounded overflow-hidden">' +
-        //                         '<video>' +
-        //                             '<source src="'+imageUrl+'" class="w-100">' +
-        //                         '</video>' +
-        //                     '</div>' +
-        //                 '</div>' ;
-        //             } else {
-        //                 html = '<div class="att_img mb-4" id="imageVideo'+id2+'">' +
-        //                     '<div class="rounded overflow-hidden">' +
-        //                         '<video>' +
-        //                             '<source src="'+imageUrl+'#t=0.1'+'" class="w-100">' +
-        //                         '</video>' +
-        //                     '</div>' +
-        //                 '</div>' ;
-        //             }
-        //             $("#imageVideo").append(html);
-        //
-        //             const attImgTag = document.querySelector('.att_img video');
-        //             attImgTag.load();
-        //             attImgTag.pause();
-        //
-        //             if (i == 0) {
-        //                 if (device === 'ios') {
-        //                     $("#image-upload-"+id2).find('.del').after('<video preload="none"><source src="' + imageUrl + '"/></video>');
-        //                 } else {
-        //                     $("#image-upload-"+id2).find('.del').after('<video preload="metadata"><source src="' + imageUrl + '#t=0.1'+'"/></video>');
-        //                 }
-        //             } else {
-        //                 if (device === 'ios') {
-        //                     let addForm = '<div class="image-upload2 mr-3 on" data-id="'+id2+'" id="image-upload-'+id2+'">'+
-        //                         '<label id="label_upload_file_'+id2+'" for="upload_file_'+id2+'">' +
-        //                         '<div class="upload-icon2">' +
-        //                         '<button type="button" class="btn del"></button>' +
-        //                         '<video preload="none"><source src="' + imageUrl + '"/></video>' +
-        //                         '</div>' +
-        //                         '</label>' +
-        //                         '</div>';
-        //                     $('#imgUpload').append(addForm);
-        //                 } else {
-        //                     let addForm = '<div class="image-upload2 mr-3 on" data-id="'+id2+'" id="image-upload-'+id2+'">'+
-        //                         '<label id="label_upload_file_'+id2+'" for="upload_file_'+id2+'">' +
-        //                         '<div class="upload-icon2">' +
-        //                         '<button type="button" class="btn del"></button>' +
-        //                         '<video preload="metadata"><source src="' + imageUrl +'#t=0.1'+'"/></video>' +
-        //                         '</div>' +
-        //                         '</label>' +
-        //                         '</div>';
-        //                     $('#imgUpload').append(addForm);
-        //                 }
-        //             }
-        //             const thisVideo = document.querySelector('.image-upload2[data-id="' + id2 + '"] video');
-        //
-        //             thisVideo.load();
-        //             thisVideo.pause();
-        //         } else {
-        //             let html = '<div class="att_img mb-4" id="imageVideo'+id2+'">' +
-        //                 '<div class="rounded overflow-hidden">' +
-        //                     '<img src="'+imageUrl+'" class="w-100">' +
-        //                 '</div>' +
-        //             '</div>' ;
-        //             // console.log(html);
-        //             $("#imageVideo").append(html);
-        //             // $("#imageVideo").prepend(html);
-        //
-        //             if (i == 0) {
-        //                 $("#image-upload-"+id2).find('.del').after('<img src="'+imageUrl+'" />');
-        //             } else {
-        //                 let addForm = '<div class="image-upload2 mr-3 on" data-id="'+id2+'" id="image-upload-'+id2+'">'+
-        //                     '<label id="label_upload_file_'+id2+'" for="upload_file_'+id2+'">' +
-        //                     '<div class="upload-icon2">' +
-        //                     '<button type="button" class="btn del"></button>' +
-        //                     '<img src="'+imageUrl+'" />' +
-        //                     '</div>' +
-        //                     '</label>' +
-        //                     '</div>';
-        //                 $('#imgUpload').append(addForm);
-        //             }
-        //         }
-        //
-        //         if (document.getElementById('loading')) {
-        //             document.getElementById('loading').style.display = 'none';
-        //         }
-        //
-        //         ycommon.setUploadCount(upload_cont);
-        //     }
-        //
-        //     // reader.readAsDataURL(f);
-        //     reader.readAsArrayBuffer(f);
-        // });
 
     }
 

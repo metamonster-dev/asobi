@@ -69,9 +69,9 @@ class="body"
         });
     });
 
-    window.onload = function () {
-        alert("현재 접속량이 많아 일시적으로 느려질 수 있습니다.");
-    }
+    //window.onload = function () {
+    //    alert("현재 접속량이 많아 일시적으로 느려질 수 있습니다.");
+    //}
 </script>
 
 @endsection

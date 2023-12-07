@@ -53,7 +53,7 @@ class StudentController extends Controller
         $children_rs = RaonMember::where('idx', '=', $userId)
             ->where('mtype', 's')
 //            ->where('idx','=',$userId)
-            ->whereIn('s_status', array('W', 'Y'))
+            ->whereIn('s_status', array('Y'))
 //            ->orderBy('s_status', 'desc')
             ->get();
 

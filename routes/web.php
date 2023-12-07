@@ -44,6 +44,8 @@ Route::post('/main/selectAction', [MainController::class, 'selectAction'])->midd
 Route::group(['prefix' => 'auth'], function () {
     Route::get('login', [AuthController::class, 'login'])->middleware('checkNotLogin');
     Route::post('loginAction', [UserAppInfoController::class, 'loginAction'])->middleware('checkNotLogin');
+    Route::get('intra_login', [AuthController::class, 'intra_login'])->middleware('checkNotLogin');
+    Route::post('intra_loginAction', [UserAppInfoController::class, 'intra_loginAction'])->middleware('checkNotLogin');
     Route::get('logout', [UserAppInfoController::class, 'logoutAction'])->middleware('checkLogin');
     Route::get('join', [AuthController::class, 'join']);
     Route::post('joinAction', [AuthController::class, 'joinAction']);
