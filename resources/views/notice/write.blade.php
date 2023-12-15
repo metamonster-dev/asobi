@@ -218,10 +218,10 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
 
         ycommon.setDeleteUploadFile(multiform_delete_idx);
 
-        $('#loading').show();
-
-        ycommon.deleteData('album');
+        ycommon.deleteData('notice');
         ycommon.deleteData('file');
+
+        $('#loading').show();
 
         return true;
     }
@@ -253,8 +253,6 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
     }
 
     function tmpSave() {
-        // ycommon.deleteData('file');
-
         let multiform_delete_idx2 = ycommon.getMultiformDeleteIdxs(multiform_delete_idx);
         if ($('.upload_files').length > 0 || tmp_file_delete_ids.length > 0) {
             const formData = new FormData();
@@ -304,18 +302,21 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
             ycommon.setData('file', {
                 file: 'Y'
             });
+        } else {
+            ycommon.deleteData('file');
+
+            let title = $('#title').val();
+            let ymd = $('#ymd').val();
+            // let content = $('#content').val();
+            let content = CKEDITOR.instances.content.getData();
+            ycommon.setData('notice',{
+                title: title,
+                content: content,
+                ymd: ymd,
+            });
+            jalert("임시저장 되었습니다.");
         }
 
-        // let title = $('#title').val();
-        // let ymd = $('#ymd').val();
-        // // let content = $('#content').val();
-        // let content = CKEDITOR.instances.content.getData();
-        // ycommon.setData('notice',{
-        //     title: title,
-        //     content: content,
-        //     ymd: ymd,
-        // });
-        // jalert("임시저장 되었습니다.");
     }
 
     function setTmpSave() {
@@ -364,7 +365,7 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
                         privewUploadeTmp = privewUploadeTmp.replaceAll("{i}", data.list[i].file_id);
                         privewUploadeTmp = privewUploadeTmp.replaceAll('{image_id}', data.list[i].file_id);
                         if (data.list[i].vimeo_id == "video") {
-                            privewUploadeTmp = privewUploadeTmp.replaceAll('{image}', "<video><source src='" + data.list[i].file_path+'#t=0.1'+"' /></video>");
+                            privewUploadeTmp = privewUploadeTmp.replaceAll('{image}', "<video><source src='" + data.list[i].file_path+'#t=1'+"' /></video>");
                         } else {
                             privewUploadeTmp = privewUploadeTmp.replaceAll('{image}', "<img src='" + data.list[i].file_path + "' />");
                         }
@@ -372,7 +373,7 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
                         previewHtmlTmp = previewHtml;
                         previewHtmlTmp = previewHtmlTmp.replaceAll("{i}", data.list[i].file_id);
                         if (data.list[i].vimeo_id == "video") {
-                            previewHtmlTmp = previewHtmlTmp.replaceAll('{imageVideo}', '<video><source src="' + data.list[i].file_path +"#t=0.1"+'" class="w-100"></video>');
+                            previewHtmlTmp = previewHtmlTmp.replaceAll('{imageVideo}', '<video><source src="' + data.list[i].file_path +"#t=1"+'" class="w-100"></video>');
                         } else {
                             previewHtmlTmp = previewHtmlTmp.replaceAll('{imageVideo}', '<img src="' + data.list[i].file_path + '" class="w-100">');
                         }

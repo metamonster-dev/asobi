@@ -48,25 +48,25 @@ class CounselingController extends Controller
 //        \App::make('helper')->log('search_user_id', ['search_user_id' => $search_user_id], 'search_user_id');
 
 
-//        $rs = DB::table('raon_member')
-//            ->select('raon_member.idx as uid', 'raon_member.name as uname', 'cls.created_at as ccreated_at')
-//            ->leftJoin(DB::raw('
-//            (SELECT MAX(created_at) created_at, sidx, YEAR(created_at) AS year, MONTH(created_at) AS month
-//                    FROM counselings
-//                    GROUP BY sidx, YEAR(created_at), MONTH(created_at)) AS cls'),function ($join) {
-//                $join->on('raon_member.idx','=','cls.sidx');
-//            })
-//            ->where('midx', $user->idx)
-//            ->where('raon_member.mtype','s')
-//            ->where('raon_member.s_status','Y')
-//            ->when($year_month, function ($q) use ($year_month) {
-//                $q->whereRaw("date_format(cls.created_at, '%Y-%m') = '{$year_month}'");
-//            })
-//            ->when($search_user_id != "", function ($q) use ($search_user_id) {
-//                $q->where('raon_member.idx', $search_user_id);
-//            })
-//            ->orderBy('raon_member.name')
-//            ->get();
+        $rs = DB::table('raon_member')
+            ->select('raon_member.idx as uid', 'raon_member.name as uname', 'cls.created_at as ccreated_at')
+            ->leftJoin(DB::raw('
+            (SELECT MAX(created_at) created_at, sidx, YEAR(created_at) AS year, MONTH(created_at) AS month
+                    FROM counselings
+                    GROUP BY sidx, YEAR(created_at), MONTH(created_at)) AS cls'),function ($join) {
+                $join->on('raon_member.idx','=','cls.sidx');
+            })
+            ->where('midx', $user->idx)
+            ->where('raon_member.mtype','s')
+            ->where('raon_member.s_status','Y')
+            ->when($year_month, function ($q) use ($year_month) {
+                $q->whereRaw("date_format(cls.created_at, '%Y-%m') = '{$year_month}'");
+            })
+            ->when($search_user_id != "", function ($q) use ($search_user_id) {
+                $q->where('raon_member.idx', $search_user_id);
+            })
+            ->orderBy('raon_member.name')
+            ->get();
 
         $uids = DB::connection('mysql')->table('raon_member')
             ->select('idx as uid')
@@ -78,24 +78,26 @@ class CounselingController extends Controller
             })
             ->pluck('uid');
 
-        $maxCreated = DB::table('counselings')
-            ->select(DB::raw('MAX(created_at) as ccreated_at'), 'sidx as uid')
-            ->groupBy('sidx', DB::raw('YEAR(created_at)'), DB::raw('MONTH(created_at)'))
-            ->whereIn('sidx', $uids)
-//            ->whereRaw("DATE_FORMAT(created_at, '%Y-%m') = '{$year_month}'")
-            ->when($year_month, function ($q) use ($year_month) {
-                $q->whereRaw("DATE_FORMAT(created_at, '%Y-%m') = '{$year_month}'");
-            })
-            ->orderBy('sidx')
-            ->get();
+//        DB::enableQueryLog();
 
-        foreach ($maxCreated as $key => $value) {
-            $nameResult = DB::connection('mysql')->table('raon_member')->select('name')->whereIdx($value->uid)->first();
+//        $maxCreated = DB::table('counselings')
+//            ->select(DB::raw('MAX(created_at) as ccreated_at'), 'sidx as uid')
+//            ->groupBy('sidx', DB::raw('YEAR(created_at)'), DB::raw('MONTH(created_at)'))
+//            ->whereIn('sidx', $uids)
+////            ->whereRaw("DATE_FORMAT(created_at, '%Y-%m') = '{$year_month}'")
+//            ->when($year_month, function ($q) use ($year_month) {
+//                $q->whereRaw("DATE_FORMAT(created_at, '%Y-%m') = '{$year_month}'");
+//            })
+//            ->orderBy('sidx')
+//            ->get();
 
-            $maxCreated[$key]->uname = $nameResult->name;
-        }
-
-        $rs = $maxCreated;
+//        foreach ($maxCreated as $key => $value) {
+//            $nameResult = DB::connection('mysql')->table('raon_member')->select('name')->whereIdx($value->uid)->first();
+//
+//            $maxCreated[$key]->uname = $nameResult->name;
+//        }
+//
+//        $rs = $maxCreated;
 
         $result = Arr::add($result, 'result', 'success');
         $result = Arr::add($result, 'count', $rs->count());
@@ -228,7 +230,7 @@ class CounselingController extends Controller
 
         $payload = [
             'hidx' => $user->hidx,
-            'midx' => $user->midx,
+            'midx' => $user->idx,
             'sidx' => $student,
             'content' => $content,
             'year' => $year,
@@ -236,6 +238,7 @@ class CounselingController extends Controller
             'day' => $day,
             'created_at' => $year."-".$month."-".$day." ".date('H:i:s'),
         ];
+
         $counseling = new Counseling($payload);
         $counseling->save();
         $result = Arr::add($result, 'result', 'success');

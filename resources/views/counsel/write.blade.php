@@ -72,7 +72,7 @@ $hd_bg = "7";
         if (f.search_user_id.value == "undefined") {
             jalert("학생을 선택해주세요.");
             return false;
-        }자
+        }
 
         if (f.date.value == "") {
             jalert("작성일자를 입력해주세요.");

@@ -503,6 +503,15 @@ class AttendanceController extends Controller
         $blueData = $calendarRes->original['list']['blue'] ?? [];
         $redData = $calendarRes->original['list']['red'] ?? [];
 
+
+//        if ($_SERVER['REMOTE_ADDR'] === '183.101.245.76') {
+//            echo '<xmp>';
+//            var_dump($blueData);
+//            echo '</xmp>';
+//            dd($redData);
+//        }
+
+
         $attendList = [];
         foreach ($blueData as $date) {
             array_push($attendList, intval(explode('-', $date)[2]));
@@ -516,7 +525,7 @@ class AttendanceController extends Controller
             'list' => $list,
             'ym' => $ym,
             'day' => $day,
-            'attendList' => json_encode($attendList,)
+            'attendList' => json_encode($attendList)
         ]);
     }
 

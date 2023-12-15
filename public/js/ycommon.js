@@ -1213,7 +1213,7 @@ var ycommon = (function(ycommon, $, window) {
                             html = '<div class="att_img mb-4" id="imageVideo'+id2+'">' +
                                 '<div class="rounded overflow-hidden">' +
                                 '<video>' +
-                                '<source src="'+imageUrl+'#t=0.1'+'" class="w-100">' +
+                                '<source src="'+imageUrl+'#t=1'+'" class="w-100">' +
                                 '</video>' +
                                 '</div>' +
                                 '</div>' ;
@@ -1228,7 +1228,7 @@ var ycommon = (function(ycommon, $, window) {
                             if (device === 'ios') {
                                 $("#image-upload-"+id2).find('.del').after('<video preload="none"><source src="' + imageUrl + '"/></video>');
                             } else {
-                                $("#image-upload-"+id2).find('.del').after('<video preload="metadata"><source src="' + imageUrl + '#t=0.1'+'"/></video>');
+                                $("#image-upload-"+id2).find('.del').after('<video preload="metadata"><source src="' + imageUrl + '#t=1'+'"/></video>');
                             }
                         } else {
                             if (device === 'ios') {
@@ -1246,7 +1246,7 @@ var ycommon = (function(ycommon, $, window) {
                                     '<label id="label_upload_file_'+id2+'" for="upload_file_'+id2+'">' +
                                     '<div class="upload-icon2">' +
                                     '<button type="button" class="btn del"></button>' +
-                                    '<video preload="metadata"><source src="' + imageUrl +'#t=0.1'+'"/></video>' +
+                                    '<video preload="metadata"><source src="' + imageUrl +'#t=1'+'"/></video>' +
                                     '</div>' +
                                     '</label>' +
                                     '</div>';

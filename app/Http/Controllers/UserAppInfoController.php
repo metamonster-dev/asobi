@@ -289,6 +289,27 @@ class UserAppInfoController extends Controller
                 if ($userAppInfo) {
                     if ($push_key && $push_key != 'web') {
                         if ($userAppInfo->push_key != $push_key) {
+                            if ($device_kind != 'web'
+                                && $device_type != 'web'
+                                && $device_id != 'web'
+                                && $push_key == 'web'
+                            ) {
+                                $userAppInfo->push_alarm = 'N';
+                                $userAppInfo->notice_alarm = 'N';
+                                $userAppInfo->album_alarm = 'N';
+                                $userAppInfo->advice_alarm = 'N';
+                                $userAppInfo->attendance_alarm = 'N';
+                                $userAppInfo->adu_info_alarm = 'N';
+                                $userAppInfo->event_alarm = 'N';
+                            } else {
+                                $userAppInfo->push_alarm = 'Y';
+                                $userAppInfo->notice_alarm = 'Y';
+                                $userAppInfo->album_alarm = 'Y';
+                                $userAppInfo->advice_alarm = 'Y';
+                                $userAppInfo->attendance_alarm = 'Y';
+                                $userAppInfo->adu_info_alarm = 'Y';
+                                $userAppInfo->event_alarm = 'Y';
+                            }
                             $userAppInfo->push_key = $push_key;
                             $userAppInfo->save();
                         }
@@ -301,6 +322,27 @@ class UserAppInfoController extends Controller
                         ->first();
 
                     if ($userAppInfo) {
+                        if ($device_kind != 'web'
+                            && $device_type != 'web'
+                            && $device_id != 'web'
+                            && $push_key == 'web'
+                        ) {
+                            $userAppInfo->push_alarm = 'N';
+                            $userAppInfo->notice_alarm = 'N';
+                            $userAppInfo->album_alarm = 'N';
+                            $userAppInfo->advice_alarm = 'N';
+                            $userAppInfo->attendance_alarm = 'N';
+                            $userAppInfo->adu_info_alarm = 'N';
+                            $userAppInfo->event_alarm = 'N';
+                        } else {
+                            $userAppInfo->push_alarm = 'Y';
+                            $userAppInfo->notice_alarm = 'Y';
+                            $userAppInfo->album_alarm = 'Y';
+                            $userAppInfo->advice_alarm = 'Y';
+                            $userAppInfo->attendance_alarm = 'Y';
+                            $userAppInfo->adu_info_alarm = 'Y';
+                            $userAppInfo->event_alarm = 'Y';
+                        }
                         $userAppInfo->device_kind = $device_kind;
                         $userAppInfo->device_type = $device_type;
                         $userAppInfo->device_id = $device_id;
@@ -308,6 +350,27 @@ class UserAppInfoController extends Controller
 
                         $userAppInfo->save();
                     } else {
+                        if ($device_kind != 'web'
+                            && $device_type != 'web'
+                            && $device_id != 'web'
+                            && $push_key == 'web'
+                        ) {
+                            $payload = [
+                                'user_id' => $children_row->idx,
+                                'device_kind' => $device_kind,
+                                'device_type' => $device_type,
+                                'device_id' => $device_id,
+                                'push_key' => $push_key,
+                                'push_alarm' => 'N',
+                                'notice_alarm' => 'N',
+                                'album_alarm' => 'N',
+                                'advice_alarm' => 'N',
+                                'attendance_alarm' => 'N',
+                                'adu_info_alarm' => 'N',
+                                'event_alarm' => 'N',
+                                'wifi' => 'N'
+                            ];
+                        }
                         $userAppInfo = new UserAppInfo($payload);
                         $userAppInfo->save();
                     }
@@ -358,9 +421,29 @@ class UserAppInfoController extends Controller
             ->where('device_id', $device_id)
             ->first();
 
-
         if ($userAppInfo) {
             if ($userAppInfo->push_key != $push_key) {
+                if ($device_kind != 'web'
+                    && $device_type != 'web'
+                    && $device_id != 'web'
+                    && $push_key == 'web'
+                ) {
+                    $userAppInfo->push_alarm = 'N';
+                    $userAppInfo->notice_alarm = 'N';
+                    $userAppInfo->album_alarm = 'N';
+                    $userAppInfo->advice_alarm = 'N';
+                    $userAppInfo->attendance_alarm = 'N';
+                    $userAppInfo->adu_info_alarm = 'N';
+                    $userAppInfo->event_alarm = 'N';
+                } else {
+                    $userAppInfo->push_alarm = 'Y';
+                    $userAppInfo->notice_alarm = 'Y';
+                    $userAppInfo->album_alarm = 'Y';
+                    $userAppInfo->advice_alarm = 'Y';
+                    $userAppInfo->attendance_alarm = 'Y';
+                    $userAppInfo->adu_info_alarm = 'Y';
+                    $userAppInfo->event_alarm = 'Y';
+                }
                 $userAppInfo->push_key = $push_key;
                 $userAppInfo->save();
             }
@@ -371,13 +454,56 @@ class UserAppInfoController extends Controller
                 ->whereNull('device_id')
                 ->first();
 
-            if ($userAppInfo) {
+            if ($userAppInfo) {  // 로그아웃
+                if ($device_kind != 'web'
+                    && $device_type != 'web'
+                    && $device_id != 'web'
+                    && $push_key == 'web'
+                ) {
+                    $userAppInfo->push_alarm = 'N';
+                    $userAppInfo->notice_alarm = 'N';
+                    $userAppInfo->album_alarm = 'N';
+                    $userAppInfo->advice_alarm = 'N';
+                    $userAppInfo->attendance_alarm = 'N';
+                    $userAppInfo->adu_info_alarm = 'N';
+                    $userAppInfo->event_alarm = 'N';
+                }  else {
+                    $userAppInfo->push_alarm = 'Y';
+                    $userAppInfo->notice_alarm = 'Y';
+                    $userAppInfo->album_alarm = 'Y';
+                    $userAppInfo->advice_alarm = 'Y';
+                    $userAppInfo->attendance_alarm = 'Y';
+                    $userAppInfo->adu_info_alarm = 'Y';
+                    $userAppInfo->event_alarm = 'Y';
+                }
                 $userAppInfo->device_kind = $device_kind;
                 $userAppInfo->device_type = $device_type;
                 $userAppInfo->device_id = $device_id;
                 $userAppInfo->push_key = $push_key;
                 $userAppInfo->save();
             } else {
+                if ($device_kind != 'web'
+                    && $device_type != 'web'
+                    && $device_id != 'web'
+                    && $push_key == 'web'
+                ) {
+                    $payload = [
+                        'user_id' => $user->idx,
+                        'device_kind' => $device_kind,
+                        'device_type' => $device_type,
+                        'device_id' => $device_id,
+                        'push_key' => $push_key,
+                        'push_alarm' => 'N',
+                        'notice_alarm' => 'N',
+                        'album_alarm' => 'N',
+                        'advice_alarm' => 'N',
+                        'attendance_alarm' => 'N',
+                        'adu_info_alarm' => 'N',
+                        'event_alarm' => 'N',
+                        'wifi' => 'N'
+                    ];
+                }
+
                 $userAppInfo = new UserAppInfo($payload);
                 $userAppInfo->save();
             }
@@ -893,8 +1019,8 @@ class UserAppInfoController extends Controller
 
         $err_txt = \App::make('helper')->getValidError($validator);
         if ($err_txt != "") {
-//            \App::make('helper')->alert($err_txt);
-            \App::make('helper')->alert($err_txt, '/');
+            \App::make('helper')->alert($err_txt);
+//            \App::make('helper')->alert($err_txt, '/');
         }
 
         $userAgent = $_SERVER['HTTP_USER_AGENT'];
@@ -906,16 +1032,17 @@ class UserAppInfoController extends Controller
         }
 
 //        if ($_SERVER['REMOTE_ADDR'] === '183.101.245.76') {
-            if (($request->input('device_kind') != 'web'
-                && $request->input('device_type') != 'web'
-                && $request->input('device_id') != 'web'
-                && $request->input('push_key') == 'web')
-                ||
-                ($phpisMobile && $request->input('push_key') == 'web')
-            ) {
-                \App::make('helper')->alert('푸시키를 받아오지 못해 앱을 완전히 종료 후 재로그인 부탁드리겠습니다.', '/');
-            }
+//            \App::make('helper')->log('pushKeyError', ['message' => '푸시키를 받아오지 못해 앱을 완전히 종료 후 재로그인 부탁드리겠습니다.'], '', 'warning');
 //        }
+
+        if ($phpisMobile
+            && $request->input('device_kind') == 'web'
+            && $request->input('device_type') == 'web'
+            && $request->input('device_id') == 'web'
+            && $request->input('push_key') == 'web'
+        ) {
+            \App::make('helper')->alert('푸시키를 받아오지 못해 앱을 완전히 종료 후 재로그인 부탁드리겠습니다.', '/');
+        }
 
         $ip = \App::make('helper')->getClientIp();
         $request->merge([
@@ -938,8 +1065,8 @@ class UserAppInfoController extends Controller
             return redirect('/');
         } else {
             $error = $response->original['error'] ?? '아이디 패스워드를 확인해주세요.';
-//            \App::make('helper')->alert($error);
-            \App::make('helper')->alert($error, '/');
+            \App::make('helper')->alert($error);
+//            \App::make('helper')->alert($error, '/');
         }
     }
 

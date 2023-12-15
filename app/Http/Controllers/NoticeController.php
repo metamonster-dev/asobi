@@ -257,7 +257,7 @@ class NoticeController extends Controller
             $readed_students_array = [];
 
             if ($readed_students->count()) {
-                $readed_students_array = $readed_students->pluck('id');
+                $readed_students_array = $readed_students->pluck('idx');
             }
 
             $not_readed_students = RaonMember::select(

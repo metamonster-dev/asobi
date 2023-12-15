@@ -418,7 +418,7 @@ class AdviceNoteController extends Controller
 
         if ($user->mtype == 'm') {
             $adviceNoteHistory = AdviceNoteHistory::where('hidx', $user->hidx)
-                ->where('midx', $user->midx)
+                ->where('midx', $user->idx)
                 ->where('sidx', $student->idx)
                 ->where('advice_note_id', $row->id)
                 ->first();

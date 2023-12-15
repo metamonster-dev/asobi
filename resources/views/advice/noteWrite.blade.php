@@ -50,7 +50,7 @@ $currentDateTime = date('Y-m-d H:i:s');
                     <div class="form-group ip_wr mt-4 mt-lg-5 mb-0 mb-lg-4">
                         <div class="ip_tit d-flex align-items-center">
                             <h5 class="mr-3">사진·동영상</h5>
-                            <p class="fs_13 text-light"><span id="uploadCount">0</span>/20</p>
+                            <p class="fs_13 text-light"><span id="uploadCount">0</span>/10</p>
                         </div>
                         <div class="scroll_wrap none_scroll_bar_lg">
                             <div class="input-group-prepend" id="imgUpload">
@@ -213,6 +213,13 @@ $currentDateTime = date('Y-m-d H:i:s');
             f.tmp_file_ids.value = tmp_file_ids.join(',');
         }
 
+        if (ycommon.getUploadCount(upload_cont-delete_ids.length+tmp_file_ids.length) > 10 ) {
+            fsubmit = false;
+            $("#fsubmit").prop('disabled',false);
+            jalert("사진 및 동영상을 10개 초과할 수 없습니다.");
+            return false;
+        }
+
         if (f.ymd.value == "") {
             fsubmit = false;
             $("#fsubmit").prop('disabled',false);
@@ -258,7 +265,7 @@ $currentDateTime = date('Y-m-d H:i:s');
 
         ycommon.setDeleteUploadFile(multiform_delete_idx);
 
-        ycommon.deleteData('album');
+        ycommon.deleteData('advice');
         ycommon.deleteData('file');
 
         return true;
@@ -319,23 +326,24 @@ $currentDateTime = date('Y-m-d H:i:s');
                 $('#loading').hide();
                 jalert("파일 임시저장에 실패하였습니다.");
             }, 30000,undefined,{processData:false, contentType: false});
+        } else {
+            let content = $('#content').val();
+            let ymd = $('#ymd').val();
+            let studentChk = $('input[name="student[]"]:checked');
+            let student = [];
+            if (studentChk.length > 0) {
+                for (let i=0; i<studentChk.length; i++) {
+                    if ($(studentChk[i]).val()) student.push($(studentChk[i]).val());
+                }
+            }
+            ycommon.setData('advice',{
+                content: content,
+                ymd: ymd,
+                student: student
+            });
+            jalert("임시저장 되었습니다.");
         }
 
-        // let content = $('#content').val();
-        // let ymd = $('#ymd').val();
-        // let studentChk = $('input[name="student[]"]:checked');
-        // let student = [];
-        // if (studentChk.length > 0) {
-        //     for (let i=0; i<studentChk.length; i++) {
-        //         if ($(studentChk[i]).val()) student.push($(studentChk[i]).val());
-        //     }
-        // }
-        // ycommon.setData('advice',{
-        //     content: content,
-        //     ymd: ymd,
-        //     student: student
-        // });
-        // jalert("임시저장 되었습니다.");
     }
 
     function setTmpSave() {
@@ -382,7 +390,7 @@ $currentDateTime = date('Y-m-d H:i:s');
                     privewUploadeTmp = privewUploadeTmp.replaceAll("{i}", data.list[i].file_id);
                     privewUploadeTmp = privewUploadeTmp.replaceAll('{image_id}', data.list[i].file_id);
                     if (data.list[i].vimeo_id == "video") {
-                        privewUploadeTmp = privewUploadeTmp.replaceAll('{image}', "<video><source src='"+data.list[i].file_path+'#t=0.1'+"' /></video>");
+                        privewUploadeTmp = privewUploadeTmp.replaceAll('{image}', "<video><source src='"+data.list[i].file_path+'#t=1'+"' /></video>");
                     } else {
                         privewUploadeTmp = privewUploadeTmp.replaceAll('{image}', "<img src='"+data.list[i].file_path+"' />");
                     }
@@ -390,7 +398,7 @@ $currentDateTime = date('Y-m-d H:i:s');
                     previewHtmlTmp = previewHtml;
                     previewHtmlTmp = previewHtmlTmp.replaceAll("{i}", data.list[i].file_id);
                     if (data.list[i].vimeo_id == "video") {
-                        previewHtmlTmp = previewHtmlTmp.replaceAll('{imageVideo}', '<video><source src="'+data.list[i].file_path+"#t=0.1"+'" class="w-100"></video>');
+                        previewHtmlTmp = previewHtmlTmp.replaceAll('{imageVideo}', '<video><source src="'+data.list[i].file_path+"#t=1"+'" class="w-100"></video>');
                     } else {
                         previewHtmlTmp = previewHtmlTmp.replaceAll('{imageVideo}', '<img src="'+data.list[i].file_path+'" class="w-100">');
                     }
@@ -456,10 +464,10 @@ $currentDateTime = date('Y-m-d H:i:s');
         var i = 0;
         $(".addBtn").on('click', function(e) {
             // console.log('addBtn');
-            if (ycommon.getUploadCount(upload_cont-delete_ids.length+tmp_file_ids.length) >= 10) {
-                jalert("사진 동영상은 10개까지만 등록 가능합니다.");
-                return;
-            }
+            // if (ycommon.getUploadCount(upload_cont-delete_ids.length+tmp_file_ids.length) >= 10) {
+            //     jalert("사진 동영상은 10개까지만 등록 가능합니다.");
+            //     return;
+            // }
             let addForm = '<div class="image-upload2 mr-3" data-id="'+i+'" id="image-upload-'+i+'">'+
                     '<label id="label_upload_file_'+i+'" for="upload_file_'+i+'">' +
                         '<div class="upload-icon2">' +
@@ -510,6 +518,13 @@ $currentDateTime = date('Y-m-d H:i:s');
         @endif
 
         $(document).on('change', '.upload_files', function(e) {
+            let entireCount = parseInt(document.getElementById('uploadCount').innerText);
+
+            if (entireCount + this.files.length > 10) {
+                jalert("사진 동영상은 10개까지만 등록 가능합니다.");
+                return;
+            }
+
             const imageMaxSize = 10 * 1024 * 1024; // 10MB
             const videoMaxSize = 10 * 10 * 1024 * 1024; // 100MB
 
@@ -549,19 +564,6 @@ $currentDateTime = date('Y-m-d H:i:s');
                 this.value = '';
                 return;
             }
-
-            // let breaker = false;
-            // document.querySelectorAll('video').forEach((elem) => {
-            //     if (elem && this.files[0].type.startsWith('video/')) {
-            //         breaker = true;
-            //     }
-            // })
-            //
-            // if (breaker) {
-            //     jalert('동영상은 하나만 첨부할 수 있습니다.');
-            //     this.value = '';
-            //     return;
-            // }
 
             $('#loading').show();
 

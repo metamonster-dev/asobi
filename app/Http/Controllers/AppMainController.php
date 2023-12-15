@@ -273,6 +273,7 @@ class AppMainController extends Controller
             }); // $calendar_years->map End
         }
 
+
         if ($midx) {
             $center_calendar_years = DB::connection('mysql')->table('schedule_academy_studies')
                 ->select(DB::raw("DISTINCT(DATE_FORMAT(`date`, '%Y')) AS year"))
@@ -283,7 +284,7 @@ class AppMainController extends Controller
             $center_calendar_years_array = array();
             if ($center_calendar_years->count()) {
                 $center_calendar_years->map(function($center_calendar_year) use(&$center_calendar_years_array) {
-                    $center_calendar_years_array[] = $center_calendar_year->year;
+//                    $center_calendar_years_array[] = $center_calendar_year->year;
                 }); // $calendar_years->map End
             }
 
@@ -301,6 +302,7 @@ class AppMainController extends Controller
                 )
                 ->orderBy('date', 'asc')
                 ->get();
+
         } else {
             if ($user->mtype == 'm') {
                 $rs = ScheduleStudy::whereIn('type', ['blue', 'red'])->when($year_month, function ($query, $year_month) {

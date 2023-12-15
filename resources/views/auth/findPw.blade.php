@@ -5,7 +5,7 @@ class="body m_view"
 @section('contents')
 <?php
 $title = "비밀번호 찾기";
-$back_link = "/auth/login";
+//$back_link = "/auth/login";
 ?>
 @include('common.headm02')
 

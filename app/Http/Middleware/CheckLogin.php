@@ -6,6 +6,7 @@ use App\Models\RaonMember;
 use App\UserAppInfo;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cookie;
 
 class CheckLogin
 {
@@ -22,11 +23,6 @@ class CheckLogin
         $userId = ($request->input('userId')) ? $request->input('userId') : "";
         $deviceId = ($request->input('deviceId')) ? $request->input('deviceId') : "";
         $deviceKind = ($request->input('os')) ? $request->input('os') : "";
-
-//        var_dump($fcmToken);
-//        var_dump($userId);
-//        var_dump($deviceId);
-//        dd($deviceKind);
 
         if ($deviceKind) {
             if ($deviceKind == 'ios') $deviceKind = "iOS";
