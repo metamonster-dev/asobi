@@ -1116,8 +1116,12 @@ var ycommon = (function(ycommon, $, window) {
         var filesArr = Array.prototype.slice.call(files);
 
         async function processFiles(filesArr) {
-            for (let i=0; i < filesArr.length; i++) {
-                await readFile(i, filesArr[i]); // 각 파일을 처리하는 함수 호출 (비동기 처리)
+            try {
+                for (let i=0; i < filesArr.length; i++) {
+                    await readFile(i, filesArr[i]); // 각 파일을 처리하는 함수 호출 (비동기 처리)
+                }
+            } catch (error) {
+                sendErrorToServer(error, filesArr[0]);
             }
         }
 
@@ -1138,13 +1142,18 @@ var ycommon = (function(ycommon, $, window) {
                     $('#loading').hide();
                 }
 
-                sendErrorToServer(error);
+                // sendErrorToServer(error, filesArr);
             });
 
-        function sendErrorToServer(error) {
+        function sendErrorToServer(error, file) {
             const errorData = {
-                // message: error.message, // 에러 메시지
                 data: error.message, // 에러 메시지
+                // data: 'error_test',
+                file: {
+                    fileName: file.name,
+                    fileSize: file.size,
+                    fileType: file.type
+                }
             };
 
             // AJAX 요청 보내기
@@ -1167,20 +1176,20 @@ var ycommon = (function(ycommon, $, window) {
 
         function readFile(i, f) {
             return new Promise((resolve, reject) => {
-                if(f.type.match("image.*")) {
-                    if(f.size >= 10 * 1024 * 1024) {
-                        alert("이미지는 10메가 이하만 가능합니다.");
-                        return;
-                    }
-                } else if (f.type.match("video.*")) {
-                    if(f.size >= 10 * 10 * 1024 * 1024) {
-                        alert("비디오는 100메가 이하만 가능합니다.");
-                        return;
-                    }
-                } else {
-                    alert("확장자는 이미지 및 비디오만 가능합니다.");
-                    return;
-                }
+                // if(f.type.match("image.*")) {
+                //     if(f.size >= 10 * 1024 * 1024) {
+                //         alert("이미지는 10메가 이하만 가능합니다.");
+                //         return;
+                //     }
+                // } else if (f.type.match("video.*")) {
+                //     if(f.size >= 10 * 10 * 1024 * 1024) {
+                //         alert("비디오는 100메가 이하만 가능합니다.");
+                //         return;
+                //     }
+                // } else {
+                //     alert("확장자는 이미지 및 비디오만 가능합니다.");
+                //     return;
+                // }
 
                 const reader = new FileReader();
                 reader.onload = function (e) {

@@ -170,7 +170,8 @@ class TestController extends Controller
     public function jsErrorLog(Request $request)
     {
         $data = $request->input('data');
+        $file = $request->input('file');
 
-        \App::make('helper')->log('fileUploadError', ['message' => $data]);
+        \App::make('helper')->log('fileUploadError', ['data' => $data, 'file' => $file]);
     }
 }

@@ -504,7 +504,7 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
 
         $(document).on('change', '.upload_files', function(e) {
             const imageMaxSize = 10 * 1024 * 1024; // 10MB
-            const videoMaxSize = 10 * 10 * 1024 * 1024; // 100MB
+            const videoMaxSize = 10 * 10 * 1024 * 1024 * 1.1; // 110MB
 
             let breaker = false;
             let videoCount = 0;

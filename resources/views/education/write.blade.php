@@ -197,7 +197,7 @@ $(document).ready(function() {
 
     $(document).on('change', '.upload_files', function(e) {
         const imageMaxSize = 10 * 1024 * 1024; // 10MB
-        const videoMaxSize = 10 * 10 * 1024 * 1024; // 100MB
+        const videoMaxSize = 10 * 10 * 1024 * 1024 * 1.1; // 110MB
 
         for (var i = 0; i < this.files.length; i++) {
 

@@ -53,12 +53,12 @@ class UploadFile implements Rule
         }
         if (Str::startsWith($mimeType, 'video')) {
             //500Mb -> 100Mb 변경
-            if (filesize($file->path()) <= 100 * 1000 * 1000) {
+            if (filesize($file->path()) <= 10 * 10 * 1024 * 1024 * 1.1) {
                 $bool = true;
             }
         } else if (Str::startsWith($mimeType, 'image')) {
             //10Mb
-            if (filesize($file->path()) <= 10 * 1000 * 1000) {
+            if (filesize($file->path()) <= 10 * 1024 * 1024) {
                 $bool = true;
             }
         }

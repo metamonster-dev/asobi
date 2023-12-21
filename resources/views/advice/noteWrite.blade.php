@@ -526,7 +526,7 @@ $currentDateTime = date('Y-m-d H:i:s');
             }
 
             const imageMaxSize = 10 * 1024 * 1024; // 10MB
-            const videoMaxSize = 10 * 10 * 1024 * 1024; // 100MB
+            const videoMaxSize = 10 * 10 * 1024 * 1024 * 1.1; // 110MB
 
             let breaker = false;
             let videoCount = 0;

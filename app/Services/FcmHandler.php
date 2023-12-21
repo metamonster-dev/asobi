@@ -42,10 +42,10 @@ class FcmHandler
     }
 
     if ($this->isInitialRequest()) {
-      $this->logProgress('푸쉬 알림을 전송합니다.', [
-        'receivers' => $this->receivers,
-        'message' => $this->message,
-      ], 'debug');
+//      $this->logProgress('푸쉬 알림을 전송합니다.', [
+//        'receivers' => $this->receivers,
+//        'message' => $this->message,
+//      ], 'debug');
     }
 
     try {
@@ -69,9 +69,9 @@ class FcmHandler
       $this->handleDeliveryFailureIfAny($response);
 
       // return $this->responseInJson['results'];
-      $this->logProgress("푸쉬 알림을 전송했습니다.", [
-        'receiver' => $this->receivers,
-      ]);
+//      $this->logProgress("푸쉬 알림을 전송했습니다.", [
+//        'receiver' => $this->receivers,
+//      ]);
     } catch (Exception $e) {
       $this->logProgress("푸쉬 알림을 전송하지 못헸습니다: {$e->getMessage()}", [
         'receiver' => $this->receivers,
@@ -99,7 +99,7 @@ class FcmHandler
   {
     $request = $this->getRequest($tokens);
     $guzzleResponse = $this->httpClient->send($request);
-    $this->logger->log('debug', "[FcmHandler] guzzleResponse : ", ['guzzleResponse' => $guzzleResponse->getBody()]);
+//    $this->logger->log('debug', "[FcmHandler] guzzleResponse : ", ['guzzleResponse' => $guzzleResponse->getBody()]);
     // $this->responseInJson = \GuzzleHttp\json_decode($guzzleResponse->getBody(), true);
     return new DownstreamResponse($guzzleResponse, $tokens);
   }
