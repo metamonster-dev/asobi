@@ -181,7 +181,10 @@ class AdviceNoteController extends Controller
             ->where('year', $year)
             ->where('month', $month)
             ->when($search_text, function ($q) use ($search_text){
-                $q->where('advice_notes.content','like','%'.$search_text.'%');
+                $q->where(function ($query) use ($search_text) {
+                    $query->where('advice_notes.content','like','%'.$search_text.'%')
+                        ->orWhere('advice_notes.title', 'like', '%'.$search_text.'%');
+                });
             })
             ->orderByDesc('type')
             ->orderByDesc('created_at')
@@ -585,13 +588,15 @@ class AdviceNoteController extends Controller
 
         $result = Arr::add($result, "write_possible_date", date('Y-m-d H:i:s', $write_possible_date)."~");
 
-        if ($write_possible_date < $now_date && $now_year_month == $year."-".$month) {
+        if ($write_possible_date < $now_date && $now_year_month == $year."-".$month || session('auth')['user_type'] == 'a') {
             $result = Arr::add($result, "write_possible", true);
         } else {
             $result = Arr::add($result, "write_possible", false);
         }
 
-//        $result = Arr::add($result, "write_possible", true);
+//        if ($_SERVER['REMOTE_ADDR'] === '183.101.245.76') {
+//            dd($user->mtype);
+//        }
 
         return response()->json($result);
     }
@@ -1853,7 +1858,7 @@ class AdviceNoteController extends Controller
                 \App::make('helper')->alert($search_user_letter_name."회원의 ".$smonth."월 가정통신문이 이미 발송 되었습니다.");
             }
 
-            if (count($student) == 0) {
+            if (count($student) == 0 && $userType !== 'a') {
                 \App::make('helper')->alert("모든 학생에게 가정통신문을 발송하여 더이상 가정통신문 작성을 할 수 없습니다.");
             }
         }

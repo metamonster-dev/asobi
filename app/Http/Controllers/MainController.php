@@ -15,6 +15,7 @@ class MainController extends Controller
     }
     public function main(Request $request)
     {
+
         $userId = \App::make('helper')->getUsertId();
         $userType = \App::make('helper')->getUsertType();
         $branch = $center = "";
