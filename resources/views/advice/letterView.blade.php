@@ -73,7 +73,8 @@ $hd_bg = "1";
                 </div>
                 <div class="fs_15 line_h1_4">
                     @if(isset($row['content']) && $row['content'])
-                    <div class="wh_pre">{!! nl2br($row['content']) !!}</div>
+{{--                    <div class="wh_pre">{!! nl2br($row['content']) !!}</div>--}}
+                    <div class="fs_15 line_h1_4">{!! nl2br($row['content']) !!}</div>
                     @endif
                     @if(isset($row['content']) && $row['content'] && isset($row['prefix_content']) && $row['prefix_content'])
                     <br/>
