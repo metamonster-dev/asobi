@@ -155,7 +155,7 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
                 @endif
             @endif
             <div class="cmt_wr note_btns pt-0 pt_lg_50 pb-0 pb-lg-4">
-                <button type="submit" id="fsubmit" class="btn btn-primary" {{ $row ? 'disabled' : ''}}>전송</button>
+                <button type="submit" id="fsubmit" class="btn btn-primary">전송</button>
                 <button type="button" class="d-none d-lg-block btn btn-gray text-white" onclick="location.href='/advice'">목록</button>
                 @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='m')
                     @if($mode == 'w')
