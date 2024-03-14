@@ -33,9 +33,9 @@ $back_link = "/";
                 @foreach($list as $l)
                     <li class="col">
                         <a href="/event/view/{{ $l['id'] }}">
-                            <div class="rect rect4 rounded-lg sizefull">
+                            <div class="rect rect4 rounded-lg sizefull" style="height: 100px;">
                                 @if(isset($l['image']) && $l['image'])
-                                <img src="{{ $l['image'] }}">
+                                <img src="{{ $l['image'] }}" style="height: unset;">
                                 @else
                                 <i class="no_img"></i>
                                 @endif
