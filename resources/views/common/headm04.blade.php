@@ -13,6 +13,8 @@ $type ?? $type = '';
             <button type="button" class="btn btn-sm btn_preview btn-outline-secondary_bg text-secondary_bg bg-white" onclick="location.href='javascript:;'">미리보기</button>
         <?php } else if ($hd_bg === '3') { ?>
             <button type="button" class="btn btn-sm btn_preview btn-outline-success text-success bg-white" onclick="location.href='javascript:;'">미리보기</button>
+        <?php } else if ($type === 'letterWrite') { ?>
+            <button type="button" class="btn btn-sm btn_preview btn-outline-primary text-primary bg-white" onclick="location.href='javascript:;'">미리보기</button>
         <?php } ?>
     </div>
 </div>

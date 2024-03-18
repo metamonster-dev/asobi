@@ -48,7 +48,7 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
                 <button type="button" class="btn btn-md border border-primary text-primary px-5 mr-3" onclick="jalert2('임시저장을 하시겠습니까?', '임시저장', tmpSave);">임시저장</button>
                     @endif
                 @endif
-{{--                <button type="button" class="btn btn-md border border-primary text-primary px-5"onclick="getAdvicePreview()">미리보기</button>--}}
+                <button type="button" class="btn btn-md border border-primary text-primary px-5" onclick="getAdvicePreview()">미리보기</button>
             </div>
         </div>
 
@@ -320,15 +320,15 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
         let crDt = [year, month, day].join('.') + " " + [H, i].join(':');
 
         @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='m')
-        let content = $('#content').val();
-        let class_content = $('#class_content').val();
-        $('#contentModal').text(content);
-        $('#classContentModal').text(class_content);
+            let content = $('#content').val();
+            let class_content = $('#class_content').val();
+            $('#contentModal').text(content);
+            $('#classContentModal').text(class_content);
         @elseif(isset(session('auth')['user_type']) && session('auth')['user_type'] =='a')
-        let prefix_content = $('#prefix_content').val();
-        let this_month_education_info = $('#this_month_education_info').val();
-        $('#prefixContentModal').text(prefix_content);
-        $('#thisMonthEducationInfoModal').text(this_month_education_info);
+            let prefix_content = $('#prefix_content').val();
+            let this_month_education_info = $('#this_month_education_info').val();
+            $('#prefixContentModal').text(prefix_content);
+            $('#thisMonthEducationInfoModal').text(this_month_education_info);
         @endif
 
         $('#subjectModal').text(month + "월 가정통신문");

@@ -24,7 +24,8 @@ $title = "미리보기";
                         <!-- 교육원이 작성한 내용 노출시 -->
                         <div class="letter_box letter_box1">
                             <div class="rounded-pill py-4 text-center position-relative">
-                                <p class="fs_16 fw_700 text-white">내용</p>
+{{--                                <p class="fs_16 fw_700 text-white">내용</p>--}}
+                                <p class="fs_16 fw_700 text-white">아소비 교육원 알림</p>
                                 <div class="lt_ico">
                                     <img src="/img/m1_tit1.png">
                                 </div>
@@ -32,6 +33,8 @@ $title = "미리보기";
                             <p class="fs_15 wh_pre line_h1_4" id="contentModal">군인·군무원·경찰공무원 기타 법률이 정하는 자가 전투·훈련등 직무집행과 관련하여 받은 손해에 대하여는 법률이 정하는 보상외에 국가 또는 공공단체에 공무원의 직무상 불법행위로 인한 배상은 청구할 수 없다.
 
                             국가는 대외무역을 육성하며, 이를 규제·조정할 수 있다. 지방의회의 조직·권한·의원선거와 지방자치단체의 장의 선임방법 기타 지방자치단체의 조직과 운영에 관한 사항은 법률로 정한다.</p>
+                            <br/>
+                            {{ $row['prefix_content'] ?? '' }}
                         </div>
                         <div class="letter_box letter_box2">
                             <div class="rounded-pill py-4 text-center position-relative">
@@ -41,6 +44,16 @@ $title = "미리보기";
                                 </div>
                             </div>
                             <p class="fs_15 wh_pre line_h1_4" id="classContentModal"></p>
+                        </div>
+
+                        <div class="letter_box letter_box3">
+                            <div class="rounded-pill py-4 text-center position-relative">
+                                <p class="fs_16 fw_700 text-white">교육정보</p>
+                                <div class="lt_ico">
+                                    <img src="/img/m1_tit1.png">
+                                </div>
+                            </div>
+                            <p class="fs_15 wh_pre line_h1_4">{{ $row['this_month_education_info'] ?? '' }}</p>
                         </div>
                         <!-- // 교육원이 작성한 내용 노출시 -->
                         @elseif(isset(session('auth')['user_type']) && session('auth')['user_type'] =='a')
