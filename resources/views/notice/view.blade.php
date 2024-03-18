@@ -77,6 +77,7 @@ $hd_bg = "3";
                 </ul>
             </div>
             @endif
+
             <div id="content" class="editor_wrap fs_15">{!! $row['content'] !!}</div>
 
             @if(isset(session('auth')['user_type']) && session('auth')['user_type'] !=='s')
@@ -195,7 +196,23 @@ $hd_bg = "3";
     // content 안에 링크 자동으로 a태그 만들어주기
     const content = document.getElementById('content').innerHTML;
 
-    const contentWithLinks = content.replace(/(http[s]?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
+    // const contentWithLinks = content.replace(/(http[s]?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
+
+    const contentWithLinks = content.replace(
+        /<a\s+(?:[^>]*?\s+)?href\s*=\s*(['"])(.*?)\1[^>]*>.*?<\/a>|((?<=^|>)[^<]*?(http[s]?:\/\/\S+)[^<]*?(?=<|$))/gi,
+        (match, p1, p2, p3, p4) => {
+            // 이미 <a> 태그로 감싸져 있는지 확인
+            if (p1) {
+                // 이미 <a> 태그로 감싸져 있는 경우 변환하지 않고 원래의 링크를 유지
+                return match;
+            } else {
+                // <a> 태그로 감싸지 않은 경우 링크를 <a> 태그로 변환
+                const linkText = p3.replace(/http\S+/, ''); // "http" 이후의 문자열 제거
+
+                return `${linkText} <a href="${p4}" target="_blank">${p4}</a>`;
+            }
+        }
+    );
 
     document.getElementById('content').innerHTML = contentWithLinks;
 </script>
