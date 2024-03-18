@@ -10,6 +10,7 @@ use App\NoticeFile;
 use App\NoticeHistory;
 use App\Models\RaonMember;
 use App\RequestLog;
+use Aws\Api\Parser\XmlParser;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -333,6 +334,8 @@ class NoticeController extends Controller
 
         $title = $request->input('title');
         $content = $request->input('content');
+
+        $content = preg_replace('/(<br\s*\/?>)/', ' $1', $content);
 
         //권한 설정
         // @20200103 지사 공지사항 일 경우 해당 지사의 교육원만 볼 수 있다.
