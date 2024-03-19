@@ -51,6 +51,7 @@ class UserAppInfoController extends Controller
             })->first();
 
         if (empty($user)) {
+            $isIdUser = false;
             $login_id = str_replace('-', '', $login_id);
 
             $user = RaonMember::selectRaw("*, password(?) as input_pw", [$password])
@@ -73,6 +74,8 @@ class UserAppInfoController extends Controller
                 ->whereIn('s_status', array('W', 'Y'))
                 ->orderBy('s_status', 'desc')
                 ->first();
+        } else {
+            $isIdUser = true;
         }
 
         if (empty($user) || ($user->mtype === 's' && $user->status === 'D')) {
@@ -129,7 +132,7 @@ class UserAppInfoController extends Controller
                 return response()->json($result);
             }
 
-            $this->loginUserProc($user, $result, $device_kind, $device_type, $device_id, $push_key, $ip);
+            $this->loginUserProc($user, $result, $device_kind, $device_type, $device_id, $push_key, $ip, $isIdUser);
         } else {
             $this->loginManagerProc($user, $result, $device_kind, $device_type, $device_id, $push_key, $ip);
         }
@@ -247,16 +250,24 @@ class UserAppInfoController extends Controller
     }
 
     //학부모 디바이스 저장 처리
-    private function loginUserProc(RaonMember $user, &$result, $device_kind, $device_type, $device_id, $push_key, $ip) {
+    private function loginUserProc(RaonMember $user, &$result, $device_kind, $device_type, $device_id, $push_key, $ip, $isIdUser = false) {
 
         $children_search_mobilephone = str_replace('-', '', $user->mobilephone);
 
-        $children_rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $children_search_mobilephone)
-//        $children_rs = RaonMember::where('mobilephone', $user->mobilephone)
-            ->where('mtype', 's')
-            ->whereIn('s_status', array('W', 'Y'))
-            ->orderBy('s_status', 'desc')
-            ->get();
+        // 번호가 아니라 아이디로 로그인하면 로그인 아이디만 찾게끔 수정
+        if ($isIdUser) {
+            $children_rs = RaonMember::where('id', $user->id)
+                ->where('mtype', 's')
+                ->whereIn('s_status', array('W', 'Y'))
+                ->orderBy('s_status', 'desc')
+                ->get();
+        } else {
+            $children_rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $children_search_mobilephone)
+                ->where('mtype', 's')
+                ->whereIn('s_status', array('W', 'Y'))
+                ->orderBy('s_status', 'desc')
+                ->get();
+        }
 
         if ($children_rs) {
             foreach ($children_rs as $children_index => $children_row) {
