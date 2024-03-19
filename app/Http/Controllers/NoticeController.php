@@ -768,7 +768,7 @@ class NoticeController extends Controller
 
         $user = \App::make('helper')->getUsertId();
         $userType = \App::make('helper')->getUsertType();
-        if (in_array($userType, ['a','h'])) {
+        if (in_array($userType, ['h'])) {
             $user = session()->get('center');
         }
 
