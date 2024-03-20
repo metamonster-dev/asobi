@@ -31,9 +31,13 @@ $hd_bg = "3";
             </div>
             @if(isset(session('auth')['user_type']) && (session('auth')['user_type'] =='m' || session('auth')['user_type'] =='a') && ($modifyBtn || $deleteBtn))
             <!--  ※ 수정, 삭제 버튼은 교육원, 본사일 때 노출 -->
+            <button class="btn p-0 d-none d-lg-block" onclick="UrlCopy()"><img src="/img/ic_share.png"></button>
+
             <div class="position-relative d-block d-lg-none">
                 <button type="button" class="btn p-0 btn_more h-auto"><img src="/img/ic_more.png" style="width: 1.6rem;"></button>
+
                 <ul class="more_cont">
+                    <li><button class="btn" onclick="UrlCopy()">공유</button></li>
                     @if($modifyBtn)
                     <li><button class="btn" onclick="location.href='/notice/write/{{ $id }}'">수정</button></li>
                     @endif
@@ -215,6 +219,43 @@ $hd_bg = "3";
     );
 
     document.getElementById('content').innerHTML = contentWithLinks;
+
+    function UrlCopy(){
+        var url = window.location.href;
+        const id = {{ $id }};
+        if (typeof window.ReactNativeWebView !== 'undefined') {
+            window.ReactNativeWebView.postMessage(
+                JSON.stringify({targetFunc: "copy",url: url})
+            );
+
+            let action = `/api/share?link=${url}&id=${id}`;
+            let data = '';
+
+            ycommon.ajaxJson('get', action, data, undefined, function (res) {
+            })
+
+        } else {
+            var tempInput = $('<input>');
+            tempInput.css({
+                position: 'absolute',
+                left: '-9999px', // 화면 영역 밖으로 이동
+            });
+            $('body').append(tempInput);
+            let action = `/api/share?link=${url}&id=${id}`;
+            let data = '';
+
+            ycommon.ajaxJson('get', action, data, undefined, function (res) {
+                tempInput.val(res.shortLink).select();
+                const copy = document.execCommand('copy');
+                tempInput.remove();
+                if (copy) {
+                    alert("클립보드 복사되었습니다.");
+                } else {
+                    alert("이 브라우저는 지원하지 않습니다.");
+                }
+            })
+        }
+    }
 </script>
 
 @endsection
