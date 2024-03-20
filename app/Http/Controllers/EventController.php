@@ -73,7 +73,7 @@ class EventController extends Controller
         $end = $request->input('end');
         if (strtotime($end) < strtotime($start)) {
             $result = Arr::add($result, 'result', 'fail');
-            $result = Arr::add($result, 'error', '이벤트 종료일이 시자일보다 먼저일 수는 없습니다.');
+            $result = Arr::add($result, 'error', '이벤트 종료일이 시작일보다 먼저일 수는 없습니다.');
             return response()->json($result);
         }
 
@@ -738,7 +738,7 @@ class EventController extends Controller
             ->orderByDesc('events.id')
             ->select('events.*', 'files.file_path')
             ->leftJoin('files', function ($q) {
-                $q->on('events.id', '=', 'files.type_id')->on('files.type',DB::raw(2));
+                $q->on('events.id', '=', 'files.type_id')->on('files.type',DB::raw(7));
             })
             ->when($user->mtype != 'a', function ($q) {
                 $q->where('events.start', '<=', date('Y-m-d'));
