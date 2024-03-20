@@ -133,7 +133,6 @@ class UserAppInfoController extends Controller
         } else {
             $this->loginManagerProc($user, $result, $device_kind, $device_type, $device_id, $push_key, $ip);
         }
-
 //        var_dump($user->__toString());
 
         return response()->json($result);
@@ -237,8 +236,7 @@ class UserAppInfoController extends Controller
     private function deleteFCMKey($push_key)
     {
         if ($push_key == 'web') return;
-        $userAppInfo = UserAppInfo::where('push_key', $push_key)
-            ->get();
+        $userAppInfo = UserAppInfo::where('push_key', $push_key)->get();
         if ($userAppInfo) {
             foreach ($userAppInfo as $row) {
                 $row->delete();
@@ -454,7 +452,7 @@ class UserAppInfoController extends Controller
                 ->whereNull('device_id')
                 ->first();
 
-            if ($userAppInfo) {  // 로그아웃
+            if ($userAppInfo) {  // 로그아웃 후 재로그인시
                 if ($device_kind != 'web'
                     && $device_type != 'web'
                     && $device_id != 'web'

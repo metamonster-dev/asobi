@@ -11,16 +11,11 @@ class="body"
         </div>
         <form class="login-form" name="login-form" id="login-form" method="POST" action="/auth/loginAction">
 
-            <?php if ($_SERVER['REMOTE_ADDR'] === '183.101.245.76' || $_SERVER['REMOTE_ADDR'] === '115.93.23.14') : ?>
-{{--                <input type="text" name="device_kind" id="device_kind" value="{{ $device_kind }}" />--}}
-{{--                <input type="text" name="device_type" id="device_type" value="{{ $device_type }}" />--}}
-{{--                <input type="text" name="device_id" id="device_id" value="{{ $device_id }}" />--}}
-{{--                <input type="text" name="push_key" id="push_key" value="{{ $push_key }}" />--}}
-{{--            <?php elseif ($_SERVER['REMOTE_ADDR'] === '183.101.245.76') : ?>--}}
-{{--                <input type="text" name="device_kind" id="device_kind" value="iOS" />--}}
-{{--                <input type="text" name="device_type" id="device_type" value="iPhone" />--}}
-{{--                <input type="text" name="device_id" id="device_id" value="EA1F2329-9043-4D07-9A5F-538CD83D1C07" />--}}
-{{--                <input type="text" name="push_key" id="push_key" value="web" />--}}
+            <?php if ($_SERVER['REMOTE_ADDR'] === '183.101.245.76') : ?>
+                <input type="text" name="device_kind" id="device_kind" value="{{ session('auth')['device_kind'] ?? $device_kind }}" />
+                <input type="text" name="device_type" id="device_type" value="{{ session('auth')['device_type'] ?? $device_type }}" />
+                <input type="text" name="device_id" id="device_id" value="{{ session('auth')['device_id'] ?? $device_id }}" />
+                <input type="text" name="push_key" id="push_key" value="{{ session('auth')['push_key'] ?? $push_key }}" />
             <?php else : ?>
                 <input type="hidden" name="device_kind" id="device_kind" value="{{ session('auth')['device_kind'] ?? $device_kind }}" />
                 <input type="hidden" name="device_type" id="device_type" value="{{ session('auth')['device_type'] ?? $device_type }}" />
