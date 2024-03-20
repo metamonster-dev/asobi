@@ -317,7 +317,6 @@
                 </div>
             @endif
         </div>
-        </div>
 
         <div class="loading_wrap" id="loading" style="display: none">
             <div class="loading_text">
