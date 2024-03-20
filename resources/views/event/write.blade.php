@@ -131,6 +131,7 @@ $back_link = "/event";
                     CKEDITOR.replace('content', {
                         extraPlugins: 'uploadimage, image2',
                         height : '300px',
+                        linkDefaultProtocol: 'https://',
                         filebrowserImageUploadUrl : '/api/editor/fileWrite?type=2',
                         enterMode : CKEDITOR.ENTER_BR,
                         toolbarGroups : [
