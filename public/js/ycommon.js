@@ -1147,8 +1147,8 @@ var ycommon = (function(ycommon, $, window) {
 
         function sendErrorToServer(error, file) {
             const errorData = {
-                data: error.message, // 에러 메시지
-                // data: 'error_test',
+                data: JSON.stringify(error), // 에러 메시지
+                userAgent: navigator.userAgent,
                 file: {
                     fileName: file.name,
                     fileSize: file.size,
@@ -1311,7 +1311,6 @@ var ycommon = (function(ycommon, $, window) {
                 reader.readAsArrayBuffer(f); // 파일 읽기 작업 시작
             });
         }
-
     }
 
     ycommon.getUploadCount = function (upload_cont) {
