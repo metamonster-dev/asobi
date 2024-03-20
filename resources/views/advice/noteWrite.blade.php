@@ -227,12 +227,12 @@ $currentDateTime = date('Y-m-d H:i:s');
             return false;
         }
 
-        if (ymdValue > currentDate) {
-            fsubmit = false;
-            $("#fsubmit").prop('disabled',false);
-            jalert('미래 날짜는 선택할 수 없습니다.');
-            return false;
-        }
+        //if (ymdValue > currentDate) {
+        //    fsubmit = false;
+        //    $("#fsubmit").prop('disabled',false);
+        //    jalert('미래 날짜는 선택할 수 없습니다.');
+        //    return false;
+        //}
 
         if (f.content.value == "") {
             fsubmit = false;
@@ -478,7 +478,7 @@ $currentDateTime = date('Y-m-d H:i:s');
 
             addForm += '<input id="upload_file_'+i+'" multiple="multiple" name="upload_files[]" class="upload_files d-none" data-id="'+i+'" type="file" accept="image/*,video/*" />';
 
-            $('#imgUpload').append(addForm)
+            $('#imgUpload').append(addForm);
             $('#label_upload_file_'+i).trigger('click');
             i++;
         });

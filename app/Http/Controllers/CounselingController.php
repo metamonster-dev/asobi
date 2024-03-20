@@ -68,18 +68,16 @@ class CounselingController extends Controller
             ->orderBy('raon_member.name')
             ->get();
 
-        $uids = DB::connection('mysql')->table('raon_member')
-            ->select('idx as uid')
-            ->where('midx', $user->idx)
-            ->where('mtype', 's')
-            ->where('s_status', 'Y')
-            ->when($search_user_id != "", function ($q) use ($search_user_id) {
-                $q->where('raon_member.idx', $search_user_id);
-            })
-            ->pluck('uid');
-
-//        DB::enableQueryLog();
-
+//        $uids = DB::connection('mysql')->table('raon_member')
+//            ->select('idx as uid')
+//            ->where('midx', $user->idx)
+//            ->where('mtype', 's')
+//            ->where('s_status', 'Y')
+//            ->when($search_user_id != "", function ($q) use ($search_user_id) {
+//                $q->where('raon_member.idx', $search_user_id);
+//            })
+//            ->pluck('uid');
+//
 //        $maxCreated = DB::table('counselings')
 //            ->select(DB::raw('MAX(created_at) as ccreated_at'), 'sidx as uid')
 //            ->groupBy('sidx', DB::raw('YEAR(created_at)'), DB::raw('MONTH(created_at)'))
@@ -90,7 +88,7 @@ class CounselingController extends Controller
 //            })
 //            ->orderBy('sidx')
 //            ->get();
-
+//
 //        foreach ($maxCreated as $key => $value) {
 //            $nameResult = DB::connection('mysql')->table('raon_member')->select('name')->whereIdx($value->uid)->first();
 //
@@ -238,7 +236,6 @@ class CounselingController extends Controller
             'day' => $day,
             'created_at' => $year."-".$month."-".$day." ".date('H:i:s'),
         ];
-
         $counseling = new Counseling($payload);
         $counseling->save();
         $result = Arr::add($result, 'result', 'success');

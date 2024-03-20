@@ -258,7 +258,7 @@ class UserController extends Controller
 
             $rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $phone)
                 ->where('mtype', 's')
-                ->whereIn('s_status', array('W', 'Y'))
+                ->whereIn('s_status', array('Y'))
                 ->orderBy('s_status', 'desc')
                 ->get();
 

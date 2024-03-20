@@ -51,7 +51,6 @@ class UserAppInfoController extends Controller
             })->first();
 
         if (empty($user)) {
-            $isIdUser = false;
             $login_id = str_replace('-', '', $login_id);
 
             $user = RaonMember::selectRaw("*, password(?) as input_pw", [$password])
@@ -71,11 +70,9 @@ class UserAppInfoController extends Controller
                 // ->where('pw_a', '=', 'Y')
                 // 2023.12.02 실디비 연결후 특정 조건 계정만 테스트하기 위해 추가 by asobi - end
                 ->where('mtype', '=', 's')
-                ->whereIn('s_status', array('W', 'Y'))
+                ->whereIn('s_status', array('Y'))
                 ->orderBy('s_status', 'desc')
                 ->first();
-        } else {
-            $isIdUser = true;
         }
 
         if (empty($user) || ($user->mtype === 's' && $user->status === 'D')) {
@@ -132,7 +129,7 @@ class UserAppInfoController extends Controller
                 return response()->json($result);
             }
 
-            $this->loginUserProc($user, $result, $device_kind, $device_type, $device_id, $push_key, $ip, $isIdUser);
+            $this->loginUserProc($user, $result, $device_kind, $device_type, $device_id, $push_key, $ip);
         } else {
             $this->loginManagerProc($user, $result, $device_kind, $device_type, $device_id, $push_key, $ip);
         }
@@ -168,7 +165,7 @@ class UserAppInfoController extends Controller
                 //->where('pw_a', '=', 'Y')
                 // 2023.12.02 실디비 연결후 특정 조건 계정만 테스트하기 위해 추가 by asobi - end
                 ->where('mtype', '=', 's')
-                ->whereIn('s_status', array('W', 'Y'))
+                ->whereIn('s_status', array('Y'))
                 ->orderBy('s_status', 'desc')
                 ->first();
         }
@@ -250,24 +247,16 @@ class UserAppInfoController extends Controller
     }
 
     //학부모 디바이스 저장 처리
-    private function loginUserProc(RaonMember $user, &$result, $device_kind, $device_type, $device_id, $push_key, $ip, $isIdUser = false) {
+    private function loginUserProc(RaonMember $user, &$result, $device_kind, $device_type, $device_id, $push_key, $ip) {
 
         $children_search_mobilephone = str_replace('-', '', $user->mobilephone);
 
-        // 번호가 아니라 아이디로 로그인하면 로그인 아이디만 찾게끔 수정
-        if ($isIdUser) {
-            $children_rs = RaonMember::where('id', $user->id)
-                ->where('mtype', 's')
-                ->whereIn('s_status', array('W', 'Y'))
-                ->orderBy('s_status', 'desc')
-                ->get();
-        } else {
-            $children_rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $children_search_mobilephone)
-                ->where('mtype', 's')
-                ->whereIn('s_status', array('W', 'Y'))
-                ->orderBy('s_status', 'desc')
-                ->get();
-        }
+        $children_rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $children_search_mobilephone)
+//        $children_rs = RaonMember::where('mobilephone', $user->mobilephone)
+            ->where('mtype', 's')
+            ->whereIn('s_status', array('W', 'Y'))
+            ->orderBy('s_status', 'desc')
+            ->get();
 
         if ($children_rs) {
             foreach ($children_rs as $children_index => $children_row) {
@@ -1052,7 +1041,7 @@ class UserAppInfoController extends Controller
             && $request->input('device_id') == 'web'
             && $request->input('push_key') == 'web'
         ) {
-            \App::make('helper')->alert('푸시키를 받아오지 못해 앱을 완전히 종료 후 재로그인 부탁드리겠습니다.', '/');
+            \App::make('helper')->alert('푸시키를 받아오지 못하였습니다.\n 아소비 앱 삭제 > 휴대폰 재부팅 > 앱 재설치시 알림 권한을 허용해주세요.', '/');
         }
 
         $ip = \App::make('helper')->getClientIp();

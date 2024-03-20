@@ -16,6 +16,8 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
 } else {
     $phpisIOS = false;
 }
+$user = \App::make('helper')->getUsertId();
+
 ?>
 @include('common.headm04')
 @include('album.preview')
@@ -212,6 +214,12 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
         const currentDate = new Date();
         const ymdValue = new Date(f.ymd.value);
 
+        @if($user == "86293")
+            //jalert(currentDate);
+            //jalert(ymdValue);
+            //return false;
+        @endif
+
         if (delete_ids.length > 0) {
             f.delete_ids.value = delete_ids.join(',');
         }
@@ -234,12 +242,12 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
             return false;
         }
 
-        if (ymdValue > currentDate) {
-            fsubmit = false;
-            $("#fsubmit").prop('disabled',false);
-            jalert('미래 날짜는 선택할 수 없습니다.');
-            return false;
-        }
+        //if (ymdValue > currentDate) {
+        //    fsubmit = false;
+        //    $("#fsubmit").prop('disabled',false);
+        //    jalert('미래 날짜는 선택할 수 없습니다.');
+        //    return false;
+        //}
 
         @if($mode == "w")
         if ($("input[name='student[]']:checked").length == 0) {
@@ -484,10 +492,10 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
                 '</label>' +
                 '</div>';
 
-            {{--addForm += '<input id="upload_file_'+i+'" <?=$phpisIOS === true ? '' : 'multiple="multiple"'?> name="upload_files[]" class="upload_files d-none" data-id="'+i+'" type="file" accept="image/*,video/*" />';--}}
-            addForm += '<input id="upload_file_'+i+'" multiple="multiple" name="upload_files[]" class="upload_files d-none" data-id="'+i+'" type="file" accept="image/*,video/*" />';
 
-            $('#imgUpload').append(addForm)
+            addForm += '<input id="upload_file_'+i+'" multiple="multiple" name="upload_files[]" class="upload_files d-none" data-id="'+i+'" type="file" accept="image/jpg,image/jpeg,video/mp4" />';
+
+            $('#imgUpload').append(addForm);
             $('#label_upload_file_'+i).trigger('click');
             i++;
         });
@@ -542,6 +550,7 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
             let breaker = false;
             let videoCount = 0;
             for (var i = 0; i < this.files.length; i++) {
+
                 if (this.files[i].type.startsWith('image/')) {
                     if (this.files[i].size > imageMaxSize) {
                         jalert('파일 크기가 너무 큽니다. 10MB 이하의 파일을 선택하세요.');

@@ -520,6 +520,10 @@ function getVimeoVideo () {
                         })
                     }
 
+                    const playHtumnailButton = `<button type="button" class="btn btn_play" style="z-index: 9999"><img src="/img/ic_play.png" /></button>`;
+
+                    $(`.thumnail_img${i}`).append(playHtumnailButton);
+
                     $(`.video_area#vimeo${i}`).find('img').hide();
                     $(`.video_area#vimeo${i}`).append(playButton + pauseButton + downloadButton);
 

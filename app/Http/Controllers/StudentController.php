@@ -51,11 +51,11 @@ class StudentController extends Controller
         //학부모 자녀의 계정인지 체크
 //        $children_rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), str_replace('-','',$sessionUser->mobilephone))
         $children_rs = RaonMember::where('idx', '=', $userId)
-            ->where('mtype', 's')
+        ->where('mtype', 's')
 //            ->where('idx','=',$userId)
-            ->whereIn('s_status', array('Y'))
+              ->whereIn('s_status', array('Y'))
 //            ->orderBy('s_status', 'desc')
-            ->get();
+              ->get();
 
         if ($children_rs->count() == 0) \App::make('helper')->alert("잘못된 접근입니다.4");
 

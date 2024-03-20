@@ -115,12 +115,12 @@ $hd_bg = "3";
             return false;
         }
 
-        if (ymdValue > currentDate) {
-            fsubmit = false;
-            $("#fsubmit").prop('disabled',false);
-            jalert('미래 날짜는 선택할 수 없습니다.');
-            return false;
-        }
+        //if (ymdValue > currentDate) {
+        //    fsubmit = false;
+        //    $("#fsubmit").prop('disabled',false);
+        //    jalert('미래 날짜는 선택할 수 없습니다.');
+        //   return false;
+        //}
 
         if (f.content.value == "") {
             fsubmit = false;

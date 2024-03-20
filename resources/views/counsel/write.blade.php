@@ -79,10 +79,10 @@ $hd_bg = "7";
             return false;
         }
 
-        if (ymdValue > currentDate) {
-            jalert('미래 날짜는 선택할 수 없습니다.');
-            return false;
-        }
+        //if (ymdValue > currentDate) {
+        //    jalert('미래 날짜는 선택할 수 없습니다.');
+        //    return false;
+        //}
 
         if(f.content.value =="") {
             jalert("내용을 입력해주세요.");
