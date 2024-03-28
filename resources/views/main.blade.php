@@ -307,9 +307,9 @@
                         <div class="swiper-wrapper">
                             @foreach($mainBanner as $l)
                                 <div class="swiper-slide">
-                                    <div class="d-none d-lg-block banner_img cursor_pointer" style="background-image:url('{{ $l['image'] ?? '' }}')" onclick="document.location.href='/event/view/{{ $l['id'] ?? '' }}'"></div>
-                                    <div class="d-none d-md-block d-lg-none banner_img cursor_pointer" style="background-image:url('{{ $l['image2'] ?? '' }}')" onclick="document.location.href='/event/view/{{ $l['id'] ?? '' }}'"></div>
-                                    <div class="d-block d-md-none banner_img cursor_pointer" style="background-image:url('{{ $l['image3'] ?? '' }}')" onclick="document.location.href='/event/view/{{ $l['id'] ?? '' }}'"></div>
+                                    <div class="d-none d-lg-block banner_img cursor_pointer" style="background-image:url('{{ $l['image'] ?? '' }}')" onclick="document.location.href='{{ $l['bannerLink'] ?? '/event/view/' . $l['id'] . '?isBanner=1' }}'"></div>
+                                    <div class="d-none d-md-block d-lg-none banner_img cursor_pointer" style="background-image:url('{{ $l['image2'] ?? '' }}')" onclick="document.location.href='{{ $l['bannerLink'] ?? '/event/view/' . $l['id'] . '?isBanner=1' }}'"></div>
+                                    <div class="d-block d-md-none banner_img cursor_pointer" style="background-image:url('{{ $l['image3'] ?? '' }}')" onclick="document.location.href='{{ $l['bannerLink'] ?? '/event/view/' . $l['id'] . '?isBanner=1' }}'"></div>
                                 </div>
                             @endforeach
                         </div>

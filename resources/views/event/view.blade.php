@@ -66,7 +66,9 @@ $back_link = "/event";
                         </div>
                     </form>
                 </div>
-                <div id="commetHtml"></div>
+                @if($row['useComment'] == 1)
+                    <div id="commetHtml"></div>
+                @endif
             </div>
         </div>
     </article>

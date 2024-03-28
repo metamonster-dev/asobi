@@ -79,8 +79,11 @@ class EventController extends Controller
         }
 
         $subject = $request->input('subject');
+        $bannerLink = $request->input('bannerLink');
         $content = $request->input('content');
         $status = $request->input('status');
+        $useComment = $request->input('useComment');
+        $order = $request->input('order') ?? 0;
 
         //이미지 파일 경로 확인.
         $imgs = \App::make('helper')->getEditorImgs($content);
@@ -88,10 +91,13 @@ class EventController extends Controller
         //디비 저장
         $payload = [
             'subject' => $subject,
+            'banner_link' => $bannerLink,
             'content' => $content,
             'status' => $status,
+            'use_comment' => $useComment,
             'start' => $start,
             'end' => $end,
+            'order' => $order
         ];
         $event = new Event($payload);
         $event->save();
@@ -377,8 +383,11 @@ class EventController extends Controller
         }
 
         $subject = $request->input('subject');
+        $bannerLink = $request->input('bannerLink');
         $content = $request->input('content');
         $status = $request->input('status');
+        $useComment = $request->input('useComment');
+        $order = $request->input('order') ?? 0;
 
         //이미지 파일 경로 확인.
         $imgs = \App::make('helper')->getEditorImgs($content);
@@ -391,10 +400,13 @@ class EventController extends Controller
         $remove_arr = array_diff($old_imgs,$imgs);
 
         $row->subject = $subject;
+        $row->banner_link = $bannerLink;
         $row->content = $content;
         $row->start = $start;
         $row->end = $end;
         $row->status = $status;
+        $row->use_comment = $useComment;
+        $row->order = $order;
         $row->update();
 
         //에디터의 파일에 대한 타입 아이디 부여
@@ -644,6 +656,7 @@ class EventController extends Controller
 
         $result = Arr::add($result, 'result', 'success');
         $result = Arr::add($result, 'subject', $row->subject);
+        $result = Arr::add($result, 'bannerLink', $row->banner_link);
         $result = Arr::add($result, 'content', $content);
         $result = Arr::add($result, 'image', $file ? \App::make('helper')->getImage($file->file_path): null);
         $result = Arr::add($result, 'image_id', $file ? $file->id: null);
@@ -654,6 +667,8 @@ class EventController extends Controller
         $result = Arr::add($result, 'start', $row->start);
         $result = Arr::add($result, 'end', $row->end);
         $result = Arr::add($result, 'status', $row->status);
+        $result = Arr::add($result, 'useComment', $row->use_comment);
+        $result = Arr::add($result, 'order', $row->order);
         $status_text = "진행중";
         if ($row->status == "0" || strtotime($row->end) < time()) $status_text = "종료";
         else if ($row->status == "1" && strtotime($row->start) > time()) $status_text = "대기";
@@ -667,7 +682,14 @@ class EventController extends Controller
     {
         $result = array();
 
-        $rs = Event::orderByDesc('events.start')
+        $rs = Event::orderByRaw('
+                CASE
+                    WHEN `order` IS NULL THEN 1
+                    ELSE 0
+                END,
+                `order` ASC
+            ')
+            ->orderByDesc('events.start')
             ->orderByDesc('events.id')
             ->select(DB::raw('events.*, a.file_path, b.file_path as file_path2, c.file_path as file_path3'))
 //            ->select('events.*', 'files.file_path')
@@ -688,8 +710,14 @@ class EventController extends Controller
         if ($rs) {
             $result = Arr::add($result, 'result', 'success');
             foreach ($rs as $index => $row) {
+                if (!preg_match("~^(?:f|ht)tps?://~i", $row->banner_link)) {
+                    // "https://"가 없다면 URL 앞에 추가하여 반환
+                    $row->banner_link = 'https://'.$row->banner_link;
+                }
+
                 $result = Arr::add($result, "list.{$index}.id", $row->id);
                 $result = Arr::add($result, "list.{$index}.subject", $row->subject);
+                $result = Arr::add($result, "list.{$index}.bannerLink", $row->banner_link);
                 $result = Arr::add($result, "list.{$index}.image", $row->file_path ? \App::make('helper')->getImage($row->file_path): null);
                 $result = Arr::add($result, "list.{$index}.image2", $row->file_path2 ? \App::make('helper')->getImage($row->file_path2): null);
                 $result = Arr::add($result, "list.{$index}.image3", $row->file_path3 ? \App::make('helper')->getImage($row->file_path3): null);
