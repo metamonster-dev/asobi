@@ -515,10 +515,10 @@ class EducatonInfoController extends Controller
 
     public function educationView($id)
     {
-        $uesrId = \App::make('helper')->getUsertId();
+        $userId = \App::make('helper')->getUsertId();
         $userType = \App::make('helper')->getUsertType();
         $eventReq = Request::create('/api/educatonInfo/view/'.$id, 'GET', [
-            'user' => $uesrId
+            'user' => $userId
         ]);
         $res = $this->show($eventReq, $id);
 

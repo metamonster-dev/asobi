@@ -676,13 +676,13 @@ class NoticeController extends Controller
     public function noticeView(Request $request, $id)
     {
         $ym = $request->input('ym') ?? date('Y-m');
-        $uesrId = \App::make('helper')->getUsertId();
+        $userId = \App::make('helper')->getUsertId();
         $userType = \App::make('helper')->getUsertType();
         if (in_array($userType, ['a','h'])) {
-            $uesrId = session()->get('center');
+            $userId = session()->get('center');
         }
         $albumReq = Request::create('/api/notice/view/'.$id, 'GET', [
-            'user' => $uesrId,
+            'user' => $userId,
         ]);
         $res = $this->show($albumReq, $id);
         $student = $res->original['student'] ?? [];
