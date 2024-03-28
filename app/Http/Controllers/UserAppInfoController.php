@@ -1039,7 +1039,9 @@ class UserAppInfoController extends Controller
             && $request->input('device_id') == 'web'
             && $request->input('push_key') == 'web'
         ) {
-            \App::make('helper')->alert('푸시키를 받아오지 못하였습니다.\n 아소비 앱 삭제 > 휴대폰 재부팅 > 앱 재설치시 알림 권한을 허용해주세요.', '/');
+            if (!in_array($_SERVER['REMOTE_ADDR'], ['115.93.23.14', '183.101.245.76'])) {
+                \App::make('helper')->alert('푸시키를 받아오지 못하였습니다.\n 아소비 앱 삭제 > 휴대폰 재부팅 > 앱 재설치시 알림 권한을 허용해주세요.', '/');
+            }
         }
 
         $ip = \App::make('helper')->getClientIp();
