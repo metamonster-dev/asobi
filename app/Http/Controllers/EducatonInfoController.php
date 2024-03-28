@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\AppendFile;
 use App\CommonHistory;
+use App\Models\BoardView;
 use App\Rules\UploadFile;
 use App\Models\RaonMember;
 use App\EducatonInfo;
@@ -525,6 +526,18 @@ class EducatonInfoController extends Controller
         if ($res->original['result'] != 'success') {
             $error = \App::make('helper')->getErrorMsg($res->original['error']);
             \App::make('helper')->alert($error);
+        }
+
+        $isDuplicateBoardView = BoardView::where('user_id', $userId)->where('board_type', 'education')->where('board_id', $id)->exists();
+
+        if (!$isDuplicateBoardView) {
+            $boardView = new BoardView();
+
+            $boardView->user_id = $userId;
+            $boardView->board_type = 'education';
+            $boardView->board_id = $id;
+
+            $boardView->save();
         }
 
         return view('education/view',[

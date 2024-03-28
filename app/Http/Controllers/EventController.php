@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\AppendFile;
 use App\CommonHistory;
 use App\File;
+use App\Models\BoardView;
 use App\Rules\UploadFile;
 use App\Models\RaonMember;
 use App\Event;
@@ -788,18 +789,35 @@ class EventController extends Controller
             'list' => $list,
         ]);
     }
-    public function eventView($id)
+    public function eventView(Request $request, $id)
     {
-        $uesrId = \App::make('helper')->getUsertId();
+        $isBanner = $request->input('isBanner');
+        $userId = \App::make('helper')->getUsertId();
         $userType = \App::make('helper')->getUsertType();
         $eventReq = Request::create('/api/event/view/'.$id, 'GET', [
-            'user' => $uesrId
+            'user' => $userId
         ]);
         $res = $this->show($eventReq, $id);
 
         if ($res->original['result'] != 'success') {
             $error = \App::make('helper')->getErrorMsg($res->original['error']);
             \App::make('helper')->alert($error);
+        }
+
+        $getBoardView = BoardView::where('user_id', $userId)->where('board_type', 'event')->where('board_id', $id)->first();
+
+        if (!$getBoardView) {
+            $boardView = new BoardView();
+
+            $boardView->user_id = $userId;
+            $boardView->board_type = 'event';
+            $boardView->board_id = $id;
+            $boardView->is_banner = $isBanner;
+
+            $boardView->save();
+        } elseif ($getBoardView->is_banner === null) {
+            $getBoardView->is_banner = $isBanner;
+            $getBoardView->save();
         }
 
         return view('event/view',[

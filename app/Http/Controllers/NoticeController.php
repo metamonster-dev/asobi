@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\AppendFile;
 use App\CommonComment;
 use App\Jobs\BatchPush;
+use App\Models\BoardView;
 use App\Notice;
 use App\NoticeFile;
 use App\NoticeHistory;
@@ -690,6 +691,18 @@ class NoticeController extends Controller
         if ($res->original['result'] != 'success') {
             $error = \App::make('helper')->getErrorMsg($res->original['error']);
             \App::make('helper')->alert($error);
+        }
+
+        $isDuplicateBoardView = BoardView::where('user_id', $userId)->where('board_type', 'notice')->where('board_id', $id)->exists();
+
+        if (!$isDuplicateBoardView) {
+            $boardView = new BoardView();
+
+            $boardView->user_id = $userId;
+            $boardView->board_type = 'notice';
+            $boardView->board_id = $id;
+
+            $boardView->save();
         }
 
         return view('notice/view',[
