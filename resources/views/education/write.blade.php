@@ -49,9 +49,8 @@ $back_link = "/education";
                 <!-- EDITOR -->
                 <textarea class="form-control" name="content" placeholder="내용을 입력해주세요" rows="5">{!! $row['content'] ?? '' !!}</textarea>
                 <script type="text/javascript">
-                    <!--
                     CKEDITOR.replace('content', {
-                        extraPlugins: 'uploadimage, image2',
+                        // extraPlugins: 'uploadimage, image2',
                         height : '300px',
                         linkDefaultProtocol: 'https://',
                         filebrowserImageUploadUrl : '/api/editor/fileWrite?type=1',
@@ -74,7 +73,6 @@ $back_link = "/education";
                         ],
                         removeButtons : 'Find,Replace,SelectAll,Scayt,Form,Checkbox,Radio,TextField,Textarea,Select,Button,ImageButton,HiddenField,Save,NewPage,Preview,Print,Templates,ShowBlocks,Undo,Redo,PasteFromWord,PasteText,Anchor,Flash,Smiley,SpecialChar,PageBreak,Iframe,Subscript,Superscript,CopyFormatting,Outdent,Indent,Blockquote,CreateDiv,BidiLtr,BidiRtl,Language,About,Styles,Font',
                     });
-                    //-->
                 </script>
             </div>
 
