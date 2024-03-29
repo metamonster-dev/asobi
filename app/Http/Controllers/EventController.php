@@ -710,7 +710,7 @@ class EventController extends Controller
         if ($rs) {
             $result = Arr::add($result, 'result', 'success');
             foreach ($rs as $index => $row) {
-                if (!preg_match("~^(?:f|ht)tps?://~i", $row->banner_link)) {
+                if ($row->banner_link && !preg_match("~^(?:f|ht)tps?://~i", $row->banner_link)) {
                     // "https://"가 없다면 URL 앞에 추가하여 반환
                     $row->banner_link = 'https://'.$row->banner_link;
                 }
@@ -834,7 +834,14 @@ class EventController extends Controller
 
         $getBoardView = BoardView::where('user_id', $userId)->where('board_type', 'event')->where('board_id', $id)->first();
 
-        if (!$getBoardView) {
+        if ($getBoardView) {
+            if ($isBanner) {
+                $getBoardView->is_banner = $isBanner;
+                $getBoardView->save();
+            } else {
+                $getBoardView->touch();
+            }
+        } else {
             $boardView = new BoardView();
 
             $boardView->user_id = $userId;
@@ -843,9 +850,6 @@ class EventController extends Controller
             $boardView->is_banner = $isBanner;
 
             $boardView->save();
-        } elseif ($getBoardView->is_banner === null) {
-            $getBoardView->is_banner = $isBanner;
-            $getBoardView->save();
         }
 
         return view('event/view',[

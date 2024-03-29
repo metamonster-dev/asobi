@@ -693,9 +693,11 @@ class NoticeController extends Controller
             \App::make('helper')->alert($error);
         }
 
-        $isDuplicateBoardView = BoardView::where('user_id', $userId)->where('board_type', 'notice')->where('board_id', $id)->exists();
+        $getDuplicateBoardView = BoardView::where('user_id', $userId)->where('board_type', 'notice')->where('board_id', $id)->first();
 
-        if (!$isDuplicateBoardView) {
+        if ($getDuplicateBoardView) {
+            $getDuplicateBoardView->touch();
+        } else {
             $boardView = new BoardView();
 
             $boardView->user_id = $userId;
