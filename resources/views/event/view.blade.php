@@ -50,6 +50,7 @@ $back_link = "/event";
                     <button type="button" class="btn btn-gray text-white" onclick="location.href='/event'">목록</button>
                 @endif
             </div>
+            @if($row['useComment'] == 1)
             <hr class="line mt-5 mb-3">
             <div class="pt-3">
                 <div class="pb-0 pb-lg-4 px-0 px-lg-3 mx-0 mx-lg-3">
@@ -66,8 +67,7 @@ $back_link = "/event";
                         </div>
                     </form>
                 </div>
-                @if($row['useComment'] == 1)
-                    <div id="commetHtml"></div>
+                <div id="commetHtml"></div>
                 @endif
             </div>
         </div>
