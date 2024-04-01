@@ -51,6 +51,7 @@ $back_link = "/education";
                 <script type="text/javascript">
                     CKEDITOR.replace('content', {
                         // extraPlugins: 'uploadimage, image2',
+                        language : 'ko',
                         height : '300px',
                         linkDefaultProtocol: 'https://',
                         filebrowserImageUploadUrl : '/api/editor/fileWrite?type=1',
