@@ -832,29 +832,25 @@ class EventController extends Controller
             \App::make('helper')->alert($error);
         }
 
-        $getBoardView = BoardView::where('user_id', $userId)->where('board_type', 'event')->where('board_id', $id)->first();
+        $boardView = new BoardView();
 
-        if ($getBoardView) {
-            if ($isBanner) {
-                $getBoardView->is_banner = $isBanner;
-                $getBoardView->save();
-            } else {
-                $getBoardView->touch();
-            }
-        } else {
-            $boardView = new BoardView();
+        $boardView->user_id = $userId;
+        $boardView->board_type = 'event';
+        $boardView->board_id = $id;
+        $boardView->is_banner = $isBanner;
 
-            $boardView->user_id = $userId;
-            $boardView->board_type = 'event';
-            $boardView->board_id = $id;
-            $boardView->is_banner = $isBanner;
+        $boardView->save();
 
-            $boardView->save();
-        }
+        $getCountQuery = BoardView::where('board_type', 'event')->where('board_id', $id);
+
+        $getAllCountBoardView = $getCountQuery->count();
+        $getFilterCountBoardView = $getCountQuery->distinct()->count('user_id');
 
         return view('event/view',[
             'row' => $res->original ?? [],
             'id' => $id,
+            'getAllCountBoardView' => $getAllCountBoardView ?? 0,
+            'getFilterCountBoardView' => $getFilterCountBoardView ?? 0,
         ]);
     }
     public function eventWrite(Request $request, $id="")

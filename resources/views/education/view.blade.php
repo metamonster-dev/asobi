@@ -22,6 +22,9 @@ $back_link = "/education";
                 <h4 class="tit_h4 line_h1">{!! nl2br($row['subject']) !!}</h4>
             </div>
             @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='a')
+                <div class="d-flex flex-column" style="margin-left: auto;">
+                    <p class="fs_14 fw_300 text-light" style="margin-bottom: 25px;">전체 조회수: {{ number_format($getAllCountBoardView) }} / 순 조회수: {{ number_format($getFilterCountBoardView) }}</p>
+                </div>
             <!-- ※ 수정, 삭제 버튼은 본사일 때만 노출 -->
             <div class="position-relative d-block d-lg-none">
                 <button type="button" class="btn p-0 btn_more h-auto"><img src="/img/ic_more.png" style="width: 1.6rem;"></button>

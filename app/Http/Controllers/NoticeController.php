@@ -693,19 +693,18 @@ class NoticeController extends Controller
             \App::make('helper')->alert($error);
         }
 
-        $getDuplicateBoardView = BoardView::where('user_id', $userId)->where('board_type', 'notice')->where('board_id', $id)->first();
+        $boardView = new BoardView();
 
-        if ($getDuplicateBoardView) {
-            $getDuplicateBoardView->touch();
-        } else {
-            $boardView = new BoardView();
+        $boardView->user_id = $userId;
+        $boardView->board_type = 'notice';
+        $boardView->board_id = $id;
 
-            $boardView->user_id = $userId;
-            $boardView->board_type = 'notice';
-            $boardView->board_id = $id;
+        $boardView->save();
 
-            $boardView->save();
-        }
+        $getCountQuery = BoardView::where('board_type', 'notice')->where('board_id', $id);
+
+        $getAllCountBoardView = $getCountQuery->count();
+        $getFilterCountBoardView = $getCountQuery->distinct()->count('user_id');
 
         return view('notice/view',[
             'row' => $res->original ?? [],
@@ -715,6 +714,8 @@ class NoticeController extends Controller
             'studentReadY' => $res->original['readed_students'] ?? [],
             'back_link' => "/notice?ym=".$ym,
             'id' => $id,
+            'getAllCountBoardView' => $getAllCountBoardView ?? 0,
+            'getFilterCountBoardView' => $getFilterCountBoardView ?? 0,
         ]);
     }
 

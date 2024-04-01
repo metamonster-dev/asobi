@@ -528,23 +528,24 @@ class EducatonInfoController extends Controller
             \App::make('helper')->alert($error);
         }
 
-        $getDuplicateBoardView = BoardView::where('user_id', $userId)->where('board_type', 'education')->where('board_id', $id)->first();
+        $boardView = new BoardView();
 
-        if ($getDuplicateBoardView) {
-            $getDuplicateBoardView->touch();
-        } else {
-            $boardView = new BoardView();
+        $boardView->user_id = $userId;
+        $boardView->board_type = 'education';
+        $boardView->board_id = $id;
 
-            $boardView->user_id = $userId;
-            $boardView->board_type = 'education';
-            $boardView->board_id = $id;
+        $boardView->save();
 
-            $boardView->save();
-        }
+        $getCountQuery = BoardView::where('board_type', 'education')->where('board_id', $id);
+
+        $getAllCountBoardView = $getCountQuery->count();
+        $getFilterCountBoardView = $getCountQuery->distinct()->count('user_id');
 
         return view('education/view',[
             'row' => $res->original ?? [],
             'id' => $id,
+            'getAllCountBoardView' => $getAllCountBoardView ?? 0,
+            'getFilterCountBoardView' => $getFilterCountBoardView ?? 0,
         ]);
     }
 

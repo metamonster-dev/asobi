@@ -29,6 +29,12 @@ $hd_bg = "3";
                 <span class="d-none d-lg-inline-block text-primary mr-2">[{{ $row['type'] }}공지]</span> {{ $row['title'] }}
                 </h4>
             </div>
+            @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='a')
+                <div class="d-flex flex-column mr-3" style="margin-left: auto;">
+                    <p class="fs_14 fw_300 text-light" style="margin-bottom: 25px;">전체 조회수: {{ number_format($getAllCountBoardView) }} / 순 조회수: {{ number_format($getFilterCountBoardView) }}</p>
+                </div>
+            @endif
+
             @if(isset(session('auth')['user_type']) && (session('auth')['user_type'] =='m' || session('auth')['user_type'] =='a') && ($modifyBtn || $deleteBtn))
             <!--  ※ 수정, 삭제 버튼은 교육원, 본사일 때 노출 -->
             <button class="btn p-0 d-none d-lg-block" onclick="UrlCopy()"><img src="/img/ic_share.png"></button>
