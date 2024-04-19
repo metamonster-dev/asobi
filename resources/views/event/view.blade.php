@@ -16,8 +16,13 @@ $back_link = "/event";
                 @include('common.tabs')
             </div>
             <div class="pb-4 mb-3 mb-lg-2 border-bottom d-flex align-items-center justify-content-between">
-                <div>
-                    <h4 class="tit_h4 mb-3 line_h1">{!! nl2br($row['subject']) !!}</h4>
+                <div class="w-100">
+                    <h4 class="tit_h4 mb-3 line_h1 d-flex justify-content-between">
+                        <div>{!! nl2br($row['subject']) !!}</div>
+                        @if(isset(session('auth')['user_type']) && session('auth')['user_type'] == 'a')
+                            <div class="fs_12 fw_300 text-light" style="text-align: right; min-width: 80px;">전체 조회수: {{ number_format($getAllCountBoardView) }} / 순 조회수: {{ number_format($getFilterCountBoardView) }}</div>
+                        @endif
+                    </h4>
                     <div class="d-flex align-items-center">
                         <span class="ev_stat @if($row['status_text'] == "진행중") ev_1 @else ev_2 @endif">{{ $row['status_text'] }}</span>
                         <div class="d-flex flex-wrap ml-1">
@@ -28,10 +33,6 @@ $back_link = "/event";
                 </div>
                 <!-- ※ 수정, 삭제 버튼은 본사일 때만 노출 -->
                 @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='a')
-                    <div class="d-flex flex-column mr-3" style="margin-left: auto;">
-                        <p class="fs_14 fw_300 text-light" style="margin-bottom: 25px;">전체 조회수: {{ number_format($getAllCountBoardView) }} / 순 조회수: {{ number_format($getFilterCountBoardView) }}</p>
-                    </div>
-
                     <div class="position-relative d-block d-lg-none">
                         <button type="button" class="btn p-0 btn_more h-auto"><img src="/img/ic_more.png" style="width: 1.6rem;"></button>
                         <ul class="more_cont">

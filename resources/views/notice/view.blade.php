@@ -21,24 +21,21 @@ $hd_bg = "3";
         </div>
 
         <div class="pb-4 mb-3 mb-lg-0 border-bottom d-flex align-items-center justify-content-between">
-            <div>
-                <p class="text-dark_gray fs_13 fw_300 mb-2 line_h1_2">
-                    <span class="d-inline-block d-lg-none text-primary fw_500 mr-2">[{{ $row['type'] }}공지]</span> {{ $row['date'] }}
-                </p>
+            <div class="w-100">
+                <div class="text-dark_gray fs_13 fw_300 mb-2 line_h1_2 d-flex justify-content-between">
+                    <div><span class="d-inline-block d-lg-none text-primary fw_500">[{{ $row['type'] }}공지]</span> {{ $row['date'] }}</div>
+                    @if(isset(session('auth')['user_type']) && session('auth')['user_type'] == 'a')
+                        <div class="fs_12 fw_300 text-light mr-3" style="text-align: right">전체 조회수: {{ number_format($getAllCountBoardView) }} / 순 조회수: {{ number_format($getFilterCountBoardView) }}</div>
+                    @endif
+                </div>
                 <h4 class="tit_h4 line1_text line_h1">
-                <span class="d-none d-lg-inline-block text-primary mr-2">[{{ $row['type'] }}공지]</span> {{ $row['title'] }}
+                    <span class="d-none d-lg-inline-block text-primary mr-2">[{{ $row['type'] }}공지]</span> {{ $row['title'] }}
                 </h4>
             </div>
-            @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='a')
-                <div class="d-flex flex-column mr-3" style="margin-left: auto;">
-                    <p class="fs_14 fw_300 text-light" style="margin-bottom: 25px;">전체 조회수: {{ number_format($getAllCountBoardView) }} / 순 조회수: {{ number_format($getFilterCountBoardView) }}</p>
-                </div>
-            @endif
 
-            @if(isset(session('auth')['user_type']) && (session('auth')['user_type'] =='m' || session('auth')['user_type'] =='a') && ($modifyBtn || $deleteBtn))
+            @if(isset(session('auth')['user_type']) && (in_array(session('auth')['user_type'], ['m', 'h', 'a'])))
+                <button class="btn p-0 d-none d-lg-block" onclick="UrlCopy()"><img src="/img/ic_share.png"></button>
             <!--  ※ 수정, 삭제 버튼은 교육원, 본사일 때 노출 -->
-            <button class="btn p-0 d-none d-lg-block" onclick="UrlCopy()"><img src="/img/ic_share.png"></button>
-
             <div class="position-relative d-block d-lg-none">
                 <button type="button" class="btn p-0 btn_more h-auto"><img src="/img/ic_more.png" style="width: 1.6rem;"></button>
 
