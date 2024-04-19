@@ -307,9 +307,14 @@ class AdviceNoteController extends Controller
                 ->where('omd.sidx', $row->sidx)
                 ->where('omd.order_type', 'B')
                 ->where('omd.status', '33')
-                //                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.idx)"), '=', 0)
-                ->where(DB::raw("(SELECT COUNT(*) FROM `order_cancel_detail` WHERE `order_member_idx` = omd.order_member_idx)"), '=', 0)
-                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail` WHERE `order_member_idx` = omd.idx AND `status` = '99')"), '=', 0)
+                //->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.idx)"), '=', 0)
+                //->where(DB::raw("(SELECT COUNT(*) FROM `order_cancel_detail` WHERE `order_member_idx` = omd.order_member_idx )"), '=', 0)
+                //->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail` WHERE `order_member_idx` = omd.idx AND `status` = '99')"), '=', 0)
+                // 2024-03-29 박성복 수정 - 기존 API 쿼리문으로 수정함 Start
+                ->where('omd.cancel', '0')
+                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail` WHERE `cancel` = omd.idx)"), '<', 1)
+                ->where(DB::raw("(SELECT COUNT(*) FROM `order_cancel_detail` WHERE `order_member_detail_idx` = omd.idx AND `status` = '99')"), '=', 0)
+                // 2024-03-29 박성복 수정 - 기존 API 쿼리문으로 수정함 End
                 ->orderBy('omd.idx', 'ASC')
                 ->get();
 
@@ -322,9 +327,14 @@ class AdviceNoteController extends Controller
                 ->where('omd.sidx', $row->sidx)
                 ->where('omd.order_type', 'B')
                 ->where('omd.status', '33')
-//                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.idx)"), '=', 0)
-                ->where(DB::raw("(SELECT COUNT(*) FROM `order_cancel_detail` WHERE `order_member_idx` = omd.order_member_idx)"), '=', 0)
-                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail` WHERE `order_member_idx` = omd.idx AND `status` = '99')"), '=', 0)
+//              //->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.idx)"), '=', 0)
+                //->where(DB::raw("(SELECT COUNT(*) FROM `order_cancel_detail` WHERE `order_member_idx` = omd.order_member_idx)"), '=', 0)
+                //->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail` WHERE `order_member_idx` = omd.idx AND `status` = '99')"), '=', 0)
+                // 2024-03-29 박성복 수정 - 기존 API 쿼리문으로 수정함 Start
+                ->where('omd.cancel', '0')
+                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail` WHERE `cancel` = omd.idx)"), '<', 1)
+                ->where(DB::raw("(SELECT COUNT(*) FROM `order_cancel_detail` WHERE `order_member_detail_idx` = omd.idx AND `status` = '99')"), '=', 0)     
+                // 2024-03-29 박성복 수정 - 기존 API 쿼리문으로 수정함 End
                 ->orderBy('omd.idx', 'ASC')
                 ->get();
 
