@@ -670,7 +670,7 @@ class EventController extends Controller
         $result = Arr::add($result, 'useComment', $row->use_comment);
         $result = Arr::add($result, 'order', $row->order);
         $status_text = "진행중";
-        if ($row->status == "0" || strtotime($row->end) < time()) $status_text = "종료";
+        if ($row->status == "0" || $row->end < date('Y-m-d', time())) $status_text = "종료";
         else if ($row->status == "1" && strtotime($row->start) > time()) $status_text = "대기";
         $result = Arr::add($result, 'status_text', $status_text);
         $result = Arr::add($result, "date_range", date('Y.m.d', strtotime($row->start))." ~ ".date('Y.m.d', strtotime($row->end)) );
@@ -682,17 +682,10 @@ class EventController extends Controller
     {
         $result = array();
 
-        $rs = Event::orderByRaw('
-                CASE
-                    WHEN `order` IS NULL THEN 1
-                    ELSE 0
-                END,
-                `order` ASC
-            ')
+        $query1 = Event::orderBy('order')
             ->orderByDesc('events.start')
             ->orderByDesc('events.id')
             ->select(DB::raw('events.*, a.file_path, b.file_path as file_path2, c.file_path as file_path3'))
-//            ->select('events.*', 'files.file_path')
             ->leftJoin('files as a', function ($q) {
                 $q->on('events.id', '=', 'a.type_id')->on('a.type',DB::raw(2));
             })
@@ -704,8 +697,26 @@ class EventController extends Controller
             })
             ->where('status', '1')
             ->where('start','<=',date('Y-m-d'))
-            ->where('end','>',date('Y-m-d'))
-            ->get();
+            ->where('end','>=',date('Y-m-d'))
+            ->where('order', '!=', 0);
+
+        $query2 = Event::orderByDesc('events.start')
+            ->orderByDesc('events.id')
+            ->select(DB::raw('events.*, a.file_path, b.file_path as file_path2, c.file_path as file_path3'))
+            ->leftJoin('files as a', function ($q) {
+                $q->on('events.id', '=', 'a.type_id')->on('a.type',DB::raw(2));
+            })
+            ->leftJoin('files as b', function ($q) {
+                $q->on('events.id', '=', 'b.type_id')->on('b.type',DB::raw(6));
+            })
+            ->leftJoin('files as c', function ($q) {
+                $q->on('events.id', '=', 'c.type_id')->on('c.type',DB::raw(7));
+            })
+            ->where('status', '1')
+            ->where('start','<=',date('Y-m-d'))
+            ->where('end','>=',date('Y-m-d'));
+
+        $rs = $query1->union($query2)->get();
 
         if ($rs) {
             $result = Arr::add($result, 'result', 'success');
@@ -769,7 +780,7 @@ class EventController extends Controller
             ->leftJoin('files', function ($q) {
                 $q->on('events.id', '=', 'files.type_id')->on('files.type',DB::raw(7));
             })
-            ->when($user->mtype != 'a', function ($q) {
+            ->when(!in_array($user->mtype, ['m', 'h', 'a']), function ($q) {
                 $q->where('events.start', '<=', date('Y-m-d'));
                 $q->where('events.end', '>', date('Y-m-d'));
                 $q->where('events.status', '1');
