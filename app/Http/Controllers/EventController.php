@@ -88,6 +88,9 @@ class EventController extends Controller
         //이미지 파일 경로 확인.
         $imgs = \App::make('helper')->getEditorImgs($content);
 
+        // order 순서 재배치
+        Event::where('order', '>=', $order)->increment('order');
+
         //디비 저장
         $payload = [
             'subject' => $subject,
@@ -313,6 +316,9 @@ class EventController extends Controller
             }
         }
 
+        // order 순서 재배치
+        Event::where('order', '>', $row->order)->decrement('order');
+
         $row->delete();
 
         $result = Arr::add($result, 'result', 'success');
@@ -371,7 +377,7 @@ class EventController extends Controller
         $end = $request->input('end');
         if (strtotime($end) < strtotime($start)) {
             $result = Arr::add($result, 'result', 'fail');
-            $result = Arr::add($result, 'error', '이벤트 종료일이 시자일보다 먼저일 수는 없습니다.');
+            $result = Arr::add($result, 'error', '이벤트 종료일이 시작일보다 먼저일 수는 없습니다.');
             return response()->json($result);
         }
 
@@ -388,6 +394,15 @@ class EventController extends Controller
         $status = $request->input('status');
         $useComment = $request->input('useComment');
         $order = $request->input('order') ?? 0;
+
+        // 오더 순서 자동으로 변경
+        $originOrder = $row->order;
+
+        if ($originOrder < $order) {
+            Event::whereBetween('order', [$originOrder, $order])->where('id', '!=', $id)->decrement('order');
+        } else {
+            Event::whereBetween('order', [$order, $originOrder])->where('id', '!=', $id)->increment('order');
+        }
 
         //이미지 파일 경로 확인.
         $imgs = \App::make('helper')->getEditorImgs($content);
@@ -682,7 +697,7 @@ class EventController extends Controller
     {
         $result = array();
 
-        $query1 = Event::orderBy('order')
+        $rs = Event::orderBy('order')
             ->orderByDesc('events.start')
             ->orderByDesc('events.id')
             ->select(DB::raw('events.*, a.file_path, b.file_path as file_path2, c.file_path as file_path3'))
@@ -698,25 +713,7 @@ class EventController extends Controller
             ->where('status', '1')
             ->where('start','<=',date('Y-m-d'))
             ->where('end','>=',date('Y-m-d'))
-            ->where('order', '!=', 0);
-
-        $query2 = Event::orderByDesc('events.start')
-            ->orderByDesc('events.id')
-            ->select(DB::raw('events.*, a.file_path, b.file_path as file_path2, c.file_path as file_path3'))
-            ->leftJoin('files as a', function ($q) {
-                $q->on('events.id', '=', 'a.type_id')->on('a.type',DB::raw(2));
-            })
-            ->leftJoin('files as b', function ($q) {
-                $q->on('events.id', '=', 'b.type_id')->on('b.type',DB::raw(6));
-            })
-            ->leftJoin('files as c', function ($q) {
-                $q->on('events.id', '=', 'c.type_id')->on('c.type',DB::raw(7));
-            })
-            ->where('status', '1')
-            ->where('start','<=',date('Y-m-d'))
-            ->where('end','>=',date('Y-m-d'));
-
-        $rs = $query1->union($query2)->get();
+            ->get();
 
         if ($rs) {
             $result = Arr::add($result, 'result', 'success');
@@ -774,6 +771,7 @@ class EventController extends Controller
         $status = $request->input('status');
 
         $rs = Event::orderByDesc(DB::raw('(select now() < events.end and events.status)'))
+            ->orderBy('order')
             ->orderByDesc('events.start')
             ->orderByDesc('events.id')
             ->select('events.*', 'files.file_path')

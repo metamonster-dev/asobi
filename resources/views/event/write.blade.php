@@ -83,7 +83,7 @@ $back_link = "/event";
                     </div>
                 </div>
                 <div class="grid02_list_input" style="width: 60px;">
-                    <input type="number" name="order" value="{{ $row['order'] ?? 0 }}" min="0" class="form-control">
+                    <input type="number" name="order" value="{{ $row['order'] ?? 1 }}" min="0" class="form-control">
                 </div>
             </div>
 
