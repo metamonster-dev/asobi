@@ -101,6 +101,7 @@ Route::group(['prefix' => 'album', 'middleware' => ['checkLogin','checkCenter']]
     Route::get('/', [AlbumController::class, 'album']);
     Route::get('view/{id}', [AlbumController::class, 'albumView']);
     Route::get('write', [AlbumController::class, 'albumWrite']);
+    Route::get('write2', [AlbumController::class, 'albumWrite2']);
     Route::get('write/{id}', [AlbumController::class, 'albumWrite']);
     Route::post('writeAction', [AlbumController::class, 'writeAction']);
     Route::get('delete/{id}', [AlbumController::class, 'albumDelete']);
@@ -165,6 +166,7 @@ Route::group(['prefix' => 'event', 'middleware' => 'checkLogin'], function () {
     Route::get('write/{id}', [EventController::class, 'eventWrite'])->middleware('enterUserType:a');
     Route::post('writeAction', [EventController::class, 'eventWriteAction'])->middleware('enterUserType:a');
     Route::get('delete/{id}', [EventController::class, 'eventDelete'])->middleware('enterUserType:a');
+    Route::get('tableUpdate', [EventController::class, 'tableUpdate'])->middleware('enterUserType:a');
 });
 
 //Route::get('/phpinfo', function () {

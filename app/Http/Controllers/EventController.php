@@ -929,6 +929,21 @@ class EventController extends Controller
         \App::make('helper')->alert("삭제되었습니다.", "/event");
     }
 
+    public function tableUpdate()
+    {
+        $rowNumber = 0;
+
+        $events = Event::orderBy('id', 'desc')->get();
+
+        foreach ($events as $event) {
+            $rowNumber++;
+            $event->order = $rowNumber;
+            $event->save();
+        }
+
+        \App::make('helper')->alert("테이블 업데이트 성공.", "/");
+    }
+
     public function empty()
     {
         return view('empty2');
