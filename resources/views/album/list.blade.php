@@ -19,6 +19,7 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
 } else {
     $phpisIOS = false;
 }
+
 ?>
 @include('common.headm02')
 
@@ -162,6 +163,13 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
             <li class=""><a href="#">5</a></li>
             <li class=""><a href="#" class="page_btn next"><img src="/img/ic_arrow_right_gr.png"></a></li>
         </ul> -->
+
+{{--        143743 --}}
+        @if(isset(session('auth')['user_id']) && (in_array(session('auth')['user_id'], ['86293'])))
+            <div class="f_btn_wr d-block d-lg-none" style="bottom: 10rem;">
+                <button type="button" class="btn float_btn" style="background-color: orange;" onclick="location.href='/album/write2'"><img src="/img/ic_write.png" style="width: 3rem;"></button>
+            </div>
+        @endif
 
         @if(isset(session('auth')['user_type']) && (session('auth')['user_type'] =='m' || session('auth')['user_type'] =='a'))
         <!-- 모바일 작성 버튼 -->

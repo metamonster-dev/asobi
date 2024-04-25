@@ -763,6 +763,65 @@ class AlbumController extends Controller
         ]);
     }
 
+    public function albumWrite2(Request $request, $id="")
+    {
+        $ymd = date('Y-m-d');
+        $mode = "w";
+
+        $ym = $request->input('ym') ?? '';
+
+        if ($ym != "" && $ym != date('Y-m')) {
+            $ymd = $ym."-01";
+        }
+
+        $user = \App::make('helper')->getUsertId();
+        $userType = \App::make('helper')->getUsertType();
+        if (in_array($userType, ['a','h'])) {
+            $user = session()->get('center');
+        }
+
+        $row = [];
+//        \App::make('helper')->vardump($id);
+//        exit;
+        if ($id != "") {
+            $mode = "u";
+
+            $req = Request::create('/api/album/view/'.$id, 'GET', [
+                'user' => $user,
+                'modify' => 1,
+            ]);
+            $res = $this->show($req, $id);
+
+            if ($res->original['result'] != 'success') {
+                $error = \App::make('helper')->getErrorMsg($res->original['error']);
+                \App::make('helper')->alert($error);
+            }
+
+            $row = $res->original ?? [];
+
+            if (isset($row['date']) && $row['date'] != "") {
+                $date = explode(' ',$row['date']);
+                $date = str_replace('.','-',$date[0]);
+                $ymd = $date;
+            }
+        }
+
+        $req = Request::create('/api/children', 'GET', [
+            'user' => $user,
+        ]);
+        $userController = new UserController();
+        $res = $userController->children($req);
+        $student = $res->original['list'] ?? [];
+
+        return view('album/write2',[
+            'ymd' => $ymd,
+            'student' => $student ?? "",
+            'mode' => $mode,
+            'id' => $id,
+            'row' => $row,
+        ]);
+    }
+
     public function writeAction(Request $request)
     {
         $mode = $request->input('mode') ?? '';
