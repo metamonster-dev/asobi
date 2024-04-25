@@ -927,6 +927,16 @@ span.dot_stat{
     background-color: var(--light);
 }
 
+.img_height {
+    height: 125px;
+}
+
+@media screen and (max-width: 500px) {
+    .img_height {
+        height: 88px;
+    }
+}
+
 /* 상담일지 */
 .adv_cont{
     padding: 2rem;

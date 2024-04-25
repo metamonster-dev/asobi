@@ -33,7 +33,7 @@ $back_link = "/";
                 @foreach($list as $l)
                     <li class="col">
                         <a href="/event/view/{{ $l['id'] }}">
-                            <div class="rect rect4 rounded-lg sizefull" style="height: 125px;">
+                            <div class="rect rect4 rounded-lg sizefull img_height">
                                 @if(isset($l['image']) && $l['image'])
                                 <img src="{{ $l['image'] }}" style="object-fit: contain">
                                 @else
