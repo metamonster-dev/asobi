@@ -929,6 +929,19 @@ class EventController extends Controller
         \App::make('helper')->alert("삭제되었습니다.", "/event");
     }
 
+    public function rePush($id)
+    {
+        $result = array();
+
+        BatchPush::dispatch(['type' => 'eventRePush', 'type_id' => $id, 'param' => []]);
+
+        $result = Arr::add($result, 'result', 'success');
+        $result = Arr::add($result, 'error', '푸시가 재발송 되었습니다.');
+        $result = Arr::add($result, 'id', $id);
+
+        return response()->json($result);
+    }
+
     public function tableUpdate()
     {
         $rowNumber = 0;

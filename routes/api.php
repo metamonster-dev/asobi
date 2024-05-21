@@ -177,6 +177,7 @@ Route::post('/event/write', [EventController::class, 'store']);
 Route::post('/event/write/{id}', [EventController::class, 'update']);
 Route::post('/event/delete/{id}', [EventController::class, 'destroy']);
 Route::get('/event/view/{id}', [EventController::class, 'show']);
+Route::post('/event/rePush/{id}', [EventController::class, 'rePush']);
 
 // *** get video info
 Route::get('videos', [VimeoController::class, 'videos']);

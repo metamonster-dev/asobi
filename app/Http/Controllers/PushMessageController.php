@@ -636,6 +636,63 @@ class PushMessageController extends Controller
                 $pushLog->save();
             }
         }
+        else if ($this->type == 'eventRePush') // 어드민으로 테스트
+        {
+            $row = Event::find($this->type_id);
+
+            $rs = RaonMember::where(function($query) {
+                $query->where('mtype', 's')->where('s_status', 'Y');
+            })->orWhere(function($query) {
+                $query->where('mtype', 'm')->where('m_status', 'Y');
+            })->orWhere(function($query) {
+                $query->where('mtype', 'h')->where('h_status', 'Y');
+            })
+                ->pluck('idx')
+                ->toArray();
+
+            $arr_push = UserAppInfo::whereIn('user_id', $rs)
+                ->where('event_alarm', 'Y')
+                ->where('push_key', '!=', 'web')
+                ->where('updated_at', '>=', now()->subMonths(6))
+                ->whereNotNull('push_key')
+                ->orderByDesc('updated_at')
+                ->distinct('push_key')
+                ->pluck('push_key')
+                ->toArray();
+
+            $body = '✨ 재원생 100% 경품 증정! 지금 바로 확인하세요!';
+
+//            $arr_push = [
+//                /*내 아이폰*/'cYxbJfKY9kzWhA5hrB8u_i:APA91bEIedrv1r_kBty9APISGaDoBSbeXN2eF_RaxsLp1pqamEDUJArVnOBFj83_ilk2rP7qjOmRpMmd2nzsNCMxtNH-qEn2TAD3ZdhH-dBC_iRJCmQPRBAAZj0-xqOnaZWdkXgHZRJn',
+//                /*내 갤럭시*/'cDjquBw7SZS8HuZaEC5kiY:APA91bF43bAO8g7ztIiFOhqDnpFas5kKQyHKyzHCuEyEAcPPjJjBnR_r2Pno5P7mu-ToXIIlj00dFTS6fR-IdhVMlP-fUOJ96OFuODFI1leNvmHiHC_nPW21r_I9XQ-0obfCMjtEAWeQ',
+//
+//                /*갤럭시*/'dui06J6qIEVKvM3KT4cFcv:APA91bGHOxae4i8PPLDM56t2hLwF4P5tORirVIH9J_4CDN0Wt6lbVo8attoTWWhPnPKaoPRxASay-8iSUZnIFiVdDRqzE-quBX21_-r2phe2PMazZJwzFqYyUSGqkophktnilmiTqws8',
+//                /*갤탭*/'dwmnlwarQx29eU2lQEzMqk:APA91bFwFpYH3i3ITyq2kvJCa1SOuwRm0WB7_ztkHRhogPWktyPWF_nOhl3So1j1HqQcjR3Di-Ju_skmdSbr2PV0yS3hZ2b5tePZ1xAo7npSlAiu9CEY7sBqjZRlbUJyD7jtDWLsv9NQ',
+//                /*아이폰*/'dMpnwMq9RTa-jdhgKSbS-u:APA91bFTn8ugL7a1DG7wB3Yqi-vaiLFUw5Pd8jdfNlqUpvdXzRYWhSe64UszCyY3tpzMIVJpGvK61KLVou3nyh6cfQlulb-bJ1xITRmZQ4m4e7wUWtNcqr5NHpWq8y0ZH2up_6w9YNz0',
+//                'dTnJ0XviSluErRNEN1hy2_:APA91bERUleIJlM62OE6X5PaQpLDJlQtd6PyCBjaPVWtBhd4QHPvQmU320BdY7KYKZ95JjmFtwxwujN_x3ksddC3P0n_mpZOwoGrhz9PWzHDuZ6bPEZsIhbYwrBNLpU1xDVmGyNO9tfQ',
+//                'eKPqMZSzSqyjRoY1D9aRVu:APA91bFDztk2rGphcE86KWiOQAcv-N0_ctO1o8wCG99UXa1q89Gumha-hbLbwGR7hzACP8vTvH3VvNCbnxeOwBooDUWRwdaKGiTsZJ3xCnpDZEFlLsPBeIVPpBPkfPFp96izCo1QBGYs',
+//            ];
+
+            if ($arr_push) {
+                $arr_push = array_unique($arr_push);
+                $arr_push = array_values($arr_push);
+
+                $pushLog = new PushLog([
+                    'type' => $this->type,
+                    'type_id' => $this->type_id,
+                    'receivers' => json_encode($arr_push)
+                ]);
+
+                $pushLog->save();
+
+                $handler = App::make(FcmHandler::class);
+                $handler->setReceivers($arr_push);
+                $handler->setMessage(['title'=> $title, 'body'=> $body, 'type'=> 'event', 'id'=> $row->id]);
+                $handler->setMessageData(['title'=> $title, 'message'=> $body, 'type'=> 'event', 'id'=> $row->id]);
+                $handler->sendMessage();
+            }
+
+        }
         else if ($this->type == 'eventComment')
         {
         }
