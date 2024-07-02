@@ -113,8 +113,8 @@ if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== 
 
                 <ul class="more_cont">
                     <li><button class="btn" onclick="UrlCopy()">공유</button></li>
-                    <li><button class="btn commentDisable" onclick="location.href='/advice/note/write/{{ $id }}'">수정</button></li>
-                    <li><button class="btn commentDisable" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/advice/delete/{{ $id }}';})">삭제</button></li>
+                    <li><button class="btn" onclick="location.href='/advice/note/write/{{ $id }}'">수정</button></li>
+                    <li><button class="btn" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/advice/delete/{{ $id }}';})">삭제</button></li>
                 </ul>
             </div>
             @endif
@@ -175,9 +175,9 @@ if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== 
         <!-- ※ 수정, 삭제 버튼은 교육원일 때만 노출 -->
         <div class="botton_btns d-none d-lg-flex pt_80 pb-4">
             @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='m')
-            <button type="button" class="btn btn-primary commentDisable" onclick="location.href='/advice/note/write/{{ $id }}'">수정</button>
+            <button type="button" class="btn btn-primary" onclick="location.href='/advice/note/write/{{ $id }}'">수정</button>
             <button type="button" class="btn btn-gray text-white" onclick="location.href='@if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='s') /advice/list @else {{ $back_link }} @endif'">목록</button>
-            <button type="button" class="btn btn-gray text-white commentDisable" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/advice/delete/{{ $id }}';})">삭제</button>
+            <button type="button" class="btn btn-gray text-white" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/advice/delete/{{ $id }}';})">삭제</button>
             @else
             <button type="button" class="btn btn-gray text-white" onclick="location.href='@if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='s') /advice/list @else {{ $back_link }} @endif'">목록</button>
             @endif

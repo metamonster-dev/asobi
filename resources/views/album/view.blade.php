@@ -103,7 +103,7 @@ if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== 
             </div>
             @if(isset(session('auth')['user_type']) && (session('auth')['user_type'] =='m' || session('auth')['user_type'] =='a'))
             <!-- ※ 수정, 삭제 버튼은 교육원, 본사일 때 노출 -->
-            <div class="position-relative d-lg-none commentDisable">
+            <div class="position-relative d-lg-none">
                 <button type="button" class="btn p-0 btn_more h-auto"><img src="/img/ic_more.png" style="width: 1.6rem;"></button>
                 <ul class="more_cont">
                     <li><button class="btn" onclick="location.href='/album/write/{{ $id }}'">수정</button></li>
@@ -131,85 +131,17 @@ if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== 
                                         <img src="{{ $l['file_path'] }}" class="w-100">
                                     </div>
                                     <a onclick="javascript:ycommon.downloadImage(os,'/album/downloadFile/{{ $l['file_id'] }}','{{ $l['file_path'] }}');" class="btn btn_dl"><img src="/img/ic_download.svg"></a>
-
-{{--                            @else--}}
-
-{{--                                    @if(isset($l['video_id']) && $l['video_id'])--}}
-{{--                                        <a href="javascript:;" onclick="bigImgShow('{{ $l['file_path'] }}', '{{ $j }}', 'video')">--}}
-{{--                                            <div class="area video_area" id="vimeo{{ $k }}" data-vimeo="{{ $l['video_id'] }}">--}}
-{{--                                                <img src="/img/loading.gif" class="loading_img">--}}
-{{--                                            </div>--}}
-{{--                                        </a>--}}
-{{--                                        @php $k = $k + 1; @endphp--}}
-{{--                                    @elseif(isset($l['file_path']) && $l['file_path'])--}}
-{{--                                        <a href="javascript:;" onclick="bigImgShow('{{ $l['file_path'] }}', '{{ $j }}', 'image')">--}}
-{{--                                            <div class="area_img rounded overflow-hidden">--}}
-{{--                                                <img src="{{ $l['file_path'] }}" class="w-100">--}}
-{{--                                            </div>--}}
-{{--                                        </a>--}}
-{{--                                        <a onclick="javascript:ycommon.downloadImage(os,'/album/downloadFile/{{ $l['file_id'] }}','{{ $l['file_path'] }}');" class="btn btn_dl"><img src="/img/ic_download.svg"></a>--}}
-{{--                            @endif--}}
-
-
-
-
-{{--                            @if(isset($l['video_id']) && $l['video_id'])--}}
-{{--                                <a href="javascript:;" onclick="bigImgShow('{{ $l['file_path'] }}', '{{ $j }}', 'video')">--}}
-{{--                                    <div class="area video_area" id="vimeo{{ $k }}" data-vimeo="{{ $l['video_id'] }}">--}}
-{{--                                        <img src="/img/loading.gif" class="loading_img">--}}
-{{--                                    </div>--}}
-{{--                                </a>--}}
-{{--                                @php $k = $k + 1; @endphp--}}
-{{--                            @elseif(isset($l['file_path']) && $l['file_path'])--}}
-{{--                                <a href="javascript:;" onclick="bigImgShow('{{ $l['file_path'] }}', '{{ $j }}', 'image')">--}}
-{{--                                    <div class="area_img rounded overflow-hidden">--}}
-{{--                                        <img src="{{ $l['file_path'] }}" class="w-100">--}}
-{{--                                    </div>--}}
-{{--                                </a>--}}
-{{--                                <a onclick="javascript:ycommon.downloadImage(os,'/album/downloadFile/{{ $l['file_id'] }}','{{ $l['file_path'] }}');" class="btn btn_dl"><img src="/img/ic_download.svg"></a>--}}
-
-
-
-
-
-{{--                            @if(isset($l['file_path']) && $l['file_path'])--}}
-{{--                            <a href="javascript:;" onclick="bigImgShow('{{ $l['file_path'] }}', '{{ $j }}')">--}}
-{{--                                <div class="area_img rounded overflow-hidden">--}}
-{{--                                    <img src="{{ $l['file_path'] }}" class="w-100">--}}
-{{--                                </div>--}}
-{{--                            </a>--}}
-{{--                            <a onclick="javascript:ycommon.downloadImage(os,'/album/downloadFile/{{ $l['file_id'] }}','{{ $l['file_path'] }}');" class="btn btn_dl"><img src="/img/ic_download.svg"></a>--}}
-{{--                                @php $j++; @endphp--}}
-{{--                            @elseif(isset($l['video_id']) && $l['video_id'])--}}
-{{--                            <div class="area video_area" id="vimeo{{ $k }}" data-vimeo="{{ $l['video_id'] }}">--}}
-{{--                                <img src="/img/loading.gif" class="loading_img">--}}
-{{--                                <iframe src="https://player.vimeo.com/video/{{ $l['video_id'] }}?title=0&byline=0&portrait=0&controls=0" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen="" title="Untitled" data-ready="true"></iframe>--}}
-{{--                                <iframe src="https://player.vimeo.com/video/876208856" frameborder="0"></iframe></iframe>--}}
-{{--                            </div>--}}
-{{--                                @php $k = $k + 1; @endphp--}}
-
-
-
                             @else
                             <div class="area">
                                 <i class="no_img"></i>
                             </div>
                             @endif
-
-{{--                            새로 추가 --}}
                                 @php $j++; @endphp
 
                         </div>
                     </li>
                     @endforeach
                 @else
-                    <!-- <li>
-                        <div class="att_img">
-                            <div class="area">
-                                <i class="no_img"></i>
-                            </div>
-                        </div>
-                    </li> -->
                 @endif
                 </ul>
             </div>
@@ -242,9 +174,9 @@ if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== 
         <!-- ※ 수정, 삭제 버튼은 교육원, 본사일 때 노출 -->
         <div class="botton_btns d-none d-lg-flex pt_80 pb-4">
             @if(isset(session('auth')['user_type']) && (session('auth')['user_type'] =='m' || session('auth')['user_type'] =='a'))
-            <button type="button" class="btn btn-primary commentDisable" onclick="location.href='/album/write/{{ $id }}'">수정</button>
+            <button type="button" class="btn btn-primary" onclick="location.href='/album/write/{{ $id }}'">수정</button>
             <button type="button" class="btn btn-gray text-white" onclick="location.href='{{ $back_link }}'">목록</button>
-            <button type="button" class="btn btn-gray text-white commentDisable" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/album/delete/{{ $id }}';})">삭제</button>
+            <button type="button" class="btn btn-gray text-white" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/album/delete/{{ $id }}';})">삭제</button>
             @else
             <button type="button" class="btn btn-gray text-white" onclick="location.href='{{ $back_link }}'">목록</button>
             @endif
