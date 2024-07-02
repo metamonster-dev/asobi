@@ -67,7 +67,10 @@ $user = \App::make('helper')->getUsertId();
                     <p class="fs_13 text-light"><span id="uploadCount">0</span>/10</p>
                 </div>
                 <div class="scroll_wrap none_scroll_bar_lg">
-                    <div class="input-group-prepend" id="imgUpload" style="display: block;">
+                    <input type="file" accept="image/*" multiple>
+                    <br /><br /><br /><br />
+
+                    <div class="input-group-prepend" id="imgUpload">
 
                         <div class="image-upload2 addBtn mr-3" >
                             <label for="upload_file">
@@ -651,11 +654,13 @@ $user = \App::make('helper')->getUsertId();
                     await readFile(i, filesArr[i]); // 각 파일을 처리하는 함수 호출 (비동기 처리)
                 }
             } catch (error) {
-                // alert(JSON.stringify(error));
+                alert(JSON.stringify(error));
 
-                sendErrorToServer(error, filesArr[0]);
+                // sendErrorToServer(error, filesArr[0]);
             }
         }
+
+        // processFiles(filesArr);
 
         processFiles(filesArr) // 파일 처리 함수 호출
             .then(() => {
@@ -709,6 +714,7 @@ $user = \App::make('helper')->getUsertId();
         function readFile(i, f) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
+
                 reader.onload = function (e) {
                     let id2 = id;
                     if (i > 0) {
@@ -724,87 +730,25 @@ $user = \App::make('helper')->getUsertId();
                     const blob = new Blob([arrayBuffer], { type: f.type });
                     const imageUrl = URL.createObjectURL(blob);
 
+                    let html = '<div class="att_img mb-4" id="imageVideo'+id2+'">' +
+                        '<div class="rounded overflow-hidden">' +
+                        '<img src="'+imageUrl+'" class="w-100">' +
+                        '</div>' +
+                        '</div>' ;
+                    $("#imageVideo").append(html);
 
-                    // if (e.target.result.match("video.*")) {
-                    if (f.type.match("video.*")) {
-                        let html;
-                        if (device === 'ios') {
-                            html = '<div class="att_img mb-4" id="imageVideo'+id2+'">' +
-                                '<div class="rounded overflow-hidden">' +
-                                '<video>' +
-                                '<source src="'+imageUrl+'" class="w-100">' +
-                                '</video>' +
-                                '</div>' +
-                                '</div>' ;
-                        } else {
-                            html = '<div class="att_img mb-4" id="imageVideo'+id2+'">' +
-                                '<div class="rounded overflow-hidden">' +
-                                '<video>' +
-                                '<source src="'+imageUrl+'#t=1'+'" class="w-100">' +
-                                '</video>' +
-                                '</div>' +
-                                '</div>' ;
-                        }
-                        $("#imageVideo").append(html);
-
-                        const attImgTag = document.querySelector('.att_img video');
-                        attImgTag.load();
-                        attImgTag.pause();
-
-                        if (i == 0) {
-                            if (device === 'ios') {
-                                $("#image-upload-"+id2).find('.del').after('<video preload="none"><source src="' + imageUrl + '"/></video>');
-                            } else {
-                                $("#image-upload-"+id2).find('.del').after('<video preload="metadata"><source src="' + imageUrl + '#t=1'+'"/></video>');
-                            }
-                        } else {
-                            if (device === 'ios') {
-                                let addForm = '<div class="image-upload2 mr-3 on" data-id="'+id2+'" id="image-upload-'+id2+'">'+
-                                    '<label id="label_upload_file_'+id2+'" for="upload_file_'+id2+'">' +
-                                    '<div class="upload-icon2">' +
-                                    '<button type="button" class="btn del"></button>' +
-                                    '<video preload="none"><source src="' + imageUrl + '"/></video>' +
-                                    '</div>' +
-                                    '</label>' +
-                                    '</div>';
-                                $('#imgUpload').append(addForm);
-                            } else {
-                                let addForm = '<div class="image-upload2 mr-3 on" data-id="'+id2+'" id="image-upload-'+id2+'">'+
-                                    '<label id="label_upload_file_'+id2+'" for="upload_file_'+id2+'">' +
-                                    '<div class="upload-icon2">' +
-                                    '<button type="button" class="btn del"></button>' +
-                                    '<video preload="metadata"><source src="' + imageUrl +'#t=1'+'"/></video>' +
-                                    '</div>' +
-                                    '</label>' +
-                                    '</div>';
-                                $('#imgUpload').append(addForm);
-                            }
-                        }
-                        const thisVideo = document.querySelector('.image-upload2[data-id="' + id2 + '"] video');
-
-                        thisVideo.load();
-                        thisVideo.pause();
+                    if (i == 0) {
+                        $("#image-upload-"+id2).find('.del').after('<img src="'+imageUrl+'" />');
                     } else {
-                        let html = '<div class="att_img mb-4" id="imageVideo'+id2+'">' +
-                            '<div class="rounded overflow-hidden">' +
-                            '<img src="'+imageUrl+'" class="w-100">' +
+                        let addForm = '<div class="image-upload2 mr-3 on" data-id="'+id2+'" id="image-upload-'+id2+'">'+
+                            '<label id="label_upload_file_'+id2+'" for="upload_file_'+id2+'">' +
+                            '<div class="upload-icon2">' +
+                            '<button type="button" class="btn del"></button>' +
+                            '<img src="'+imageUrl+'" />' +
                             '</div>' +
-                            '</div>' ;
-                        $("#imageVideo").append(html);
-
-                        if (i == 0) {
-                            $("#image-upload-"+id2).find('.del').after('<img src="'+imageUrl+'" />');
-                        } else {
-                            let addForm = '<div class="image-upload2 mr-3 on" data-id="'+id2+'" id="image-upload-'+id2+'">'+
-                                '<label id="label_upload_file_'+id2+'" for="upload_file_'+id2+'">' +
-                                '<div class="upload-icon2">' +
-                                '<button type="button" class="btn del"></button>' +
-                                '<img src="'+imageUrl+'" />' +
-                                '</div>' +
-                                '</label>' +
-                                '</div>';
-                            $('#imgUpload').append(addForm);
-                        }
+                            '</label>' +
+                            '</div>';
+                        $('#imgUpload').append(addForm);
                     }
 
                     if (document.getElementById('loading')) {
@@ -816,6 +760,7 @@ $user = \App::make('helper')->getUsertId();
 
                     resolve(); // 작업이 완료되면 resolve 호출
                 };
+
                 reader.onerror = function (error) {
                     switch(error.target.error.code){
                         case error.NOT_FOUND_ERR:
@@ -842,6 +787,7 @@ $user = \App::make('helper')->getUsertId();
 
                     reject(error); // 에러 발생 시 reject 호출
                 };
+
                 reader.readAsArrayBuffer(f); // 파일 읽기 작업 시작
             });
         }

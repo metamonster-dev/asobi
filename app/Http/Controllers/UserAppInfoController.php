@@ -77,7 +77,7 @@ class UserAppInfoController extends Controller
 
         if (empty($user) || ($user->mtype === 's' && $user->status === 'D')) {
             $result = Arr::add($result, 'result', 'fail');
-            $result = Arr::add($result, 'error', '패스워드를 확인해주세요!');
+            $result = Arr::add($result, 'error', '계정정보를 확인해주세요!');
 //            $result = Arr::add($result, 'error', '신규 앱서비스 12월 4일 9시에 오픈 됩니다!');
             return response()->json($result);
         }
@@ -133,6 +133,7 @@ class UserAppInfoController extends Controller
         } else {
             $this->loginManagerProc($user, $result, $device_kind, $device_type, $device_id, $push_key, $ip);
         }
+
 //        var_dump($user->__toString());
 
         return response()->json($result);
@@ -171,7 +172,7 @@ class UserAppInfoController extends Controller
 
         if (empty($user) || ($user->mtype === 's' && $user->status === 'D')) {
             $result = Arr::add($result, 'result', 'fail');
-            $result = Arr::add($result, 'error', '패스워드를 확인해주세요!');
+            $result = Arr::add($result, 'error', '계정정보를 확인해주세요!');
             //        $result = Arr::add($result, 'error', '신규 앱서비스 12월 4일 9시에 오픈 됩니다!');
             return response()->json($result);
         }
@@ -236,7 +237,8 @@ class UserAppInfoController extends Controller
     private function deleteFCMKey($push_key)
     {
         if ($push_key == 'web') return;
-        $userAppInfo = UserAppInfo::where('push_key', $push_key)->get();
+        $userAppInfo = UserAppInfo::where('push_key', $push_key)
+            ->get();
         if ($userAppInfo) {
             foreach ($userAppInfo as $row) {
                 $row->delete();
@@ -452,7 +454,7 @@ class UserAppInfoController extends Controller
                 ->whereNull('device_id')
                 ->first();
 
-            if ($userAppInfo) {  // 로그아웃 후 재로그인시
+            if ($userAppInfo) {  // 로그아웃
                 if ($device_kind != 'web'
                     && $device_type != 'web'
                     && $device_id != 'web'
@@ -1039,9 +1041,7 @@ class UserAppInfoController extends Controller
             && $request->input('device_id') == 'web'
             && $request->input('push_key') == 'web'
         ) {
-            if (!in_array($_SERVER['REMOTE_ADDR'], ['115.93.23.14', '183.101.245.76'])) {
-                \App::make('helper')->alert('푸시키를 받아오지 못하였습니다.\n 아소비 앱 삭제 > 휴대폰 재부팅 > 앱 재설치시 알림 권한을 허용해주세요.', '/');
-            }
+            \App::make('helper')->alert('푸시키를 받아오지 못하였습니다.\n 아소비 앱 삭제 > 휴대폰 재부팅 > 앱 재설치시 알림 권한을 허용해주세요.', '/');
         }
 
         $ip = \App::make('helper')->getClientIp();
