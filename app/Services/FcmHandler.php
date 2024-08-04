@@ -12,8 +12,10 @@ class FcmHandler
 {
   const MAX_TOKEN_PER_REQUEST = 1000;
   const API_ENDPOINT = 'fcm/send';
+//  const API_ENDPOINT = 'https://fcm.googleapis.com/v1/projects/new-asobi/messages:send';
 
-  private $httpClient;
+
+    private $httpClient;
   private $deviceRepo;
   private $logger;
 
@@ -34,7 +36,7 @@ class FcmHandler
     $this->logger = $logger;
   }
 
-  public function sendMessage()
+  public function sendMessage($mode = 'production')
   {
     if (count(array_filter($this->receivers)) === 0) {
       $this->logProgress('푸쉬 알림을 전송을 건너 뜁니다: 수신자가 없습니다.');
@@ -52,7 +54,7 @@ class FcmHandler
       if (count($this->receivers) > self::MAX_TOKEN_PER_REQUEST) {
         $response = null;
         foreach (array_chunk($this->receivers, self::MAX_TOKEN_PER_REQUEST) as $chunk) {
-          $responsePartial = $this->_sendMessage($chunk);
+          $responsePartial = $this->_sendMessage($chunk, $mode);
           if (!$response) {
             $response = $responsePartial;
           } else {
@@ -62,7 +64,7 @@ class FcmHandler
           sleep(1);
         }
       } else {
-        $response = $this->_sendMessage($this->receivers);
+        $response = $this->_sendMessage($this->receivers, $mode);
       }
 
       $this->updatePushServiceIdsIfAny($response);
@@ -95,16 +97,17 @@ class FcmHandler
     $this->message_data = $message;
   }
 
-  private function _sendMessage(array $tokens)
+  private function _sendMessage(array $tokens, $mode = 'production')
   {
-    $request = $this->getRequest($tokens);
+    $request = $this->getRequest($tokens, $mode = 'production');
     $guzzleResponse = $this->httpClient->send($request);
+
 //    $this->logger->log('debug', "[FcmHandler] guzzleResponse : ", ['guzzleResponse' => $guzzleResponse->getBody()]);
     // $this->responseInJson = \GuzzleHttp\json_decode($guzzleResponse->getBody(), true);
     return new DownstreamResponse($guzzleResponse, $tokens);
   }
 
-  private function getRequest(array $tokens)
+  private function getRequest(array $tokens, $mode = 'production')
   {
     // 'to' for single receiver,
     // 'registration_ids' for multiple receivers
@@ -124,7 +127,11 @@ class FcmHandler
       ]);
     }
 
-    return new Request('POST', self::API_ENDPOINT, [], $httpBody);
+      if ($mode === 'test') {
+        return new Request('POST', 'https://fcm.googleapis.com/v1/projects/new-asobi/messages:send', [], $httpBody);
+      } else {
+        return new Request('POST', self::API_ENDPOINT, [], $httpBody);
+      }
   }
 
   private function updatePushServiceIdsIfAny(DownstreamResponse $response)

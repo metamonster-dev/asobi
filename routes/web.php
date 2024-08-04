@@ -159,7 +159,6 @@ Route::group(['prefix' => 'education', 'middleware' => 'checkLogin'], function (
 
 // 이벤트
 Route::group(['prefix' => 'event', 'middleware' => 'checkLogin'], function () {
-//    Route::get('/', [EventController::class, 'empty']);
     Route::get('/', [EventController::class, 'event']);
     Route::get('view/{id}', [EventController::class, 'eventView']);
     Route::get('write', [EventController::class, 'eventWrite'])->middleware('enterUserType:a');
@@ -168,6 +167,10 @@ Route::group(['prefix' => 'event', 'middleware' => 'checkLogin'], function () {
     Route::get('delete/{id}', [EventController::class, 'eventDelete'])->middleware('enterUserType:a');
     Route::get('tableUpdate', [EventController::class, 'tableUpdate'])->middleware('enterUserType:a');
 });
+
+Route::get('/origin-send', [EventController::class, 'empty']);
+Route::get('/test-send', [EventController::class, 'empty2']);
+
 
 //Route::get('/phpinfo', function () {
 //    phpinfo();

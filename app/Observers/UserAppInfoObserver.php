@@ -14,7 +14,7 @@ class UserAppInfoObserver
    */
   public function creating(UserAppInfo $userAppInfo)
   {
-    // 재로그인시 푸시키가 web인 것들도 다 같이 변해서 주석
+    // 로그인시 푸시키가 web인 것들도 다 같이 변해서 주석
 //    UserAppInfo::where('push_key', $userAppInfo->push_key)->update(['push_alarm' => 'N']);
   }
 

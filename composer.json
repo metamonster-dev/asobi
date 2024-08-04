@@ -14,7 +14,8 @@
         "league/flysystem-aws-s3-v3": "^3.0",
         "vimeo/laravel": "^5.8",
         "ext-exif": "*",
-        "ext-gd": "*"
+        "ext-gd": "*",
+        "ext-openssl": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",

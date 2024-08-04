@@ -959,6 +959,12 @@ class EventController extends Controller
 
     public function empty()
     {
-        return view('empty2');
+        BatchPush::dispatch(['type' => 'test', 'type_id' => null, 'param' => []]);
+//        return view('empty2');
+    }
+
+    public function empty2()
+    {
+        BatchPush::dispatch(['type' => 'test2', 'type_id' => null, 'param' => []]);
     }
 }
