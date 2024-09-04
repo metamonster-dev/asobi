@@ -356,6 +356,13 @@ class CounselingController extends Controller
             }
         }
 
+        $minDate = DB::table('counselings')
+            ->select(DB::raw('min(year) as min_year, min(month) as min_month'))
+            ->first();
+
+        $minYear = $minDate->min_year;
+        $minMonth = $minDate->min_month;
+
         if ($search_user_id == "") {
             //학생리스트
             $req = Request::create('/api/counseling/student/list', 'GET', [
@@ -386,6 +393,8 @@ class CounselingController extends Controller
             'search_text' => $search_text,
             'search_user_id' => $search_user_id,
             'studentList' => json_encode($studentList),
+            'minYear' => $minYear,
+            'minMonth' => $minMonth
         ]);
     }
     public function counselView(Request $request, $id)

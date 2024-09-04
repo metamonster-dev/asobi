@@ -38,13 +38,19 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
                     <div class="d-block d-lg-flex mt-0 mt-lg-3 mt-lg-0">
                         <div class="m_top mb-0">
                             <div class="input-group">
-                                <input type="month" name="ym" id="ym" value="{{ $ym }}" class="form-control form-control-lg col-6"
-                                @if ($device_kind == 'iOS' || $phpisIOS)
-                                    onBlur="this.form.submit()"
-                                @else
-                                    onchange="this.form.submit()"
-                                @endif
-                                >
+
+                                <select id="ymSelector" name="ym" class="form-control form-control-lg col-6">
+                                    <option value="all">전체</option>
+                                    <!-- 올해의 각 월 옵션 추가 -->
+                                </select>
+
+{{--                                <input type="month" name="ym" id="ym" value="{{ $ym }}" class="form-control form-control-lg col-6"--}}
+{{--                                @if ($device_kind == 'iOS' || $phpisIOS)--}}
+{{--                                    onBlur="this.form.submit()"--}}
+{{--                                @else--}}
+{{--                                    onchange="this.form.submit()"--}}
+{{--                                @endif--}}
+{{--                                >--}}
                                 <div class="position-relative gr_r m_select_wrap">
                                     <div class="input_wrap">
                                         <input type="hidden" name="search_user_id" value="{{ $search_user_id }}" >
@@ -180,6 +186,32 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
     document.querySelector('.back_button').addEventListener('click', function(event) {
         $('#loading').show();
     });
+
+    const minYear = <?=$minYear?>;
+    const minMonth = <?=$minMonth?>;
+
+    function populateMonthOptions() {
+        const select = document.getElementById('ymSelector');
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth() + 1;
+
+        for (let year = minYear; year <= currentYear; year++) {
+            // 해당 연도의 월 범위 설정
+            const startMonth = year === minYear ? minMonth : 1;
+            const endMonth = year === currentYear ? currentMonth : 12;
+
+            // 각 월에 대해 옵션 추가
+            for (let month = startMonth; month <= endMonth; month++) {
+                const optionValue = `${year}-${String(month).padStart(2, '0')}`;
+                const optionText = `${year}년 ${month}월`;
+                const option = new Option(optionText, optionValue);
+                select.add(option);
+            }
+        }
+    }
+
+    populateMonthOptions(minYear, minMonth);
 </script>
 
 @endsection
