@@ -70,11 +70,24 @@ class FcmService
     {
         $accessToken = $this->getAccessToken();
 
-        $this->fcmHandler->setReceivers($receivers);
-        $this->fcmHandler->setMessage($data);
-        $this->fcmHandler->setMessageData($data);
+        $stringData = $this->convertDataToString($data);
 
-        $this->fcmHandler->sendMessage('test');
+//        \App::make('helper')->log('arr_push', ['thisreceivers' => $receivers]);
+//        \App::make('helper')->log('arr_push', ['thisvalue' => $stringData]);
+
+        $this->fcmHandler->setReceivers($receivers);
+        $this->fcmHandler->setMessage($stringData);
+        $this->fcmHandler->setMessageData($stringData);
+
+        $this->fcmHandler->sendMessage('test', $accessToken);
+    }
+
+    private function convertDataToString(array $data): array
+    {
+        // 배열의 모든 값을 문자열로 변환
+        return array_map(function ($value) {
+            return (string) $value;
+        }, $data);
     }
 
     private function base64UrlEncode($data)
