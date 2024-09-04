@@ -29,7 +29,7 @@ class PushMessageController extends Controller
     private $param;
     private mixed $fcmService;
 
-    public function __construct($type, $type_id, $param=[])
+    public function __construct($type, $type_id, $param = [])
     {
         $this->type = $type;
         $this->type_id = $type_id;
@@ -48,8 +48,7 @@ class PushMessageController extends Controller
         $nowTime = time();
         $diffTime = strtotime('2022-01-28 23:59:59');
 
-        if ($this->type == AdviceNote::ADVICE_TYPE || $this->type == AdviceNote::LETTER_TYPE)
-        {
+        if ($this->type == AdviceNote::ADVICE_TYPE || $this->type == AdviceNote::LETTER_TYPE) {
             $row = AdviceNote::find($this->type_id);
 
             if ($row) {
@@ -91,14 +90,12 @@ class PushMessageController extends Controller
 //                            $handler->setMessage(['title' => $title, 'body' => $body, 'type'=>$this->type, 'id'=>$row->id, 'userId'=>$row->sidx]);
 //                            $handler->setMessageData(['title' => $title, 'message' => $body, 'type'=>$this->type, 'id'=>$row->id,'userId'=>$row->sidx]);
 //                            $handler->sendMessage();
-                            $this->fcmService->sendNotification($arr_push, ['title'=> $title, 'body'=> $body, 'type'=> 'event', 'id'=> '']);
+                            $this->fcmService->sendNotification($arr_push, ['title' => $title, 'body' => $body, 'type' => $this->type, 'id' => $row->id, 'userId' => $row->sidx]);
                         }
                     }
                 }
             }
-        }
-        else if ($this->type == "adviceComment")
-        {
+        } else if ($this->type == "adviceComment") {
             $row = AdviceComment::find($this->type_id);
 
             if ($row) {
@@ -126,7 +123,7 @@ class PushMessageController extends Controller
                 } else if ($row->writer_type == 's') {
                     $student = RaonMember::where('idx', $row->sidx)->first();
 
-                    if($student){
+                    if ($student) {
                         $arr_push = UserAppInfo::where('user_id', $row->midx)->where('advice_alarm', 'Y')->whereNotNull('push_key')->pluck('push_key')->toArray();
                         $body = "{$student->name} 학부모 댓글이 작성되었습니다.";
                     }
@@ -150,13 +147,11 @@ class PushMessageController extends Controller
 //                        $handler->setMessage(['title' => $title, 'body' => $body, 'type'=>'advice', 'id'=>$row->advice_note_id,'userId'=>$row->sidx]);
 //                        $handler->setMessageData(['title' => $title, 'message' => $body, 'type'=>'advice', 'id'=>$row->advice_note_id,'userId'=>$row->sidx]);
 //                        $handler->sendMessage();
-                        $this->fcmService->sendNotification($arr_push, ['title'=> $title, 'body'=> $body, 'type'=> 'event', 'id'=> '']);
+                        $this->fcmService->sendNotification($arr_push, ['title' => $title, 'body' => $body, 'type' => 'advice', 'id' => $row->advice_note_id, 'userId' => $row->sidx]);
                     }
                 }
             }
-        }
-        else if ($this->type == "notice")
-        {
+        } else if ($this->type == "notice") {
             $row = Notice::find($this->type_id);
 
             if ($row) {
@@ -164,7 +159,7 @@ class PushMessageController extends Controller
                     if ($nowTime < $diffTime) {
                         $rs = RaonMember::where('midx', $row->midx)
                             ->where('mtype', 's')
-                            ->where(function($query) use($row) {
+                            ->where(function ($query) use ($row) {
                                 $query->where('s_status', 'Y')
                                     ->orWhereRaw("id IN (SELECT `sidx` FROM `asobi_log` WHERE `midx` = ? AND `log_type` = 'M2' AND date(`acceptDate`) between '2022-01-24' and '2022-01-28')", [$row->midx]);
                             })
@@ -209,7 +204,7 @@ class PushMessageController extends Controller
                 } else if ($row->writer_type == 'a') {
                     if ($nowTime < $diffTime) {
                         $rs = RaonMember::where('midx', 's')
-                            ->where(function($query) use($row) {
+                            ->where(function ($query) use ($row) {
                                 $query->where('s_status', 'Y')
                                     ->orWhereRaw("idx IN (SELECT `student_id` FROM `logs` WHERE `log_type` = 'M2' AND date(`accepted_at`) between '2022-01-24' and '2022-01-28')");
                             })
@@ -222,13 +217,13 @@ class PushMessageController extends Controller
 //                            ->pluck('idx')
 //                            ->toArray();
 
-                        $rs = RaonMember::where(function($query) {
+                        $rs = RaonMember::where(function ($query) {
                             $query->where('mtype', 's')->where('s_status', 'Y');
-                                })->orWhere(function($query) {
+                        })->orWhere(function ($query) {
                             $query->where('mtype', 'm')->where('m_status', 'Y');
-                                })->orWhere(function($query) {
+                        })->orWhere(function ($query) {
                             $query->where('mtype', 'h')->where('h_status', 'Y');
-                                })
+                        })
                             ->pluck('idx')
                             ->toArray();
                     }
@@ -263,12 +258,11 @@ class PushMessageController extends Controller
 //                        $handler->setMessage(['title' => $title, 'body' => $body, 'type'=>$this->type, 'id'=>$row->id]);
 //                        $handler->setMessageData(['title' => $title, 'message' => $body, 'type'=>$this->type, 'id'=>$row->id]);
 //                        $handler->sendMessage();
-                        $this->fcmService->sendNotification($arr_push, ['title'=> $title, 'body'=> $body, 'type'=> 'event', 'id'=> '']);
+                        $this->fcmService->sendNotification($arr_push, ['title' => $title, 'body' => $body, 'type' => $this->type, 'id' => $row->id]);
                     }
                 }
             }
-        }
-        else if ($this->type == "appNotice") // 어드민으로 테스트
+        } else if ($this->type == "appNotice") // 어드민으로 테스트
         {
             $row = AppNotice::find($this->type_id);
 
@@ -344,13 +338,11 @@ class PushMessageController extends Controller
 //                        $handler->setMessage(['title' => $title, 'body' => $body, 'type'=>$this->type, 'id'=>$row->id]);
 //                        $handler->setMessageData(['title' => $title, 'message' => $body, 'type'=>$this->type, 'id'=>$row->id]);
 //                        $handler->sendMessage();
-                        $this->fcmService->sendNotification($arr_push, ['title'=> $title, 'body'=> $body, 'type'=> 'event', 'id'=> '']);
+                        $this->fcmService->sendNotification($arr_push, ['title' => $title, 'body' => $body, 'type' => $this->type, 'id' => $row->id]);
                     }
                 }
             }
-        }
-        else if ($this->type == "album")
-        {
+        } else if ($this->type == "album") {
             $row = Album::find($this->type_id);
 
             if ($row) {
@@ -384,15 +376,13 @@ class PushMessageController extends Controller
 //                                $handler->setMessage(['title' => $title, 'body' => $body, 'type'=>$this->type, 'id'=>$row->id]);
 //                                $handler->setMessageData(['title' => $title, 'message' => $body, 'type'=>$this->type, 'id'=>$row->id]);
 //                                $handler->sendMessage();
-                                $this->fcmService->sendNotification($arr_push, ['title'=> $title, 'body'=> $body, 'type'=> 'event', 'id'=> '']);
+                                $this->fcmService->sendNotification($arr_push, ['title' => $title, 'body' => $body, 'type' => $this->type, 'id' => $row->id]);
                             }
                         }
                     }
                 }
             }
-        }
-        else if ($this->type == "albumComment")
-        {
+        } else if ($this->type == "albumComment") {
             $row = AlbumComment::find($this->type_id);
 
             if ($row) {
@@ -461,13 +451,14 @@ class PushMessageController extends Controller
 //                        $handler->setMessage(['title' => $title, 'body' => $body, 'type'=>'album', 'id'=>$row->album_id]);
 //                        $handler->setMessageData(['title' => $title, 'message' => $body, 'type'=>'album', 'id'=>$row->album_id]);
 //                        $handler->sendMessage();
-                        $this->fcmService->sendNotification($arr_push, ['title'=> $title, 'body'=> $body, 'type'=> 'event', 'id'=> '']);
+                        $this->fcmService->sendNotification($arr_push, ['title' => $title, 'message' => $body, 'type' => 'album', 'id' => $row->album_id]);
                     }
                 }
             }
-        }
-        else if ($this->type == 'attendance')
-        {
+        } else if ($this->type == 'attendance') {
+
+//            \App::make('helper')->log('arr_push', ['aaa' => '123'], '123');
+
             $row = Attendance::find($this->type_id);
 
             if ($row) {
@@ -485,14 +476,14 @@ class PushMessageController extends Controller
                         $attendance_type = $this->param['type'] ?? "";
                         $attendance_check = $this->param['check'] ?? "";
                         if ($attendance_type == "in" && $attendance_check == "1") {
-                            $body = $user->name . " " . date('y년m월d일 H시i분', strtotime($row->in_at)) ."에 등원하였습니다.";
-                            if (date('Ymd', strtotime($row->in_at)) != $row->year.$row->month.$row->day) {
-                                $body = $user->name . " " . date('y년m월d일 H시i분', strtotime($row->in_at)) ."에 등원 체크하였습니다.";
+                            $body = $user->name . " " . date('y년m월d일 H시i분', strtotime($row->in_at)) . "에 등원하였습니다.";
+                            if (date('Ymd', strtotime($row->in_at)) != $row->year . $row->month . $row->day) {
+                                $body = $user->name . " " . date('y년m월d일 H시i분', strtotime($row->in_at)) . "에 등원 체크하였습니다.";
                             }
                         } else if ($attendance_type == "out" && $attendance_check == "1") {
-                            $body = $user->name . " " . date('y년m월d일 H시i분', strtotime($row->out_at)) ."에 하원하였습니다.";
-                            if (date('Ymd', strtotime($row->out_at)) != $row->year.$row->month.$row->day) {
-                                $body = $user->name . " " . date('y년m월d일 H시i분', strtotime($row->out_at)) ."에 하원 체크하였습니다.";
+                            $body = $user->name . " " . date('y년m월d일 H시i분', strtotime($row->out_at)) . "에 하원하였습니다.";
+                            if (date('Ymd', strtotime($row->out_at)) != $row->year . $row->month . $row->day) {
+                                $body = $user->name . " " . date('y년m월d일 H시i분', strtotime($row->out_at)) . "에 하원 체크하였습니다.";
                             }
                         } else if ($attendance_type == "in" && $attendance_check == "0") {
                             $body = $user->name . " 등원 취소하였습니다.";
@@ -514,20 +505,41 @@ class PushMessageController extends Controller
 
                             $date = $row->year . '-' . $row->month;
 
+//                            \App::make('helper')->log('arr_push', ['thisreceivers' => $arr_push], '123');
+
+//                            $arr_push = [
+//                                /*아이폰2*/
+//                                'foRHE6Eku0O-g52DCu2akR:APA91bGCcYZSOO3H-JpjwPFQ_5IXtETctxCjoG-C7mu7pLUFL7RwUMOIHgtzoy0Hi925TungzQRLH6bsE9-2UP3E4fj18rFEY_InDp2PlX_u9ZDnPwRaWCTjBWsVPNfbLvnG4-J2DuZR',
+//                                /*내 아이폰*/
+//                                'cYxbJfKY9kzWhA5hrB8u_i:APA91bEIedrv1r_kBty9APISGaDoBSbeXN2eF_RaxsLp1pqamEDUJArVnOBFj83_ilk2rP7qjOmRpMmd2nzsNCMxtNH-qEn2TAD3ZdhH-dBC_iRJCmQPRBAAZj0-xqOnaZWdkXgHZRJn',
+////                /*내 갤럭시*/'c3ucVGlbQMeQguiIawruhc:APA91bFp5iQmfdL0yxV4NjJhKv4ULNBFt8DVnF0GcCjoO5orvSUh0PeO9-0**Y4VsnWUPQzznhX9J1XbGiR7hXtH_Oxp_p3La1DGd5sJ7BlHueARAW5_1qEA6YFvlIc6newOanCWfO5w',
+//                            ];
+
+
                             if (env('APP_ENV') != 'dev') {
 //                                $handler = App::make(FcmHandler::class);
 //                                $handler->setReceivers($arr_push);
 //                                $handler->setMessage(['title'=> $title, 'body'=> $body, 'type'=> $this->type, 'id'=> $row->id, 'userId'=>$row->sidx, 'check'=>$attendance_check, 'date' => $date]);
 //                                $handler->setMessageData(['title'=> $title, 'message'=> $body, 'type'=> $this->type, 'id'=> $row->id,'userId'=>$row->sidx,'check'=>$attendance_check, 'date' => $date]);
 //                                $handler->sendMessage();
-                                $this->fcmService->sendNotification($arr_push, ['title'=> $title, 'body'=> $body, 'type'=> 'event', 'id'=> '']);
+                                if ($_SERVER['REMOTE_ADDR'] === '183.101.245.76') {
+//                                    $arr_push = [
+//                                        /* 아이폰2 */ 'foRHE6Eku0O-g52DCu2akR:APA91bGCcYZSOO3H-JpjwPFQ_5IXtETctxCjoG-C7mu7pLUFL7RwUMOIHgtzoy0Hi925TungzQRLH6bsE9-2UP3E4fj18rFEY_InDp2PlX_u9ZDnPwRaWCTjBWsVPNfbLvnG4-J2DuZR',
+//                                        /* 내 갤럭시 */ "ckYZH8nMScC6rPFfXTRnHq:APA91bGRXLId-8re6FNhcv_RAh909Z47hoqsN9hGg8jvJy3uroyZmvmvhEAwMk5y2M6ukyZz3HFrn8yDDTK2-llJW-NEAlaVa6Z1znhvQPvl9WbH6wqQSykzvCKUfC68PJFr2wsDyxnJ",
+//                                        /* 블랙베리 */ 'cKVBPmZdRr-FMhm2ivKQwj:APA91bE9k6-5Vd8AOgZN-wNJC4oMKIoGGSLiJtd-bdRevXhoMKXSHNsW8clnAWJ0VeB-WF4aPymzkYTgUAb68IdXjUS3Kk1MWZcSSXrnFKeHn4VKy4_Bp23LYWm9uw4XJnPhHQxYm3wP'
+//                                    ];
+
+                                    $this->fcmService->sendNotification($arr_push, ['title' => $title, 'body' => $body, 'type' => $this->type, 'id' => $row->id, 'userId' => $row->sidx, 'check' => $attendance_check, 'date' => $date]);
+//                                        ['title' => '아소비', 'body' => '몬스터 00년00월00일 00시00분에 등원하였습니다.', 'type' => 'attendance', 'id' => 4114371, "userId" => '167675', 'check' => '1', 'date' => '2024-09']);
+                                } else {
+                                    $this->fcmService->sendNotification($arr_push, ['title' => $title, 'body' => $body, 'type' => $this->type, 'id' => $row->id, 'userId' => $row->sidx, 'check' => $attendance_check, 'date' => $date]);
+                                }
                             }
                         }
                     }
                 }
             }
-        }
-        else if ($this->type == 'educatonInfo') // 어드민으로 테스트
+        } else if ($this->type == 'educatonInfo') // 어드민으로 테스트
         {
             $row = EducatonInfo::find($this->type_id);
             if ($row) {
@@ -536,11 +548,11 @@ class PushMessageController extends Controller
 //                    ->pluck('push_key')
 //                    ->toArray();
 
-                $rs = RaonMember::where(function($query) {
+                $rs = RaonMember::where(function ($query) {
                     $query->where('mtype', 's')->where('s_status', 'Y');
-                })->orWhere(function($query) {
+                })->orWhere(function ($query) {
                     $query->where('mtype', 'm')->where('m_status', 'Y');
-                })->orWhere(function($query) {
+                })->orWhere(function ($query) {
                     $query->where('mtype', 'h')->where('h_status', 'Y');
                 })
                     ->pluck('idx')
@@ -578,15 +590,12 @@ class PushMessageController extends Controller
 //                        $handler->setMessage(['title'=> $title, 'body'=> $body, 'type'=> $this->type, 'id'=> $row->id]);
 //                        $handler->setMessageData(['title'=> $title, 'message'=> $body, 'type'=> $this->type, 'id'=> $row->id]);
 //                        $handler->sendMessage();
-                        $this->fcmService->sendNotification($arr_push, ['title'=> $title, 'body'=> $body, 'type'=> 'event', 'id'=> '']);
+                        $this->fcmService->sendNotification($arr_push, ['title' => $title, 'body' => $body, 'type' => $this->type, 'id' => $row->id]);
                     }
                 }
             }
-        }
-        else if ($this->type == 'educatonInfoComment')
-        {
-        }
-        else if ($this->type == 'event') // 어드민으로 테스트
+        } else if ($this->type == 'educatonInfoComment') {
+        } else if ($this->type == 'event') // 어드민으로 테스트
         {
             $row = Event::find($this->type_id);
 
@@ -596,11 +605,11 @@ class PushMessageController extends Controller
 //                    ->pluck('push_key')
 //                    ->toArray();
 
-                $rs = RaonMember::where(function($query) {
+                $rs = RaonMember::where(function ($query) {
                     $query->where('mtype', 's')->where('s_status', 'Y');
-                })->orWhere(function($query) {
+                })->orWhere(function ($query) {
                     $query->where('mtype', 'm')->where('m_status', 'Y');
-                })->orWhere(function($query) {
+                })->orWhere(function ($query) {
                     $query->where('mtype', 'h')->where('h_status', 'Y');
                 })
                     ->pluck('idx')
@@ -636,7 +645,7 @@ class PushMessageController extends Controller
 //                        $handler->setMessage(['title'=> $title, 'body'=> $body, 'type'=> $this->type, 'id'=> $row->id]);
 //                        $handler->setMessageData(['title'=> $title, 'message'=> $body, 'type'=> $this->type, 'id'=> $row->id]);
 //                        $handler->sendMessage();
-                        $this->fcmService->sendNotification($arr_push, ['title'=> $title, 'body'=> $body, 'type'=> 'event', 'id'=> '']);
+                        $this->fcmService->sendNotification($arr_push, ['title' => $title, 'body' => $body, 'type' => $this->type, 'id' => $row->id]);
                     }
                 }
             } else {
@@ -648,16 +657,15 @@ class PushMessageController extends Controller
 
                 $pushLog->save();
             }
-        }
-        else if ($this->type == 'eventRePush') // 어드민으로 테스트
+        } else if ($this->type == 'eventRePush') // 어드민으로 테스트
         {
             $row = Event::find($this->type_id);
 
-            $rs = RaonMember::where(function($query) {
+            $rs = RaonMember::where(function ($query) {
                 $query->where('mtype', 's')->where('s_status', 'Y');
-            })->orWhere(function($query) {
+            })->orWhere(function ($query) {
                 $query->where('mtype', 'm')->where('m_status', 'Y');
-            })->orWhere(function($query) {
+            })->orWhere(function ($query) {
                 $query->where('mtype', 'h')->where('h_status', 'Y');
             })
                 ->pluck('idx')
@@ -703,17 +711,16 @@ class PushMessageController extends Controller
 //                $handler->setMessage(['title'=> $title, 'body'=> $body, 'type'=> 'event', 'id'=> $row->id]);
 //                $handler->setMessageData(['title'=> $title, 'message'=> $body, 'type'=> 'event', 'id'=> $row->id]);
 //                $handler->sendMessage();
-                $this->fcmService->sendNotification($arr_push, ['title'=> $title, 'body'=> $body, 'type'=> 'event', 'id'=> '']);
+                $this->fcmService->sendNotification($arr_push, ['title' => $title, 'body' => $body, 'type' => 'event', 'id' => '']);
             }
 
-        }
-        else if ($this->type == 'eventComment')
-        {
-        }
-        else if ($this->type === 'test') {
+        } else if ($this->type == 'eventComment') {
+        } else if ($this->type === 'test') {
             $arr_push = [
-                /*내 아이폰*/'cYxbJfKY9kzWhA5hrB8u_i:APA91bEIedrv1r_kBty9APISGaDoBSbeXN2eF_RaxsLp1pqamEDUJArVnOBFj83_ilk2rP7qjOmRpMmd2nzsNCMxtNH-qEn2TAD3ZdhH-dBC_iRJCmQPRBAAZj0-xqOnaZWdkXgHZRJn',
-//                /*내 갤럭시*/'d7sRnwTCQg22geLs91V5dG:APA91bGAILguebIzXQ6WCoCmIRm_GuwyvIYT6BSuGqVXJWEegoOzbRkRzYK8Db0fYJIKEeKZaQaV8U-1iT4jg3DxyP3fPcMzx9raE7eQK_C5MYLft-IQ1fPmTMTwXMRPuVEDWKL2Mgjt',
+                /*내 아이폰*/
+                'cYxbJfKY9kzWhA5hrB8u_i:APA91bEIedrv1r_kBty9APISGaDoBSbeXN2eF_RaxsLp1pqamEDUJArVnOBFj83_ilk2rP7qjOmRpMmd2nzsNCMxtNH-qEn2TAD3ZdhH-dBC_iRJCmQPRBAAZj0-xqOnaZWdkXgHZRJn',
+                /*아이폰2*/
+                'foRHE6Eku0O-g52DCu2akR:APA91bGCcYZSOO3H-JpjwPFQ_5IXtETctxCjoG-C7mu7pLUFL7RwUMOIHgtzoy0Hi925TungzQRLH6bsE9-2UP3E4fj18rFEY_InDp2PlX_u9ZDnPwRaWCTjBWsVPNfbLvnG4-J2DuZR',
             ];
 //
 //            $pushLog = new PushLog([
@@ -726,16 +733,21 @@ class PushMessageController extends Controller
 
             $handler = App::make(FcmHandler::class);
             $handler->setReceivers($arr_push);
-            $handler->setMessage(['title'=> $title, 'body'=> $body, 'type'=> 'event', 'id'=> '']);
-            $handler->setMessageData(['title'=> $title, 'message'=> $body, 'type'=> 'event', 'id'=> '']);
+            $handler->setMessage(['title' => $title, 'body' => $body, 'type' => 'event', 'id' => '']);
+            $handler->setMessageData(['title' => $title, 'message' => $body, 'type' => 'event', 'id' => '']);
             $handler->sendMessage();
-        }  else if ($this->type === 'test2') {
+        } else if ($this->type === 'test2') {
             $arr_push = [
-                /*내 아이폰*/'cYxbJfKY9kzWhA5hrB8u_i:APA91bEIedrv1r_kBty9APISGaDoBSbeXN2eF_RaxsLp1pqamEDUJArVnOBFj83_ilk2rP7qjOmRpMmd2nzsNCMxtNH-qEn2TAD3ZdhH-dBC_iRJCmQPRBAAZj0-xqOnaZWdkXgHZRJn',
-//                /*내 갤럭시*/'d7sRnwTCQg22geLs91V5dG:APA91bGAILguebIzXQ6WCoCmIRm_GuwyvIYT6BSuGqVXJWEegoOzbRkRzYK8Db0fYJIKEeKZaQaV8U-1iT4jg3DxyP3fPcMzx9raE7eQK_C5MYLft-IQ1fPmTMTwXMRPuVEDWKL2Mgjt',
+                /*아이폰2*/
+                'foRHE6Eku0O-g52DCu2akR:APA91bGCcYZSOO3H-JpjwPFQ_5IXtETctxCjoG-C7mu7pLUFL7RwUMOIHgtzoy0Hi925TungzQRLH6bsE9-2UP3E4fj18rFEY_InDp2PlX_u9ZDnPwRaWCTjBWsVPNfbLvnG4-J2DuZR',
+                /*내 아이폰*/
+//                'cYxbJfKY9kzWhA5hrB8u_i:APA91bEIedrv1r_kBty9APISGaDoBSbeXN2eF_RaxsLp1pqamEDUJArVnOBFj83_ilk2rP7qjOmRpMmd2nzsNCMxtNH-qEn2TAD3ZdhH-dBC_iRJCmQPRBAAZj0-xqOnaZWdkXgHZRJn',
+//                /*내 갤럭시*/'c3ucVGlbQMeQguiIawruhc:APA91bFp5iQmfdL0yxV4NjJhKv4ULNBFt8DVnF0GcCjoO5orvSUh0PeO9-0**Y4VsnWUPQzznhX9J1XbGiR7hXtH_Oxp_p3La1DGd5sJ7BlHueARAW5_1qEA6YFvlIc6newOanCWfO5w',
             ];
 
-            $this->fcmService->sendNotification($arr_push, ['title'=> $title, 'body'=> $body, 'type'=> 'event', 'id'=> '']);
+            $this->fcmService->sendNotification($arr_push,
+                ['title' => '아소비', 'body' => '몬스터 00년00월00일 00시00분에 등원하였습니다.', 'type' => 'attendance', 'id' => 4114371, "userId" => '167675', 'check' => '1', 'date' => '2024-09']);
+//                ["title" => "아소비", "body" => "이시안 24년09월04일 16시36분에 등원하였습니다.", "type" => "attendance", "id" => 4114371, "userId" => 167675, "check" => "1", "date" => "2024-09"]);
         }
     }
 
@@ -762,8 +774,8 @@ class PushMessageController extends Controller
                     if ($push_key) {
                         $handler = App::make(FcmHandler::class);
                         $handler->setReceivers([$push_key]);
-                        $handler->setMessage(['title' => $title, 'body' => $body, 'type'=>$this->type, 'id'=>$row->id]);
-                        $handler->setMessageData(['title' => $title, 'message' => $body, 'type'=>$this->type, 'id'=>$row->id]);
+                        $handler->setMessage(['title' => $title, 'body' => $body, 'type' => $this->type, 'id' => $row->id]);
+                        $handler->setMessageData(['title' => $title, 'message' => $body, 'type' => $this->type, 'id' => $row->id]);
                         $handler->sendMessage();
                     }
                 }
@@ -771,16 +783,16 @@ class PushMessageController extends Controller
         } else if ($this->type == "adviceComment") {
             $row = AdviceComment::find($this->type_id);
 //            \App::make('helper')->log('adviceComment', ['bbb' => $this->type_id], 'adviceComment');
-            if($row){
-                if ($row->writer_type == 'a'){
+            if ($row) {
+                if ($row->writer_type == 'a') {
                     $body = "본사 댓글이 작성되었습니다.";
-                } else if($row->writer_type == 'h'){
+                } else if ($row->writer_type == 'h') {
                     $body = "지사 댓글이 작성되었습니다.";
-                } else if($row->writer_type == 'm'){
+                } else if ($row->writer_type == 'm') {
                     $body = "교육원 댓글이 작성되었습니다.";
-                } else if($row->writer_type == 's'){
+                } else if ($row->writer_type == 's') {
                     $student = RaonMember::where('idx', $row->sidx)->first();
-                    if($student){
+                    if ($student) {
                         $body = "{$student->name} 학부모 댓글이 작성되었습니다.";
                     }
                 }
@@ -788,8 +800,8 @@ class PushMessageController extends Controller
                 if ($push_key) {
                     $handler = App::make(FcmHandler::class);
                     $handler->setReceivers([$push_key]);
-                    $handler->setMessage(['title' => $title, 'body' => $body, 'type'=>$parent_row->type, 'id'=>$parent_row->id,'userId'=>$parent_row->sidx]);
-                    $handler->setMessageData(['title' => $title, 'message' => $body, 'type'=>$parent_row->type, 'id'=>$parent_row->id,'userId'=>$parent_row->sidx]);
+                    $handler->setMessage(['title' => $title, 'body' => $body, 'type' => $parent_row->type, 'id' => $parent_row->id, 'userId' => $parent_row->sidx]);
+                    $handler->setMessageData(['title' => $title, 'message' => $body, 'type' => $parent_row->type, 'id' => $parent_row->id, 'userId' => $parent_row->sidx]);
                     $handler->sendMessage();
                 }
             }
@@ -809,8 +821,8 @@ class PushMessageController extends Controller
                 if ($push_key) {
                     $handler = App::make(FcmHandler::class);
                     $handler->setReceivers([$push_key]);
-                    $handler->setMessage(['title' => $title, 'body' => $body, 'type'=>$this->type, 'id'=>$row->id]);
-                    $handler->setMessageData(['title' => $title, 'message' => $body, 'type'=>$this->type, 'id'=>$row->id]);
+                    $handler->setMessage(['title' => $title, 'body' => $body, 'type' => $this->type, 'id' => $row->id]);
+                    $handler->setMessageData(['title' => $title, 'message' => $body, 'type' => $this->type, 'id' => $row->id]);
                     $handler->sendMessage();
                 }
             }
@@ -828,8 +840,8 @@ class PushMessageController extends Controller
                     $body = "[공지] 아소비교육 공지사항이 작성되었습니다.";
                     $handler = App::make(FcmHandler::class);
                     $handler->setReceivers([$push_key]);
-                    $handler->setMessage(['title' => $title, 'body' => $body, 'type'=>$this->type, 'id'=>$row->id]);
-                    $handler->setMessageData(['title' => $title, 'message' => $body, 'type'=>$this->type, 'id'=>$row->id]);
+                    $handler->setMessage(['title' => $title, 'body' => $body, 'type' => $this->type, 'id' => $row->id]);
+                    $handler->setMessageData(['title' => $title, 'message' => $body, 'type' => $this->type, 'id' => $row->id]);
                     $handler->sendMessage();
                 }
             }
@@ -843,8 +855,8 @@ class PushMessageController extends Controller
                             $body = "교육원 앨범이 작성되었습니다.";
                             $handler = App::make(FcmHandler::class);
                             $handler->setReceivers([$push_key]);
-                            $handler->setMessage(['title' => $title, 'body' => $body, 'type'=>$this->type, 'id'=>$row->id]);
-                            $handler->setMessageData(['title' => $title, 'message' => $body, 'type'=>$this->type, 'id'=>$row->id]);
+                            $handler->setMessage(['title' => $title, 'body' => $body, 'type' => $this->type, 'id' => $row->id]);
+                            $handler->setMessageData(['title' => $title, 'message' => $body, 'type' => $this->type, 'id' => $row->id]);
                             $handler->sendMessage();
                         }
                     }
@@ -852,27 +864,35 @@ class PushMessageController extends Controller
             }
         } else if ($this->type == "albumComment") {
             $row = AlbumComment::find($this->type_id);
-            if($row){
+            if ($row) {
                 if ($row->writer_type == 'a') {
                     $body = "본사 댓글이 작성되었습니다.";
-                } else if($row->writer_type == 'h'){
+                } else if ($row->writer_type == 'h') {
                     $body = "지사 댓글이 작성되었습니다.";
-                } else if($row->writer_type == 'm'){
+                } else if ($row->writer_type == 'm') {
                     $body = "교육원 댓글이 작성되었습니다.";
-                } else if($row->writer_type == 's'){
+                } else if ($row->writer_type == 's') {
                     $student = RaonMember::where('idx', $row->sidx)->first();
-                    if($student){
+                    if ($student) {
                         $body = "{$student->name} 학부모 댓글이 작성되었습니다.";
                     }
                 }
                 if ($push_key) {
                     $handler = App::make(FcmHandler::class);
                     $handler->setReceivers([$push_key]);
-                    $handler->setMessage(['title' => $title, 'body' => $body, 'type'=>'album', 'id'=>$row->album_id]);
-                    $handler->setMessageData(['title' => $title, 'message' => $body, 'type'=>'album', 'id'=>$row->album_id]);
+                    $handler->setMessage(['title' => $title, 'body' => $body, 'type' => 'album', 'id' => $row->album_id]);
+                    $handler->setMessageData(['title' => $title, 'message' => $body, 'type' => 'album', 'id' => $row->album_id]);
                     $handler->sendMessage();
                 }
             }
         }
     }
 }
+
+
+//{
+//    "title":"아소비","body":"황준희 24년09월04일 17시30분에 하원하였습니다.","type":"attendance","id":4114262,"userId":156134,"check":"1","date":"2024-09"}
+//["foRHE6Eku0O-g52DCu2akR:APA91bGCcYZSOO3H-JpjwPFQ_5IXtETctxCjoG-C7mu7pLUFL7RwUMOIHgtzoy0Hi925TungzQRLH6bsE9-2UP3E4fj18rFEY_InDp2PlX_u9ZDnPwRaWCTjBWsVPNfbLvnG4-J2DuZR"]
+//{
+//    "title":"아소비","body":"이시안 24년09월04일 16시36분에 등원하였습니다.4","type":"attendance","id":4114371,"userId":"167675","check":"1","date":"2024-09"}
+//["ex2PUdBgSiyIkPNOHR5jjc:APA91bG1cNK_ERQq1Y0HV_pgtPvV6blcyIdbGgzboaqntV7CouBiRSyuX_Ut6axHj5-WCazbCk_PwZgBk3pzIxYe7M40Lgve6Cpwb9exR4uUuLYZjcTAZtgPAXIm2_K8xbD8zJaYJImw"]
