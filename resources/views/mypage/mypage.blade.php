@@ -39,6 +39,11 @@ $back_link = "/";
         </form>
         @endif
 
+        <?php if ($_SERVER['REMOTE_ADDR'] === '183.101.245.76') : ?>
+            <input type="text" name="device_id" id="device_id" value="{{ session('auth')['device_id'] ?? '' }}" />
+            <input type="text" name="push_key" id="push_key" value="{{ session('auth')['push_key'] ?? '' }}" />
+        <?php endif; ?>
+
         <div class="ip_wr mt-5">
             <div class="ip_tit">
                 <h5>이름</h5>
