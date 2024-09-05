@@ -139,7 +139,7 @@ var ycommon = (function(ycommon, $, window) {
             dateFormat:"yy-mm-dd",
             dayNames : ['일요일','월요일','화요일','수요일','목요일','금요일','토요일'],
             dayNamesMin : ['일','월','화','수','목','금','토'],
-            monthNamesShort:  [ "1월", "2월", "3월", "4월", "5월", "6월","7월", "8월", "9월", "10월", "11월", "12월" ]
+            monthNamesShort:  [ "1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월" ]
         });
     }
 
@@ -527,6 +527,7 @@ var ycommon = (function(ycommon, $, window) {
             err_msg = '요청 된 페이지를 찾을 수 없습니다. [404]';
         } else if (jqXHR.status == 500) {
             err_msg = '내부 서버 오류. [500]';
+            // err_msg = '푸시 발송 점검중입니다';
         } else if (textStatus === 'parsererror') {
             err_msg = '요청 된 JSON 구문 분석에 실패했습니다.';
         } else if (textStatus === 'timeout') {
