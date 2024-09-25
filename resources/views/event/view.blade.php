@@ -36,7 +36,7 @@ $back_link = "/event";
                     <div class="position-relative d-block d-lg-none">
                         <button type="button" class="btn p-0 btn_more h-auto"><img src="/img/ic_more.png" style="width: 1.6rem;"></button>
                         <ul class="more_cont">
-                            @if ($id == '24' && $_SERVER['REMOTE_ADDR'] === '183.101.245.76')
+                            @if ($id == '24' && $_SERVER['REMOTE_ADDR'] === '221.148.221.39')
                                 <li><button class="btn" onclick="rePush({{ $id }})">재푸시</button></li>
                             @endif
                             <li><button class="btn" onclick="location.href='/event/write/{{ $id }}'">수정</button></li>
@@ -51,7 +51,7 @@ $back_link = "/event";
             <!-- ※ 수정, 삭제 버튼은 본사일 때만 노출 -->
             <div class="botton_btns d-none d-lg-flex pt_80 pb-4">
                 @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='a')
-                    @if ($id == '24' && $_SERVER['REMOTE_ADDR'] === '183.101.245.76')
+                    @if ($id == '24' && $_SERVER['REMOTE_ADDR'] === '221.148.221.39')
                         <button type="button" class="btn btn-primary" style="background-color: skyblue; border: 0;" onclick="rePush({{ $id }})">재푸시</button>
                     @endif
                     <button type="button" class="btn btn-primary" onclick="location.href='/event/write/{{ $id }}'">수정</button>

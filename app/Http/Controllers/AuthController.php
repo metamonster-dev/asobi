@@ -146,6 +146,7 @@ class AuthController extends Controller
 
         // \App::make('helper')->vardump($res->original);
         // exit;
+
         return view('mypage/mypage',[
             'account' => $res->original ?? []
         ]);

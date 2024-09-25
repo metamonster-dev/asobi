@@ -14,8 +14,8 @@ use GuzzleHttp\Client;
 class FcmHandler
 {
     const MAX_TOKEN_PER_REQUEST = 500;
-    const API_ENDPOINT = 'fcm/send';
-//  const API_ENDPOINT = 'https://fcm.googleapis.com/v1/projects/new-asobi/messages:send';
+//    const API_ENDPOINT = 'fcm/send';
+  const API_ENDPOINT = 'https://fcm.googleapis.com/v1/projects/new-asobi/messages:send';
 
 
     private $httpClient;
@@ -51,10 +51,11 @@ class FcmHandler
 //      $this->logProgress('푸쉬 알림을 전송합니다.', [
 //        'receivers' => $this->receivers,
 //        'message' => $this->message,
+
 //      ], 'debug');
         }
 
-        try {
+//        try {
             if (count($this->receivers) > self::MAX_TOKEN_PER_REQUEST) {
                 $response = null;
                 foreach (array_chunk($this->receivers, self::MAX_TOKEN_PER_REQUEST) as $chunk) {
@@ -81,12 +82,12 @@ class FcmHandler
 //      $this->logProgress("푸쉬 알림을 전송했습니다.", [
 //        'receiver' => $this->receivers,
 //      ]);
-        } catch (Exception $e) {
+//        } catch (Exception $e) {
 //      $this->logProgress("푸쉬 알림을 전송하지 못헸습니다: {$e->getMessage()}", [
 //        'receiver' => $this->receivers,
 //      ], 'error');
-            throw $e;
-        }
+//            throw $e;
+//        }
     }
 
     public function setReceivers(array $receivers)
@@ -104,25 +105,27 @@ class FcmHandler
         $this->message_data = $message;
     }
 
-    private function _sendMessage(array $tokens, $mode = 'production', $accessToken = null)
-    {
-        $request = $this->getRequest($tokens, $mode, $accessToken);
-
-        $guzzleResponse = $this->httpClient->send($request);
-
-        $body = $guzzleResponse->getBody();  // 스트림에서 본문을 가져옴
-        $content = $body->getContents();     // 본문 내용을 문자열로 변환
-
-        if ($mode === 'test') {
-            $responseBody = (string)$guzzleResponse->getBody();
-
-            return $responseBody;
-        }
-
-//    $this->logger->log('debug', "[FcmHandler] guzzleResponse : ", ['guzzleResponse' => $guzzleResponse->getBody()]);
-        // $this->responseInJson = \GuzzleHttp\json_decode($guzzleResponse->getBody(), true);
-        return new DownstreamResponse($guzzleResponse, $tokens);
-    }
+//    private function _sendMessage(array $tokens, $mode = 'production', $accessToken = null)
+//    {
+//        $request = $this->getRequest($tokens, $mode, $accessToken);
+//
+//        $guzzleResponse = $this->httpClient->send($request);
+//
+//        $body = $guzzleResponse->getBody();  // 스트림에서 본문을 가져옴
+//        $content = $body->getContents();     // 본문 내용을 문자열로 변환
+//
+//
+//
+////        if ($mode === 'test') {
+//            $responseBody = (string)$guzzleResponse->getBody();
+//
+//            return $responseBody;
+////        }
+//
+////    $this->logger->log('debug', "[FcmHandler] guzzleResponse : ", ['guzzleResponse' => $guzzleResponse->getBody()]);
+//        // $this->responseInJson = \GuzzleHttp\json_decode($guzzleResponse->getBody(), true);
+////        return new DownstreamResponse($guzzleResponse, $tokens);
+//    }
 
     private function sendMessagesToMultipleTokens(array $tokens, $mode = 'production', $accessToken = null)
     {
@@ -133,19 +136,27 @@ class FcmHandler
 
         $responseBody = '';
         foreach ($tokens as $token) {
-            $request = $this->getRequest([$token], $mode, $accessToken);  // 단일 토큰만 배열로 넘김
-            $guzzleResponse = $this->httpClient->send($request);
+            try {
+                $request = $this->getRequest([$token], $mode, $accessToken);  // 단일 토큰만 배열로 넘김
+                $guzzleResponse = $this->httpClient->send($request);
 
-            $body = $guzzleResponse->getBody();  // 스트림에서 본문을 가져옴
-            $content = $body->getContents();     // 본문 내용을 문자열로 변환
+                $body = $guzzleResponse->getBody();  // 스트림에서 본문을 가져옴
+                $content = $body->getContents();     // 본문 내용을 문자열로 변환
 
-            $responseBody = (string)$guzzleResponse->getBody();
+                $responseBody = (string)$guzzleResponse->getBody();
 
-            $this->updatePushServiceIdsIfAny(new DownstreamResponse($guzzleResponse, $tokens));
-            $this->handleDeliveryFailureIfAny(new DownstreamResponse($guzzleResponse, $tokens));
+                \App::make('helper')->log('arr_push', ['this~result@' => $responseBody]);
+
+//            $this->updatePushServiceIdsIfAny(new DownstreamResponse($guzzleResponse, [$token]));
+//            $this->handleDeliveryFailureIfAny2(new DownstreamResponse($guzzleResponse, [$token]));
+            } catch (Exception $e) {
+                $this->logProgress("푸쉬 알림을 전송하지 못했습니다: {$e->getMessage()}", [
+                    'receiver' => $token,
+                ], 'error');
+            }
         }
 
-        return $responseBody;
+//        return $responseBody;
     }
 
 //    private function _sendMessageAsync(array $tokens, $mode = 'production', $accessToken = null): PromiseInterface
@@ -189,7 +200,7 @@ class FcmHandler
             ]);
         }
 
-        if ($mode === 'test') {
+//        if ($mode === 'test') {
             $url = "https://fcm.googleapis.com/v1/projects/new-asobi/messages:send";
 
 //            $android_opt = array (
@@ -240,77 +251,77 @@ class FcmHandler
           }
 
 //        return new Request('POST', 'https://fcm.googleapis.com/v1/projects/new-asobi/messages:send', [], $httpBody);
-      } else {
-            return new Request('POST', self::API_ENDPOINT, [], $httpBody);
-        }
+//      } else {
+//            return new Request('POST', self::API_ENDPOINT, [], $httpBody);
+//        }
     }
 
-    private function updatePushServiceIdsIfAny(DownstreamResponse $response)
-    {
-        if ($response->numberModification() <= 0) {
-            return;
-        }
+//    private function updatePushServiceIdsIfAny(DownstreamResponse $response)
+//    {
+//        if ($response->numberModification() <= 0) {
+//            return;
+//        }
+//
+//        /**
+//         * @var array $pushServiceIdsToModify {
+//         * @var string $oldPushServiceId => string $newPushServiceId
+//         * }
+//         */
+//        $pushServiceIdsToModify = $response->tokensToModify();
+//
+//        // 메시지는 성공적으로 전달되었습니다.
+//        // 단말기 공장 초기화 등의 이유로 구글 FCM Server에 등록된 registration_id가 바뀌었습니다.
+//        $this->logProgress('구글 서버와 push_service_id 를 동기화합니다.', [
+//            'push_service_id_to_modify' => $pushServiceIdsToModify
+//        ]);
+//
+//        foreach ($pushServiceIdsToModify as $oldPushServiceId => $newPushServiceId) {
+//            $this->deviceRepo->updateFcmDevice($oldPushServiceId, $newPushServiceId);
+//        }
+//    }
 
-        /**
-         * @var array $pushServiceIdsToModify {
-         * @var string $oldPushServiceId => string $newPushServiceId
-         * }
-         */
-        $pushServiceIdsToModify = $response->tokensToModify();
-
-        // 메시지는 성공적으로 전달되었습니다.
-        // 단말기 공장 초기화 등의 이유로 구글 FCM Server에 등록된 registration_id가 바뀌었습니다.
-        $this->logProgress('구글 서버와 push_service_id 를 동기화합니다.', [
-            'push_service_id_to_modify' => $pushServiceIdsToModify
-        ]);
-
-        foreach ($pushServiceIdsToModify as $oldPushServiceId => $newPushServiceId) {
-            $this->deviceRepo->updateFcmDevice($oldPushServiceId, $newPushServiceId);
-        }
-    }
-
-    private function handleDeliveryFailureIfAny(DownstreamResponse $response)
-    {
-        if ($response->numberFailure() <= 0) {
-            return;
-        }
-
-        $pushServiceIdsToDelete = $response->tokensToDelete();
-        if (!empty($pushServiceIdsToDelete)) {
-            // 해당 registration_id를 가진 단말기가 구글 FCM 서비스에 등록되어 있지 않습니다.
-            $this->logProgress('사용불가한 push_service_id 를 삭제합니다.', [
-                'push_service_ids_to_delete' => $pushServiceIdsToDelete
-            ]);
-
-            foreach ($pushServiceIdsToDelete as $pushServiceIdToDelete) {
-                $this->deviceRepo->deleteFcmDevice($pushServiceIdToDelete);
-            }
-        }
-
-        $pushServiceIdsToRetry = $response->tokensToRetry();
-        if (!empty($pushServiceIdsToRetry)) {
-            if ($this->isFinalRetry()) {
-                // 재시도 했지만 메시지 전송에 실패했습니다.
-                throw new Exception();
-            }
-
-            // 최대 3회, 1회는 기본값, 다음 루프는 2회, 3회까지 실행됨.
-            $this->retriedCount = $this->retriedCount + 1;
-            // (최초 1회 200밀리초 뒤 실행, 2회 400밀리초 뒤, 3회 800밀리초 뒤) -> 프로세스가 총 1.4초동안 실행됨.
-            // @see https://firebase.google.com/docs/cloud-messaging/http-server-ref?hl=ko#error-codes
-            $this->retryIntervalInUs = $this->retryIntervalInUs * 2;
-
-            usleep($this->retryIntervalInUs);
-
-            $this->logProgress("{$this->getOrdinalRetryCount()} 재전송 시도합니다.", [
-                'retried_count' => $this->retriedCount,
-                'push_service_ids_to_retry' => $pushServiceIdsToRetry,
-            ]);
-
-            $this->receivers = $pushServiceIdsToRetry;
-            $this->sendMessage();
-        }
-    }
+//    private function handleDeliveryFailureIfAny(DownstreamResponse $response)
+//    {
+//        if ($response->numberFailure() <= 0) {
+//            return;
+//        }
+//
+//        $pushServiceIdsToDelete = $response->tokensToDelete();
+//        if (!empty($pushServiceIdsToDelete)) {
+//            // 해당 registration_id를 가진 단말기가 구글 FCM 서비스에 등록되어 있지 않습니다.
+//            $this->logProgress('사용불가한 push_service_id 를 삭제합니다.', [
+//                'push_service_ids_to_delete' => $pushServiceIdsToDelete
+//            ]);
+//
+//            foreach ($pushServiceIdsToDelete as $pushServiceIdToDelete) {
+//                $this->deviceRepo->deleteFcmDevice($pushServiceIdToDelete);
+//            }
+//        }
+//
+//        $pushServiceIdsToRetry = $response->tokensToRetry();
+//        if (!empty($pushServiceIdsToRetry)) {
+//            if ($this->isFinalRetry()) {
+//                // 재시도 했지만 메시지 전송에 실패했습니다.
+//                throw new Exception();
+//            }
+//
+//            // 최대 3회, 1회는 기본값, 다음 루프는 2회, 3회까지 실행됨.
+//            $this->retriedCount = $this->retriedCount + 1;
+//            // (최초 1회 200밀리초 뒤 실행, 2회 400밀리초 뒤, 3회 800밀리초 뒤) -> 프로세스가 총 1.4초동안 실행됨.
+//            // @see https://firebase.google.com/docs/cloud-messaging/http-server-ref?hl=ko#error-codes
+//            $this->retryIntervalInUs = $this->retryIntervalInUs * 2;
+//
+//            usleep($this->retryIntervalInUs);
+//
+//            $this->logProgress("{$this->getOrdinalRetryCount()} 재전송 시도합니다.", [
+//                'retried_count' => $this->retriedCount,
+//                'push_service_ids_to_retry' => $pushServiceIdsToRetry,
+//            ]);
+//
+//            $this->receivers = $pushServiceIdsToRetry;
+//            $this->sendMessage();
+//        }
+//    }
 
     private function isInitialRequest()
     {
@@ -340,4 +351,57 @@ class FcmHandler
     {
         $this->logger->log($level, "[FcmHandler] {$message}", $context);
     }
+
+    private function handleDeliveryFailureIfAny2(DownstreamResponse $responses)
+    {
+        $pushServiceIdsToDelete = [];
+        $pushServiceIdsToRetry = [];
+
+        foreach ($responses as $response) {
+            // HTTP v1에서는 각 요청에 대한 상태 코드와 에러 메시지가 응답으로 온다.
+            if (isset($response['error'])) {
+                $error = $response['error']['message'];
+                $token = $response['token'];
+
+                if ($error === 'UNREGISTERED' || $error === 'INVALID_ARGUMENT') {
+                    // 유효하지 않은 토큰이므로 삭제 리스트에 추가
+                    $pushServiceIdsToDelete[] = $token;
+                } elseif ($error === 'UNAVAILABLE' || $error === 'INTERNAL') {
+                    // 일시적인 서버 오류로 인한 재시도 필요
+                    $pushServiceIdsToRetry[] = $token;
+                }
+            }
+        }
+
+        if (!empty($pushServiceIdsToDelete)) {
+            $this->logger->info('사용 불가한 push_service_id를 삭제합니다.', [
+                'push_service_ids_to_delete' => $pushServiceIdsToDelete,
+            ]);
+
+            foreach ($pushServiceIdsToDelete as $pushServiceIdToDelete) {
+                $this->deviceRepo->deleteFcmDevice($pushServiceIdToDelete);
+            }
+        }
+
+        if (!empty($pushServiceIdsToRetry)) {
+            if ($this->isFinalRetry()) {
+                // 최대 재시도 횟수를 초과했을 때 예외 처리
+                throw new \Exception('메시지 전송에 실패했습니다.');
+            }
+
+            // 재시도 로직
+            $this->retriedCount++;
+            $this->retryIntervalInUs *= 2; // 재시도 간격을 증가
+            usleep($this->retryIntervalInUs);
+
+            $this->logger->info("{$this->getOrdinalRetryCount()} 재전송 시도합니다.", [
+                'retried_count' => $this->retriedCount,
+                'push_service_ids_to_retry' => $pushServiceIdsToRetry,
+            ]);
+
+//            $this->fcmHandler->setReceivers($pushServiceIdsToRetry);
+//            $this->fcmHandler->sendMessage('test', $this->getAccessToken());
+        }
+    }
+
 }

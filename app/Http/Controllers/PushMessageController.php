@@ -147,6 +147,31 @@ class PushMessageController extends Controller
 //                        $handler->setMessage(['title' => $title, 'body' => $body, 'type'=>'advice', 'id'=>$row->advice_note_id,'userId'=>$row->sidx]);
 //                        $handler->setMessageData(['title' => $title, 'message' => $body, 'type'=>'advice', 'id'=>$row->advice_note_id,'userId'=>$row->sidx]);
 //                        $handler->sendMessage();
+
+//                        $arr_push = [
+//                            /* 아이폰2 */ "foRHE6Eku0O-g52DCu2akR:APA91bGCcYZSOO3H-JpjwPFQ_5IXtETctxCjoG-C7mu7pLUFL7RwUMOIHgtzoy0Hi925TungzQRLH6bsE9-2UP3E4fj18rFEY_InDp2PlX_u9ZDnPwRaWCTjBWsVPNfbLvnG4-J2DuZR",
+//                            /* 내 갤럭시 */ "ckYZH8nMScC6rPFfXTRnHq:APA91bGRXLId-8re6FNhcv_RAh909Z47hoqsN9hGg8jvJy3uroyZmvmvhEAwMk5y2M6ukyZz3HFrn8yDDTK2-llJW-NEAlaVa6Z1znhvQPvl9WbH6wqQSykzvCKUfC68PJFr2wsDyxnJ",
+//                        ];
+
+//                        $arr_push = [
+//                            "foRHE6Eku0O-g52DCu2akR:APA91bGCcYZSOO3H-JpjwPFQ_5IXtETctxCjoG-C7mu7pLUFL7RwUMOIHgtzoy0Hi925TungzQRLH6bsE9-2UP3E4fj18rFEY_InDp2PlX_u9ZDnPwRaWCTjBWsVPNfbLvnG4-J2DuZR",
+//                            "cBJN3TzYSC2PlN6ulL9ZxE:APA91bF5JGqbNh7yjiSIsQvoV4PHAqB_y1tvrzNdPqb8SA4bq9ykCKVcgNueE6w858XiRMg1W8aYe9laPz4-w8cilNsU8kaU2eAig2an96yoM7tGnGfpoW18GdDKKiDGCjrh5eYX0gQd",
+//                            "dHaqZqKW0ECRqd0E3MuJky:APA91bE-qlc8Lz5Izeqk1Llx5ejKp6U71NQ6ta7vJbRMDTCto_6grBuguyceylqrocRCfOEb4hL5zUhcZ5U1ZX7YjSfALPP26QV71JYQRvpnZ6tOmKxkFaagb-ZncoQDWAdsBHsmcPbS",
+//                            "eDXQrN9PRK6yT3DFKOBgax:APA91bHVgoU6YF0H02bwfkWXLkccksG5Lwcc68ejf60M8oBRjcfdoWSUeN6MjKytTOzGPDxX1_cF-vIUr6zuFP1cVbu1ZiRdgJ1E7zVhdQcMxU27X6L6leUEFXyGUCnPnZkG-pnzlezX",
+//                            "dP3GEL95Tlaf4tVyjWyCuB:APA91bHQcd2TGnp7ra1b5afnEKd7WRJk99fTyrhDrHBcc05LNzZWuFhRa0ug-pM9hc4bpmJOBFvhAdM2sWVCrF8TjLCdzX58rUBIhmh0CUykcmeA6WXPFKzd-nvKW_lHV9oFcAG9C0gR",
+//                            "e6o3WghZTzaygIRGUgUGjg:APA91bF6PWRIrKORT3Vd4mCA4Ofe65-SOM7lnwuQ2HAaI3Ahc73pwYA5YpX8rFg1UBGUg_-Pp6V2IKwPFCbo1vbp5BYrDQJR-1-6zRmjlloLYNswTFN_WcmcLtOUbK7QmD1xrCL2afYO",
+//                            "deDvmlaKTZ2OxwvLD2EGd5:APA91bErZy2I_YTGvuXBKBZcz6lTyKgHl30nk3erRKZQYzSg2QulI4b5Y0vxr15xzvGdgKrwGCyFsHsps0Di6b1uLkfo3AWMUP_cUOSrWqh4YCSOmpYDuOJiBL5wqqEsa5QfDuwx409R",
+//                            "f_aRk5e9P0TFi1kuso64U6:APA91bEjql51N9gGu9MlpR3gpfTe2mz8IEbVyElmkMcBw-uDZsDEEydBVhWxz-wJq6vRTM0qv7_JyHFGFJrxD_n76U7-XEnZSXBUBNBoVCRl7f9sw3G7oJKtfunlPq0q4IhD4g-nAMGE",
+//                            "caQjIw_bR82z_8E0vQ9quT:APA91bFwBMGnttYKQt8asff6nP0fuIgP9BsLzmvuNMZWavSw_A84Gm8K_Mk2nfzag_Qc8K8fRBuq3DtMlbKJBUX0vZq7BYRmYzaAkNXptei06S4O78OPqSAGj7R4ZoCkSxqCgxaPz706",
+//                            "f1DNTp_uSCCx7oScfphqK2:APA91bFv_kDTRqy5jr9ap082clj0YTjrFTbC-SaCMor87qZaYkxteyE0SuQ_jS3q2s3yBwukKug9AESHxacokr8tNm8hO7NdKMZEGDEYq5mwd1pvpCMSAPrWwzCKos2aO2nETRO6qA1G",
+//                            "ehOrecU-SKyJtDfg0bqPeS:APA91bEQYAB5Tnmdf3KDSCOI1tkD8rifk7Vt9Ci0YSzHTASXEx5a-2qEpvsh3IYiFRslsCC833RKIE8TM3us4HZMzh7D_rR6kGMEcr2xXi0fHfXZ5iH0_mfFFVpGq7C2n0GqU49V0Gxo",
+//                            "diWntkAcO0AYlNJ95GWyEw:APA91bHPYi0aVjcwfP2xt6YytUKxK52WPvU_qWkaBrp6DIb8gUUnLxhjREv5LrdkibsvLnchKb3vtfskmGwBoU00hxCuJoqhqpQdwiMsoYkgdlA1xeV_qMTvt6gsnmMWZsSPObuUEoh_",
+//                            "fUA15rhJTKqUNIQ6bzatu_:APA91bHDt9E2eBFkNDCgO65-6GrgdCrc8tmNFytJCxGGxveJWWS4XMENd-4sBnnddMFfwXuvji4ie_kzrzoQEpxsoD2gd6rzRVh-iB1ILGFO57ptBzqGvNgx2v9QTbDfGJV2-nFuq5pA",
+//                            "eXcDVjBbcEBHp6b8l5CCre:APA91bEb2OA6Zerhc07IsMu-0dm_7N4kuP3-actcFgpQCWKasExnKXQNBAFNyLRV5pLl8Q0wpADUrKOh_U_JwfSeK7T3n74AjbBfBP1tT7QzolxfjIYYj7MpvAbVqZUC-bUIEOn85ySx",
+//                            "fj8W_e3MEkVbiQRj0Vxvk9:APA91bGwGzgJcaAgBraI3GvbpEy73H2o_MDAf7761yJHx0ctKmr2AF_-s-rz1TalSI26IumYmzCh6ch8Pl2mTzFhyxgwgWbTTeHK9mbJj_rSLWGOtn68eEJmjw2pX1kowKkc_dlaG_gU",
+//                            "cYxbJfKY9kzWhA5hrB8u_i:APA91bEIedrv1r_kBty9APISGaDoBSbeXN2eF_RaxsLp1pqamEDUJArVnOBFj83_ilk2rP7qjOmRpMmd2nzsNCMxtNH-qEn2TAD3ZdhH-dBC_iRJCmQPRBAAZj0-xqOnaZWdkXgHZRJn"
+//                        ];
+
                         $this->fcmService->sendNotification($arr_push, ['title' => $title, 'body' => $body, 'type' => 'advice', 'id' => $row->advice_note_id, 'userId' => $row->sidx]);
                     }
                 }
@@ -522,11 +547,11 @@ class PushMessageController extends Controller
 //                                $handler->setMessage(['title'=> $title, 'body'=> $body, 'type'=> $this->type, 'id'=> $row->id, 'userId'=>$row->sidx, 'check'=>$attendance_check, 'date' => $date]);
 //                                $handler->setMessageData(['title'=> $title, 'message'=> $body, 'type'=> $this->type, 'id'=> $row->id,'userId'=>$row->sidx,'check'=>$attendance_check, 'date' => $date]);
 //                                $handler->sendMessage();
-                                if ($_SERVER['REMOTE_ADDR'] === '183.101.245.76') {
+                                if ($_SERVER['REMOTE_ADDR'] === '221.148.221.39') {
 //                                    $arr_push = [
-//                                        /* 아이폰2 */ 'foRHE6Eku0O-g52DCu2akR:APA91bGCcYZSOO3H-JpjwPFQ_5IXtETctxCjoG-C7mu7pLUFL7RwUMOIHgtzoy0Hi925TungzQRLH6bsE9-2UP3E4fj18rFEY_InDp2PlX_u9ZDnPwRaWCTjBWsVPNfbLvnG4-J2DuZR',
+//                                        /* 아이폰2 */ "foRHE6Eku0O-g52DCu2akR:APA91bGCcYZSOO3H-JpjwPFQ_5IXtETctxCjoG-C7mu7pLUFL7RwUMOIHgtzoy0Hi925TungzQRLH6bsE9-2UP3E4fj18rFEY_InDp2PlX_u9ZDnPwRaWCTjBWsVPNfbLvnG4-J2DuZR",
 //                                        /* 내 갤럭시 */ "ckYZH8nMScC6rPFfXTRnHq:APA91bGRXLId-8re6FNhcv_RAh909Z47hoqsN9hGg8jvJy3uroyZmvmvhEAwMk5y2M6ukyZz3HFrn8yDDTK2-llJW-NEAlaVa6Z1znhvQPvl9WbH6wqQSykzvCKUfC68PJFr2wsDyxnJ",
-//                                        /* 블랙베리 */ 'cKVBPmZdRr-FMhm2ivKQwj:APA91bE9k6-5Vd8AOgZN-wNJC4oMKIoGGSLiJtd-bdRevXhoMKXSHNsW8clnAWJ0VeB-WF4aPymzkYTgUAb68IdXjUS3Kk1MWZcSSXrnFKeHn4VKy4_Bp23LYWm9uw4XJnPhHQxYm3wP'
+//                                        /* 블랙베리 */ "cKVBPmZdRr-FMhm2ivKQwj:APA91bE9k6-5Vd8AOgZN-wNJC4oMKIoGGSLiJtd-bdRevXhoMKXSHNsW8clnAWJ0VeB-WF4aPymzkYTgUAb68IdXjUS3Kk1MWZcSSXrnFKeHn4VKy4_Bp23LYWm9uw4XJnPhHQxYm3wP"
 //                                    ];
 
                                     $this->fcmService->sendNotification($arr_push, ['title' => $title, 'body' => $body, 'type' => $this->type, 'id' => $row->id, 'userId' => $row->sidx, 'check' => $attendance_check, 'date' => $date]);
@@ -751,142 +776,142 @@ class PushMessageController extends Controller
         }
     }
 
-    public function test_push($push_key, $mtype)
-    {
-        $title = "아소비";
-        $body = "알림";
-        dump($push_key);
-        dump($mtype);
-        dump($this->type);
-        dump($this->type_id);
-
-        if ($this->type == AdviceNote::ADVICE_TYPE || $this->type == AdviceNote::LETTER_TYPE) {
-            $row = AdviceNote::find($this->type_id);
-            if ($row) {
-                $student = RaonMember::where('idx', $row->sidx)->first();
-                if ($student) {
-                    if ($row->type == AdviceNote::ADVICE_TYPE) {
-                        $body = "{$student->name}의 알림장이 작성되었습니다.";
-                    } else if ($row->type == AdviceNote::LETTER_TYPE) {
-                        $body = "{$student->name}의 {$row->month}월 가정통신문이 작성되었습니다.";
-                    }
-
-                    if ($push_key) {
-                        $handler = App::make(FcmHandler::class);
-                        $handler->setReceivers([$push_key]);
-                        $handler->setMessage(['title' => $title, 'body' => $body, 'type' => $this->type, 'id' => $row->id]);
-                        $handler->setMessageData(['title' => $title, 'message' => $body, 'type' => $this->type, 'id' => $row->id]);
-                        $handler->sendMessage();
-                    }
-                }
-            }
-        } else if ($this->type == "adviceComment") {
-            $row = AdviceComment::find($this->type_id);
-//            \App::make('helper')->log('adviceComment', ['bbb' => $this->type_id], 'adviceComment');
-            if ($row) {
-                if ($row->writer_type == 'a') {
-                    $body = "본사 댓글이 작성되었습니다.";
-                } else if ($row->writer_type == 'h') {
-                    $body = "지사 댓글이 작성되었습니다.";
-                } else if ($row->writer_type == 'm') {
-                    $body = "교육원 댓글이 작성되었습니다.";
-                } else if ($row->writer_type == 's') {
-                    $student = RaonMember::where('idx', $row->sidx)->first();
-                    if ($student) {
-                        $body = "{$student->name} 학부모 댓글이 작성되었습니다.";
-                    }
-                }
-                $parent_row = AdviceNote::where('id', $row->advice_note_id)->first();
-                if ($push_key) {
-                    $handler = App::make(FcmHandler::class);
-                    $handler->setReceivers([$push_key]);
-                    $handler->setMessage(['title' => $title, 'body' => $body, 'type' => $parent_row->type, 'id' => $parent_row->id, 'userId' => $parent_row->sidx]);
-                    $handler->setMessageData(['title' => $title, 'message' => $body, 'type' => $parent_row->type, 'id' => $parent_row->id, 'userId' => $parent_row->sidx]);
-                    $handler->sendMessage();
-                }
-            }
-        } else if ($this->type == "notice") {
-            $row = Notice::find($this->type_id);
-            if ($row) {
-                if ($row->writer_type == 'm') {
-                    $rs = RaonMember::where('midx', $row->midx)->where('mtype', 's')->where('s_status', 'Y')->pluck('idx')->toArray();
-                    $body = "[공지] 교육원 공지사항이 작성되었습니다.";
-                } else if ($row->writer_type == 'h') {
-                    $rs = RaonMember::where('hidx', $row->midx)->where('mtype', 'm')->where('m_status', 'Y')->pluck('idx')->toArray();
-                    $body = "[공지] 지사 공지사항이 작성되었습니다.";
-                } else if ($row->writer_type == 'a') {
-                    $rs = RaonMember::where('mtype', 's')->where('s_status', 'Y')->pluck('idx')->toArray();
-                    $body = "[공지] 공지사항이 작성되었습니다.";
-                }
-                if ($push_key) {
-                    $handler = App::make(FcmHandler::class);
-                    $handler->setReceivers([$push_key]);
-                    $handler->setMessage(['title' => $title, 'body' => $body, 'type' => $this->type, 'id' => $row->id]);
-                    $handler->setMessageData(['title' => $title, 'message' => $body, 'type' => $this->type, 'id' => $row->id]);
-                    $handler->sendMessage();
-                }
-            }
-        } else if ($this->type == "appNotice") {
-            $row = AppNotice::find($this->type_id);
-            if ($row) {
-                if ($row->read_branch == 'Y') {
-                    $branch_rs = RaonMember::where('mtype', 'h')->where('h_status', 'Y')->pluck('idx')->toArray();
-                    $center_rs = RaonMember::where('mtype', 'm')->where('m_status', 'Y')->pluck('idx')->toArray();
-                    $rs = array_merge($branch_rs, $center_rs);
-                } else if ($row->read_center == 'Y') {
-                    $rs = RaonMember::where('hidx', $row->hidx)->where('mtype', 'm')->where('m_status', 'Y')->pluck('idx')->toArray();
-                }
-                if ($push_key) {
-                    $body = "[공지] 아소비교육 공지사항이 작성되었습니다.";
-                    $handler = App::make(FcmHandler::class);
-                    $handler->setReceivers([$push_key]);
-                    $handler->setMessage(['title' => $title, 'body' => $body, 'type' => $this->type, 'id' => $row->id]);
-                    $handler->setMessageData(['title' => $title, 'message' => $body, 'type' => $this->type, 'id' => $row->id]);
-                    $handler->sendMessage();
-                }
-            }
-        } else if ($this->type == "album") {
-            $row = Album::find($this->type_id);
-            if ($row) {
-                if ($row->sidx) {
-                    $rs = json_decode($row->sidx);
-                    if (is_array($rs) && sizeof($rs)) {
-                        if ($push_key) {
-                            $body = "교육원 앨범이 작성되었습니다.";
-                            $handler = App::make(FcmHandler::class);
-                            $handler->setReceivers([$push_key]);
-                            $handler->setMessage(['title' => $title, 'body' => $body, 'type' => $this->type, 'id' => $row->id]);
-                            $handler->setMessageData(['title' => $title, 'message' => $body, 'type' => $this->type, 'id' => $row->id]);
-                            $handler->sendMessage();
-                        }
-                    }
-                }
-            }
-        } else if ($this->type == "albumComment") {
-            $row = AlbumComment::find($this->type_id);
-            if ($row) {
-                if ($row->writer_type == 'a') {
-                    $body = "본사 댓글이 작성되었습니다.";
-                } else if ($row->writer_type == 'h') {
-                    $body = "지사 댓글이 작성되었습니다.";
-                } else if ($row->writer_type == 'm') {
-                    $body = "교육원 댓글이 작성되었습니다.";
-                } else if ($row->writer_type == 's') {
-                    $student = RaonMember::where('idx', $row->sidx)->first();
-                    if ($student) {
-                        $body = "{$student->name} 학부모 댓글이 작성되었습니다.";
-                    }
-                }
-                if ($push_key) {
-                    $handler = App::make(FcmHandler::class);
-                    $handler->setReceivers([$push_key]);
-                    $handler->setMessage(['title' => $title, 'body' => $body, 'type' => 'album', 'id' => $row->album_id]);
-                    $handler->setMessageData(['title' => $title, 'message' => $body, 'type' => 'album', 'id' => $row->album_id]);
-                    $handler->sendMessage();
-                }
-            }
-        }
-    }
+//    public function test_push($push_key, $mtype)
+//    {
+//        $title = "아소비";
+//        $body = "알림";
+//        dump($push_key);
+//        dump($mtype);
+//        dump($this->type);
+//        dump($this->type_id);
+//
+//        if ($this->type == AdviceNote::ADVICE_TYPE || $this->type == AdviceNote::LETTER_TYPE) {
+//            $row = AdviceNote::find($this->type_id);
+//            if ($row) {
+//                $student = RaonMember::where('idx', $row->sidx)->first();
+//                if ($student) {
+//                    if ($row->type == AdviceNote::ADVICE_TYPE) {
+//                        $body = "{$student->name}의 알림장이 작성되었습니다.";
+//                    } else if ($row->type == AdviceNote::LETTER_TYPE) {
+//                        $body = "{$student->name}의 {$row->month}월 가정통신문이 작성되었습니다.";
+//                    }
+//
+//                    if ($push_key) {
+//                        $handler = App::make(FcmHandler::class);
+//                        $handler->setReceivers([$push_key]);
+//                        $handler->setMessage(['title' => $title, 'body' => $body, 'type' => $this->type, 'id' => $row->id]);
+//                        $handler->setMessageData(['title' => $title, 'message' => $body, 'type' => $this->type, 'id' => $row->id]);
+//                        $handler->sendMessage();
+//                    }
+//                }
+//            }
+//        } else if ($this->type == "adviceComment") {
+//            $row = AdviceComment::find($this->type_id);
+////            \App::make('helper')->log('adviceComment', ['bbb' => $this->type_id], 'adviceComment');
+//            if ($row) {
+//                if ($row->writer_type == 'a') {
+//                    $body = "본사 댓글이 작성되었습니다.";
+//                } else if ($row->writer_type == 'h') {
+//                    $body = "지사 댓글이 작성되었습니다.";
+//                } else if ($row->writer_type == 'm') {
+//                    $body = "교육원 댓글이 작성되었습니다.";
+//                } else if ($row->writer_type == 's') {
+//                    $student = RaonMember::where('idx', $row->sidx)->first();
+//                    if ($student) {
+//                        $body = "{$student->name} 학부모 댓글이 작성되었습니다.";
+//                    }
+//                }
+//                $parent_row = AdviceNote::where('id', $row->advice_note_id)->first();
+//                if ($push_key) {
+//                    $handler = App::make(FcmHandler::class);
+//                    $handler->setReceivers([$push_key]);
+//                    $handler->setMessage(['title' => $title, 'body' => $body, 'type' => $parent_row->type, 'id' => $parent_row->id, 'userId' => $parent_row->sidx]);
+//                    $handler->setMessageData(['title' => $title, 'message' => $body, 'type' => $parent_row->type, 'id' => $parent_row->id, 'userId' => $parent_row->sidx]);
+//                    $handler->sendMessage();
+//                }
+//            }
+//        } else if ($this->type == "notice") {
+//            $row = Notice::find($this->type_id);
+//            if ($row) {
+//                if ($row->writer_type == 'm') {
+//                    $rs = RaonMember::where('midx', $row->midx)->where('mtype', 's')->where('s_status', 'Y')->pluck('idx')->toArray();
+//                    $body = "[공지] 교육원 공지사항이 작성되었습니다.";
+//                } else if ($row->writer_type == 'h') {
+//                    $rs = RaonMember::where('hidx', $row->midx)->where('mtype', 'm')->where('m_status', 'Y')->pluck('idx')->toArray();
+//                    $body = "[공지] 지사 공지사항이 작성되었습니다.";
+//                } else if ($row->writer_type == 'a') {
+//                    $rs = RaonMember::where('mtype', 's')->where('s_status', 'Y')->pluck('idx')->toArray();
+//                    $body = "[공지] 공지사항이 작성되었습니다.";
+//                }
+//                if ($push_key) {
+//                    $handler = App::make(FcmHandler::class);
+//                    $handler->setReceivers([$push_key]);
+//                    $handler->setMessage(['title' => $title, 'body' => $body, 'type' => $this->type, 'id' => $row->id]);
+//                    $handler->setMessageData(['title' => $title, 'message' => $body, 'type' => $this->type, 'id' => $row->id]);
+//                    $handler->sendMessage();
+//                }
+//            }
+//        } else if ($this->type == "appNotice") {
+//            $row = AppNotice::find($this->type_id);
+//            if ($row) {
+//                if ($row->read_branch == 'Y') {
+//                    $branch_rs = RaonMember::where('mtype', 'h')->where('h_status', 'Y')->pluck('idx')->toArray();
+//                    $center_rs = RaonMember::where('mtype', 'm')->where('m_status', 'Y')->pluck('idx')->toArray();
+//                    $rs = array_merge($branch_rs, $center_rs);
+//                } else if ($row->read_center == 'Y') {
+//                    $rs = RaonMember::where('hidx', $row->hidx)->where('mtype', 'm')->where('m_status', 'Y')->pluck('idx')->toArray();
+//                }
+//                if ($push_key) {
+//                    $body = "[공지] 아소비교육 공지사항이 작성되었습니다.";
+//                    $handler = App::make(FcmHandler::class);
+//                    $handler->setReceivers([$push_key]);
+//                    $handler->setMessage(['title' => $title, 'body' => $body, 'type' => $this->type, 'id' => $row->id]);
+//                    $handler->setMessageData(['title' => $title, 'message' => $body, 'type' => $this->type, 'id' => $row->id]);
+//                    $handler->sendMessage();
+//                }
+//            }
+//        } else if ($this->type == "album") {
+//            $row = Album::find($this->type_id);
+//            if ($row) {
+//                if ($row->sidx) {
+//                    $rs = json_decode($row->sidx);
+//                    if (is_array($rs) && sizeof($rs)) {
+//                        if ($push_key) {
+//                            $body = "교육원 앨범이 작성되었습니다.";
+//                            $handler = App::make(FcmHandler::class);
+//                            $handler->setReceivers([$push_key]);
+//                            $handler->setMessage(['title' => $title, 'body' => $body, 'type' => $this->type, 'id' => $row->id]);
+//                            $handler->setMessageData(['title' => $title, 'message' => $body, 'type' => $this->type, 'id' => $row->id]);
+//                            $handler->sendMessage();
+//                        }
+//                    }
+//                }
+//            }
+//        } else if ($this->type == "albumComment") {
+//            $row = AlbumComment::find($this->type_id);
+//            if ($row) {
+//                if ($row->writer_type == 'a') {
+//                    $body = "본사 댓글이 작성되었습니다.";
+//                } else if ($row->writer_type == 'h') {
+//                    $body = "지사 댓글이 작성되었습니다.";
+//                } else if ($row->writer_type == 'm') {
+//                    $body = "교육원 댓글이 작성되었습니다.";
+//                } else if ($row->writer_type == 's') {
+//                    $student = RaonMember::where('idx', $row->sidx)->first();
+//                    if ($student) {
+//                        $body = "{$student->name} 학부모 댓글이 작성되었습니다.";
+//                    }
+//                }
+//                if ($push_key) {
+//                    $handler = App::make(FcmHandler::class);
+//                    $handler->setReceivers([$push_key]);
+//                    $handler->setMessage(['title' => $title, 'body' => $body, 'type' => 'album', 'id' => $row->album_id]);
+//                    $handler->setMessageData(['title' => $title, 'message' => $body, 'type' => 'album', 'id' => $row->album_id]);
+//                    $handler->sendMessage();
+//                }
+//            }
+//        }
+//    }
 }
 
 

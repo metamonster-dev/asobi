@@ -72,6 +72,11 @@ class FcmService
 
         $stringData = $this->convertDataToString($data);
 
+        // 'web' 일 경우 삭제
+        $receivers = array_filter($receivers, function ($receiver) {
+            return $receiver !== 'web';
+        });
+
 //        \App::make('helper')->log('arr_push', ['thisreceivers' => $receivers]);
 //        \App::make('helper')->log('arr_push', ['thisvalue' => $stringData]);
 

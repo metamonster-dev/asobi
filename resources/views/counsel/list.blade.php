@@ -21,6 +21,13 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
 ?>
 @include('common.headm02')
 
+<style>
+    select {
+        /*max-height: 150px;*/
+        /*overflow-y: auto;*/
+    }
+</style>
+
 <article class="sub_pg sub_bg sub_bg7">
     <div class="container pt-4 pt_lg_50">
         <div class="d-none d-lg-block">
@@ -40,7 +47,7 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
                             <div class="input-group">
 
                                 <select id="ymSelector" name="ym" class="form-control form-control-lg col-6">
-                                    <option value="all">전체</option>
+                                    <option value="all">전체 기간</option>
                                     <!-- 올해의 각 월 옵션 추가 -->
                                 </select>
 
@@ -54,7 +61,7 @@ if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== fal
                                 <div class="position-relative gr_r m_select_wrap">
                                     <div class="input_wrap">
                                         <input type="hidden" name="search_user_id" value="{{ $search_user_id }}" >
-                                        <input type="text" name="search_text" id="searchText" value="{{ $search_text }}" class="form-control bg-white custom-select m_select" autocomplete="off" placeholder="전체">
+                                        <input type="text" name="search_text" id="searchText" value="{{ $search_text }}" class="form-control bg-white custom-select m_select" autocomplete="off" placeholder="전체 학생">
                                         <button class="m_delete"><img src="/img/ic_delete_sm.png"></button>
                                     </div>
                                     <ul id="searchList" class="m_select_list none_scroll_bar"></ul>

@@ -333,7 +333,7 @@ class AdviceNoteController extends Controller
                 // 2024-03-29 박성복 수정 - 기존 API 쿼리문으로 수정함 Start
                 ->where('omd.cancel', '0')
                 ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail` WHERE `cancel` = omd.idx)"), '<', 1)
-                ->where(DB::raw("(SELECT COUNT(*) FROM `order_cancel_detail` WHERE `order_member_detail_idx` = omd.idx AND `status` = '99')"), '=', 0)     
+                ->where(DB::raw("(SELECT COUNT(*) FROM `order_cancel_detail` WHERE `order_member_detail_idx` = omd.idx AND `status` = '99')"), '=', 0)
                 // 2024-03-29 박성복 수정 - 기존 API 쿼리문으로 수정함 End
                 ->orderBy('omd.idx', 'ASC')
                 ->get();
@@ -604,7 +604,7 @@ class AdviceNoteController extends Controller
             $result = Arr::add($result, "write_possible", false);
         }
 
-//        if ($_SERVER['REMOTE_ADDR'] === '183.101.245.76') {
+//        if ($_SERVER['REMOTE_ADDR'] === '221.148.221.39') {
 //            dd($user->mtype);
 //        }
 

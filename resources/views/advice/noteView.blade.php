@@ -477,16 +477,19 @@ ycommon.ajaxJson('get', action, data, undefined, function (res) {
 
 //댓글 작성
 function Comment() {
-let comment = $('#comment').val();
-if(comment === ''){
-    return false;
-}
-let action = `/api/adviceNote/comment/write`;
-let data = {user: userId ,id: {{$id}}, comment: comment};
-ycommon.ajaxJson('post', action, data, undefined, function (res) {
-    $('#comment').val('');
-    CommentList();
-});
+    let comment = $('#comment').val();
+    if(comment === ''){
+        return false;
+    }
+    let action = `/api/adviceNote/comment/write`;
+    let data = {user: userId ,id: {{$id}}, comment: comment};
+
+    $('#loading').show();
+    ycommon.ajaxJson('post', action, data, undefined, function (res) {
+        $('#comment').val('');
+        CommentList();
+        $('#loading').hide();
+    });
 }
 
 //대댓글 작성 폼 호출
@@ -510,16 +513,19 @@ $('#recmt_wr'+id).html(inputHtml);
 
 //대댓글 작성
 function reComment(id) {
-let comment = $('#recomment').val();
-if(comment === ''){
-    return false;
-}
-let action = `/api/adviceNote/comment/write`;
-let data = {user: userId ,id: {{$id}}, comment: comment, pid: id};
-ycommon.ajaxJson('post', action, data, undefined, function (res) {
-    // console.log(res);
-    CommentList();
-});
+    let comment = $('#recomment').val();
+    if(comment === ''){
+        return false;
+    }
+    let action = `/api/adviceNote/comment/write`;
+    let data = {user: userId ,id: {{$id}}, comment: comment, pid: id};
+
+    $('#loading').show();
+    ycommon.ajaxJson('post', action, data, undefined, function (res) {
+        // console.log(res);
+        CommentList();
+        $('#loading').hide();
+    });
 }
 
 //더보기 버튼
