@@ -16,8 +16,13 @@ $back_link = "/event";
                 @include('common.tabs')
             </div>
             <div class="pb-4 mb-3 mb-lg-2 border-bottom d-flex align-items-center justify-content-between">
-                <div>
-                    <h4 class="tit_h4 mb-3 line_h1">{!! nl2br($row['subject']) !!}</h4>
+                <div class="w-100">
+                    <h4 class="tit_h4 mb-3 line_h1 d-flex justify-content-between">
+                        <div>{!! nl2br($row['subject']) !!}</div>
+                        @if(isset(session('auth')['user_type']) && session('auth')['user_type'] == 'a')
+                            <div class="fs_12 fw_300 text-light" style="text-align: right; min-width: 80px;">전체 조회수: {{ number_format($getAllCountBoardView) }} / 순 조회수: {{ number_format($getFilterCountBoardView) }}</div>
+                        @endif
+                    </h4>
                     <div class="d-flex align-items-center">
                         <span class="ev_stat @if($row['status_text'] == "진행중") ev_1 @else ev_2 @endif">{{ $row['status_text'] }}</span>
                         <div class="d-flex flex-wrap ml-1">
@@ -31,6 +36,9 @@ $back_link = "/event";
                     <div class="position-relative d-block d-lg-none">
                         <button type="button" class="btn p-0 btn_more h-auto"><img src="/img/ic_more.png" style="width: 1.6rem;"></button>
                         <ul class="more_cont">
+                            @if ($id == '24' && $_SERVER['REMOTE_ADDR'] === '221.148.221.39')
+                                <li><button class="btn" onclick="rePush({{ $id }})">재푸시</button></li>
+                            @endif
                             <li><button class="btn" onclick="location.href='/event/write/{{ $id }}'">수정</button></li>
                             <li><button class="btn" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/event/delete/{{ $id }}';})">삭제</button></li>
                         </ul>
@@ -43,6 +51,9 @@ $back_link = "/event";
             <!-- ※ 수정, 삭제 버튼은 본사일 때만 노출 -->
             <div class="botton_btns d-none d-lg-flex pt_80 pb-4">
                 @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='a')
+                    @if ($id == '24' && $_SERVER['REMOTE_ADDR'] === '221.148.221.39')
+                        <button type="button" class="btn btn-primary" style="background-color: skyblue; border: 0;" onclick="rePush({{ $id }})">재푸시</button>
+                    @endif
                     <button type="button" class="btn btn-primary" onclick="location.href='/event/write/{{ $id }}'">수정</button>
                     <button type="button" class="btn btn-gray text-white" onclick="location.href='/event'">목록</button>
                     <button type="button" class="btn btn-gray text-white" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/event/delete/{{ $id }}';})">삭제</button>
@@ -50,6 +61,7 @@ $back_link = "/event";
                     <button type="button" class="btn btn-gray text-white" onclick="location.href='/event'">목록</button>
                 @endif
             </div>
+            @if($row['useComment'] == 1)
             <hr class="line mt-5 mb-3">
             <div class="pt-3">
                 <div class="pb-0 pb-lg-4 px-0 px-lg-3 mx-0 mx-lg-3">
@@ -67,9 +79,17 @@ $back_link = "/event";
                     </form>
                 </div>
                 <div id="commetHtml"></div>
+                @endif
             </div>
         </div>
     </article>
+
+<div class="loading_wrap" id="loading" style="display: none">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
 
     <script>
         //댓글 리스트
@@ -277,6 +297,28 @@ $back_link = "/event";
             CommentList();
         });
 
+        document.querySelectorAll('a').forEach(function(anchor) {
+            anchor.addEventListener('click', function(event) {
+                // $('#loading').show();
+            });
+        });
+
+        document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+            element.addEventListener('click', function(event) {
+                $('#loading').show();
+            });
+        });
+
+        //댓글 작성
+        function rePush(id) {
+            if (confirm('재푸시 하시겠습니까?')) {
+                let action = `/api/event/rePush/${id}`;
+
+                ycommon.ajaxJson('post', action, undefined, undefined, function (res) {
+                    alert(res.error);
+                });
+            }
+        }
     </script>
 
 @endsection

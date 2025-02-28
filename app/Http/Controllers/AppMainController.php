@@ -13,9 +13,7 @@ use App\Notice;
 use App\NoticeHistory;
 use App\ScheduleAcademyStudy;
 use App\ScheduleStudy;
-use App\User;
-use App\UserMemberDetail;
-use App\UserCenterDetail;
+use App\Models\RaonMember;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -38,7 +36,7 @@ class AppMainController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
         $check_date = Carbon::now()->subDay(3)->format('Y-m-d');
 
         if (empty($user)) {
@@ -50,24 +48,27 @@ class AppMainController extends Controller
 //        $result = Arr::add($result, 'user_type', $user->user_type);
 //        $result = Arr::add($result, 'check_date', $check_date);
 
-        if ($user->user_type == 's') {
-            $advice_rs = AdviceNote::where('status', 'Y')->where('sidx', $user->id)->where('created_at', '>', $check_date)->get();
-            $adviceNoteHistoryCount = AdviceNoteHistory::whereIn('advice_note_id', $advice_rs->pluck('id')->toArray())->where('sidx', $user->id)->count();
+        if ($user->mtype == 's') {
+            $advice_rs = AdviceNote::where('status', 'Y')->where('sidx', $user->idx)->where('created_at', '>', $check_date)->get();
+            $adviceNoteHistoryCount = AdviceNoteHistory::whereIn('advice_note_id', $advice_rs->pluck('id')->toArray())->where('sidx', $user->idx)->count();
 
-            $album_rs = Album::where('status', 'Y')->where('sidx', 'like', "%" . json_encode($user->id) . "%")->where('created_at', '>', $check_date)->get();
-            $albumHistoryCount = AlbumHistory::whereIn('album_id', $album_rs->pluck('id')->toArray())->where('sidx', $user->id)->count();
+            $album_rs = Album::where('status', 'Y')
+//                ->where('sidx', 'like', "%" . json_encode($user->idx) . "%")
+                ->whereJsonContains('sidx', json_encode($user->idx))
+                ->where('created_at', '>', $check_date)->get();
+            $albumHistoryCount = AlbumHistory::whereIn('album_id', $album_rs->pluck('id')->toArray())->where('sidx', $user->idx)->count();
 
-            $notice_rs = Notice::where('status', 'Y')->whereIn('midx', [$user->center_id, 0])->where('view_type', 'like', "%" . json_encode($user->user_type) . "%")->where('created_at', '>', $check_date)->orderByDesc('created_at')->get();
-            $noticeHistoryCount = NoticeHistory::whereIn('notice_id', $notice_rs->pluck('id')->toArray())->where('sidx', $user->id)->count();
+            $notice_rs = Notice::where('status', 'Y')->whereIn('midx', [$user->midx, 0])->where('view_type', 'like', "%" . json_encode($user->mtype) . "%")->where('created_at', '>', $check_date)->orderByDesc('created_at')->get();
+            $noticeHistoryCount = NoticeHistory::whereIn('notice_id', $notice_rs->pluck('id')->toArray())->where('sidx', $user->idx)->count();
 
             $educatonInfo_rs = EducatonInfo::where('created_at', '>', $check_date)->get();
-            $educatonInfoHistoryCount = CommonHistory::where('type', '=', '1')->whereIn('type_id', $educatonInfo_rs->pluck('id')->toArray())->where('sidx', $user->id)->count();
+            $educatonInfoHistoryCount = CommonHistory::where('type', '=', '1')->whereIn('type_id', $educatonInfo_rs->pluck('id')->toArray())->where('sidx', $user->idx)->count();
 
             $event_rs = Event::where('created_at', '>', $check_date)->get();
-            $eventHistoryCount = CommonHistory::where('type', '=', '2')->whereIn('type_id', $event_rs->pluck('id')->toArray())->where('sidx', $user->id)->count();
+            $eventHistoryCount = CommonHistory::where('type', '=', '2')->whereIn('type_id', $event_rs->pluck('id')->toArray())->where('sidx', $user->idx)->count();
 
-            $userMemberDetail = UserMemberDetail::where('user_id', $user->id)->first();
-            $profile_image = $userMemberDetail->profile_image ?? '';
+            $userMemberDetail = RaonMember::where('idx', $user->idx)->first();
+            $profile_image = $userMemberDetail->user_picture ?? '';
 
             $result = Arr::add($result, 'adviceNote', $advice_rs->count() > $adviceNoteHistoryCount ? "Y" : "N");
             $result = Arr::add($result, 'album', $album_rs->count() > $albumHistoryCount ? "Y" : "N");
@@ -80,14 +81,14 @@ class AppMainController extends Controller
             $result = Arr::add($result, 'adviceNote', 'N');
             $result = Arr::add($result, 'album', 'N');
 
-            $notice_rso = Notice::where('status', 'Y')->where('view_type', 'like', "%" . json_encode($user->user_type) . "%")->where('created_at', '>', $check_date)->orderByDesc('created_at');
-            if ($user->user_type == 'm') {
-                $notice_rs = $notice_rso->where('hidx', $user->branch_id)->whereIn('midx', [0, $user->id])->get();
-                $noticeHistoryCount = NoticeHistory::whereIn('notice_id', $notice_rs->pluck('id')->toArray())->where('midx', $user->id)->count();
+            $notice_rso = Notice::where('status', 'Y')->where('view_type', 'like', "%" . json_encode($user->mtype) . "%")->where('created_at', '>', $check_date)->orderByDesc('created_at');
+            if ($user->mtype == 'm') {
+                $notice_rs = $notice_rso->where('hidx', $user->hidx)->whereIn('midx', [0, $user->idx])->get();
+                $noticeHistoryCount = NoticeHistory::whereIn('notice_id', $notice_rs->pluck('id')->toArray())->where('midx', $user->idx)->count();
                 $result = Arr::add($result, 'notice', $notice_rs->count() > $noticeHistoryCount ? "Y" : "N");
-            } else if ($user->user_type == 'h') {
-                $notice_rs = $notice_rso->whereIn('hidx', [0, $user->id])->get();
-                $noticeHistoryCount = NoticeHistory::whereIn('notice_id', $notice_rs->pluck('id')->toArray())->where('hidx', $user->id)->count();
+            } else if ($user->mtype == 'h') {
+                $notice_rs = $notice_rso->whereIn('hidx', [0, $user->idx])->get();
+                $noticeHistoryCount = NoticeHistory::whereIn('notice_id', $notice_rs->pluck('id')->toArray())->where('hidx', $user->idx)->count();
                 $result = Arr::add($result, 'notice', $notice_rs->count() > $noticeHistoryCount ? "Y" : "N");
             } else {
                 $result = Arr::add($result, 'notice', 'N');
@@ -108,7 +109,7 @@ class AppMainController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '사용자 정보가 없습니다.');
@@ -126,16 +127,16 @@ class AppMainController extends Controller
         }
 
         $midx = 0;
-        if ($user->user_type == 'm') {
-            $userCenterDetail = UserCenterDetail::where('user_id', $user->id)->first();
-            $franchisetype = $userCenterDetail->franchise_type ?? '';
+        if ($user->mtype == 'm') {
+            $userCenterDetail = RaonMember::where('idx', $user->idx)->first();
+            $franchisetype = $userCenterDetail->franchisetype ?? '';
             if ($franchisetype == 'B' || $franchisetype == 'C') {
-                $midx = $user->id;
+                $midx = $user->idx;
             }
         }
 
         $calendar_years_array = array();
-        $calendar_years = DB::table('schedule_studies')
+        $calendar_years = DB::connection('mysql')->table('schedule_studies')
             ->select(DB::raw("DISTINCT(DATE_FORMAT(`date`, '%Y')) AS year"))
             ->orderBy('date', 'asc')
             ->get();
@@ -147,7 +148,7 @@ class AppMainController extends Controller
         }
 
         if ($midx) {
-            $center_calendar_years = DB::table('schedule_academy_studies')
+            $center_calendar_years = DB::connection('mysql')->table('schedule_academy_studies')
                 ->select(DB::raw("DISTINCT(DATE_FORMAT(`date`, '%Y')) AS year"))
                 ->where('midx', $midx)
                 ->orderBy('date', 'asc')
@@ -175,18 +176,18 @@ class AppMainController extends Controller
                 ->orderBy('date', 'asc')
                 ->get();
         } else {
-            if ($user->user_type == 'm') {
+            if ($user->mtype == 'm') {
                 $rs = ScheduleStudy::whereIn('type', ['blue', 'red'])->when($year_month_day, function ($query, $year_month_day) {
                     $query->whereRaw("date = ?", [$year_month_day]);
                 })->orderBy('date', 'asc')->get();
             } else {
-                if ($user->user_type == 's') {
-                    $center = User::select('id')->whereId($user->center_id)->first();
-                    $centerCenterDetail = UserCenterDetail::where('user_id', $center->id)->first();
-                    $center->franchisetype = $centerCenterDetail->franchise_type ?? '';
+                if ($user->mtype == 's') {
+                    $center = RaonMember::select('idx')->whereId($user->midx)->first();
+                    $centerCenterDetail = RaonMember::where('idx', $center->id)->first();
+                    $center->franchisetype = $centerCenterDetail->franchisetype ?? '';
 
                     if ($center && $center->franchisetype == 'C') {
-                        $center_calendar_years = DB::table('schedule_academy_studies')
+                        $center_calendar_years = DB::connection('mysql')->table('schedule_academy_studies')
                             ->select(DB::raw("DISTINCT(DATE_FORMAT(`date`, '%Y')) AS year"))
                             ->where('midx', $center->id)
                             ->orderBy('date', 'asc')
@@ -234,7 +235,7 @@ class AppMainController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -252,16 +253,16 @@ class AppMainController extends Controller
         }
 
         $midx = 0;
-        if ($user->user_type == 'm') {
-            $userCenterDetail = UserCenterDetail::where('user_id', $user->id)->first();
-            $franchisetype = $userCenterDetail->franchise_type ?? '';
+        if ($user->mtype == 'm') {
+            $userCenterDetail = RaonMember::where('idx', $user->idx)->first();
+            $franchisetype = $userCenterDetail->franchisetype ?? '';
             if ($franchisetype == 'B' || $franchisetype == 'C') {
-                $midx = $user->id;
+                $midx = $user->idx;
             }
         }
 
         $calendar_years_array = array();
-        $calendar_years = DB::table('schedule_studies')
+        $calendar_years = DB::connection('mysql')->table('schedule_studies')
             ->select(DB::raw("DISTINCT(DATE_FORMAT(`date`, '%Y')) AS year"))
             ->orderBy('date', 'asc')
             ->get();
@@ -272,8 +273,9 @@ class AppMainController extends Controller
             }); // $calendar_years->map End
         }
 
+
         if ($midx) {
-            $center_calendar_years = DB::table('schedule_academy_studies')
+            $center_calendar_years = DB::connection('mysql')->table('schedule_academy_studies')
                 ->select(DB::raw("DISTINCT(DATE_FORMAT(`date`, '%Y')) AS year"))
                 ->where('midx', $midx)
                 ->orderBy('date', 'asc')
@@ -282,7 +284,7 @@ class AppMainController extends Controller
             $center_calendar_years_array = array();
             if ($center_calendar_years->count()) {
                 $center_calendar_years->map(function($center_calendar_year) use(&$center_calendar_years_array) {
-                    $center_calendar_years_array[] = $center_calendar_year->year;
+//                    $center_calendar_years_array[] = $center_calendar_year->year;
                 }); // $calendar_years->map End
             }
 
@@ -300,19 +302,20 @@ class AppMainController extends Controller
                 )
                 ->orderBy('date', 'asc')
                 ->get();
+
         } else {
-            if ($user->user_type == 'm') {
+            if ($user->mtype == 'm') {
                 $rs = ScheduleStudy::whereIn('type', ['blue', 'red'])->when($year_month, function ($query, $year_month) {
                     $query->whereRaw("date_format(date, '%Y-%m') = ?", [$year_month]);
                 })->orderBy('date', 'asc')->get();
             } else {
-                if ($user->user_type == 's') {
-                    $center = User::select('id')->whereId($user->center_id)->first();
-                    $centerCenterDetail = UserCenterDetail::where('user_id', $center->id)->first();
-                    $center->franchisetype = $centerCenterDetail->franchise_type ?? '';
+                if ($user->mtype == 's') {
+                    $center = RaonMember::select('idx')->whereIdx($user->midx)->first();
+                    $centerCenterDetail = RaonMember::where('idx', $center->idx)->first();
+                    $center->franchisetype = $centerCenterDetail->franchisetype ?? '';
 
                     if ($center && $center->franchisetype == 'C') {
-                        $center_calendar_years = DB::table('schedule_academy_studies')
+                        $center_calendar_years = DB::connection('mysql')->table('schedule_academy_studies')
                             ->select(DB::raw("DISTINCT(DATE_FORMAT(`date`, '%Y')) AS year"))
                             ->where('midx', $center->id)
                             ->orderBy('date', 'asc')

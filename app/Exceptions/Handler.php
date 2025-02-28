@@ -3,6 +3,9 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Support\Facades\Redirect;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -46,5 +49,27 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+    }
+
+//    public function render($request, Throwable $e)
+//    {
+//        if ($this->isHttpException($e)) {
+//            if ($e->getStatusCode() == 404) {
+////                return Redirect::route('/')->with('error', '페이지를 찾을 수 없습니다.');
+//                return redirect('/')->with('error', '페이지를 찾을 수 없습니다.');
+//            }
+//        }
+//
+//        return parent::render($request, $e);
+//    }
+
+    public function render($request, Throwable $e)
+    {
+        if ($e instanceof NotFoundHttpException || ($e instanceof HttpException && $e->getStatusCode() == 500)) {
+            return response()->view('errors.404', [], 404);
+//            return redirect('/')->with('error', '접속량이 많아 일시적인 오류가 발생했습니다.');
+        }
+
+        return parent::render($request, $e);
     }
 }

@@ -8,8 +8,7 @@ use App\Attendance;
 use App\Http\Controllers\AppMainController;
 use App\Jobs\BatchPush;
 use App\Notice;
-use App\User;
-use App\UserMemberDetail;
+use App\Models\RaonMember;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -22,7 +21,7 @@ class AttendanceController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -30,7 +29,7 @@ class AttendanceController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m'])) {
+        if (!in_array($user->mtype, ['m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -41,9 +40,9 @@ class AttendanceController extends Controller
         $month = $request->input('month') ? sprintf('%02d',$request->input('month')) : $now->format('m');
         $day = $request->input('day') ? sprintf('%02d',$request->input('day')) : null;
 
-        $rs = User::where('center_id', $user->id)
-            ->where('user_type', 's')
-            ->where('status', 'Y')
+        $rs = RaonMember::where('midx', $user->idx)
+            ->where('mtype', 's')
+            ->where('s_status', 'Y')
             ->orderBy('name', 'asc')
             ->get();
 
@@ -54,21 +53,21 @@ class AttendanceController extends Controller
             if (!$day) {
                 $req = Request();
                 $req->merge([
-                    'user' => $user->id,
+                    'user' => $user->idx,
                     'year' => $year,
                     'month' => $month,
                 ]);
                 $rep = $appMainController->calendar($req);
             }
             foreach ($rs as $index => $row) {
-                $userMemberDetail = UserMemberDetail::where('user_id', $row->id)->first();
-                $profile_image = $userMemberDetail->profile_image ?? '';
+                $userMemberDetail = RaonMember::where('idx', $row->idx)->first();
+                $profile_image = $userMemberDetail->user_picture ?? '';
 
-                $result = Arr::add($result, "list.{$index}.id", $row->id);
+                $result = Arr::add($result, "list.{$index}.id", $row->idx);
                 $result = Arr::add($result, "list.{$index}.name", $row->name);
                 $result = Arr::add($result, "list.{$index}.profile_image", $profile_image ? \App::make('helper')->getImage($profile_image) : null);
                 if ($day) {
-                    $attendance = Attendance::where('sidx', $row->id)
+                    $attendance = Attendance::where('sidx', $row->idx)
                         ->where('year', $year)
                         ->where('month', $month)
                         ->where('day', $day)
@@ -83,7 +82,7 @@ class AttendanceController extends Controller
                     $result = Arr::add($result, "list.{$index}.attendance_in", $in);
                     $result = Arr::add($result, "list.{$index}.attendance_out", $out);
                 } else {
-                    $attendance = Attendance::where('sidx', $row->id)
+                    $attendance = Attendance::where('sidx', $row->idx)
                         ->where('year', $year)
                         ->where('month', $month)
                         ->where('in', '1')
@@ -102,7 +101,7 @@ class AttendanceController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -114,28 +113,30 @@ class AttendanceController extends Controller
         $year = $request->input('year')  ? sprintf('%04d', $request->input('year')) : $now->format('Y');
         $month = $request->input('month') ? sprintf('%02d',$request->input('month')) : $now->format('m');
 
-        if (!in_array($user->user_type, ['s'])) {
+        if (!in_array($user->mtype, ['s'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
         }
 
-        $attendance_rs = Attendance::where('sidx', $user->id)->where('year', $year)->where('month', $month)->where(function ($q){
+        $attendance_rs = Attendance::where('sidx', $user->idx)->where('year', $year)->where('month', $month)->where(function ($q){
             $q->where('in', '1')
                 ->orWhere('out','1');
         })->get();
         $attendance_count = 0;
-        $advice_rs = AdviceNote::where('sidx', $user->id)->where('year', $year)->where('month', $month)->where('type', AdviceNote::ADVICE_TYPE)->get();
-        $letter_rs = AdviceNote::where('sidx', $user->id)->where('year', $year)->where('month', $month)->where('type', AdviceNote::LETTER_TYPE)->get();
+        $advice_rs = AdviceNote::where('sidx', $user->idx)->where('year', $year)->where('month', $month)->where('type', AdviceNote::ADVICE_TYPE)->get();
+        $letter_rs = AdviceNote::where('sidx', $user->idx)->where('year', $year)->where('month', $month)->where('type', AdviceNote::LETTER_TYPE)->get();
         $notice_rs = Notice::where('status', 'Y')
-            ->whereIn('midx', [$user->center_id, 0])
-            ->where('view_type', 'like', "%" . json_encode($user->user_type) . "%")
+            ->whereIn('midx', [$user->midx, 0])
+            ->where('view_type', 'like', "%" . json_encode($user->mtype) . "%")
             ->where('year', $year)
             ->where('month', $month)
             ->orderByDesc('created_at')
             ->get();
+
         $album_rs = Album::where('status', 'Y')
-            ->where('sidx', 'like', "%" . json_encode($user->id) . "%")
+//            ->where('sidx', 'like', "%" . json_encode($user->idx) . "%")
+            ->whereJsonContains('sidx', json_encode($user->idx))
             ->where('year', $year)
             ->where('month', $month)
             ->orderByDesc('created_at')
@@ -161,6 +162,7 @@ class AttendanceController extends Controller
         $result = Arr::add($result, "attendance_in", $in);
         $result = Arr::add($result, "attendance_out", $out);
 
+
         $date_info = [];
         if ($advice_rs) {
             $advice_cnt_arr = [];
@@ -169,7 +171,9 @@ class AttendanceController extends Controller
                 if (! isset($advice_cnt_arr[$this_date])) {
                     $advice_cnt_arr[$this_date] = 0;
                 }
+                $date_info[$this_date]['adviceId'] = '/advice/' . $user->idx . '/note/view/' . $row->id;
                 $date_info[$this_date]['advice'] = ++$advice_cnt_arr[$this_date];
+//                $date_info['advice'][$this_date] = ++$advice_cnt_arr[$this_date];
             }
         }
 
@@ -180,7 +184,9 @@ class AttendanceController extends Controller
                 if (! isset($letter_cnt_arr[$this_date])) {
                     $letter_cnt_arr[$this_date] = 0;
                 }
+                $date_info[$this_date]['letterId'] = '/advice/' . $user->idx . '/letter/view/' . $row->id;
                 $date_info[$this_date]['letter'] = ++$letter_cnt_arr[$this_date];
+//                $date_info['letter'][$this_date] = ++$letter_cnt_arr[$this_date];
             }
         }
 
@@ -191,7 +197,9 @@ class AttendanceController extends Controller
                 if (! isset($notice_cnt_arr[$this_date])) {
                     $notice_cnt_arr[$this_date] = 0;
                 }
+                $date_info[$this_date]['noticeId'] = '/notice/view/' . $row->id;
                 $date_info[$this_date]['notice'] = ++$notice_cnt_arr[$this_date];
+//                $date_info['notice'][$this_date] = ++$notice_cnt_arr[$this_date];
             }
         }
 
@@ -202,7 +210,9 @@ class AttendanceController extends Controller
                 if (! isset($album_cnt_arr[$this_date])) {
                     $album_cnt_arr[$this_date] = 0;
                 }
+                $date_info[$this_date]['albumId'] = '/album/view/' . $row->id;
                 $date_info[$this_date]['album'] = ++$album_cnt_arr[$this_date];
+//                $date_info['album'][$this_date] = ++$album_cnt_arr[$this_date];
             }
         }
 
@@ -215,7 +225,26 @@ class AttendanceController extends Controller
             }
 
             array_multisort($sort_keys_proc,SORT_DESC, $date_info);
+
+//            foreach ($date_info as $key => $value) {
+//                foreach ($value as $key2 => $value2) {
+//
+//                    if ($key2 === 'advice') {
+//                        $arrayValue = array(
+//                            $key => array(
+//                                'advice' => $value2
+//                            )
+//                        );
+//
+//                        $date_info = array($arrayValue) + $date_info;
+//
+//                        unset($date_info[$key]['advice']);
+//                    }
+//                }
+//            }
         }
+
+//        dd($date_info);
 
         $result = Arr::add($result, "date_info", $date_info);
 
@@ -226,7 +255,7 @@ class AttendanceController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -234,20 +263,20 @@ class AttendanceController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m'])) {
+        if (!in_array($user->mtype, ['m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
         }
 
         $student_id = $request->input('student');
-        $student = User::whereId($student_id)->first();
+        $student = RaonMember::whereIdx($student_id)->first();
         if (empty($student)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '학생 정보가 없습니다.');
             return response()->json($result);
         }
-        if ($student->center_id != $user->id || $student->user_type != 's') {
+        if ($student->midx != $user->idx || $student->mtype != 's') {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '학생의 권한이 없습니다.');
             return response()->json($result);
@@ -281,8 +310,8 @@ class AttendanceController extends Controller
 
         if (empty($attendance)) {
             $payload = [
-                'hidx' => $user->branch_id,
-                'midx' => $user->id,
+                'hidx' => $user->midx,
+                'midx' => $user->idx,
                 'sidx' => $student_id,
                 'year' => $year,
                 'month' => $month,
@@ -334,7 +363,7 @@ class AttendanceController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -342,7 +371,7 @@ class AttendanceController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m'])) {
+        if (!in_array($user->mtype, ['m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -387,7 +416,7 @@ class AttendanceController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -395,13 +424,13 @@ class AttendanceController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m'])) {
+        if (!in_array($user->mtype, ['m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
         }
 
-        $attendance = Attendance::where('midx', $user->id)->where('id', $attendance_id)->first();
+        $attendance = Attendance::where('midx', $user->idx)->where('id', $attendance_id)->first();
 
         if (empty($attendance)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -435,6 +464,8 @@ class AttendanceController extends Controller
         }
 
         $appMainController = new AppMainController();
+
+//        dd($userType);
 
         if ($day == '' && $userType == 'm') {
             $req = Request::create('/api/isSchedule', 'GET', [
@@ -472,6 +503,15 @@ class AttendanceController extends Controller
         $blueData = $calendarRes->original['list']['blue'] ?? [];
         $redData = $calendarRes->original['list']['red'] ?? [];
 
+
+//        if ($_SERVER['REMOTE_ADDR'] === '221.148.221.39') {
+//            echo '<xmp>';
+//            var_dump($blueData);
+//            echo '</xmp>';
+//            dd($redData);
+//        }
+
+
         $attendList = [];
         foreach ($blueData as $date) {
             array_push($attendList, intval(explode('-', $date)[2]));
@@ -485,7 +525,7 @@ class AttendanceController extends Controller
             'list' => $list,
             'ym' => $ym,
             'day' => $day,
-            'attendList' => json_encode($attendList,)
+            'attendList' => json_encode($attendList)
         ]);
     }
 
@@ -553,6 +593,11 @@ class AttendanceController extends Controller
         $ajax = $request->input('ajax') ?? 0;
         $list = $request->input('list') ?? 0;
         $ym = $request->input('ym') ?? date('Y-m');
+
+        // 알람 통해서 이동했는데 다른 자녀일 경우 홈으로
+        if (session()->get('auth')['user_id'] != $id && $ajax === 0) {
+            return redirect('/');
+        }
 
         $year = $month = "";
         if ($ym != '') {

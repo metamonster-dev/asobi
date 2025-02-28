@@ -7,6 +7,18 @@ class="body sub_bg1"
 $title = "알림장 관리";
 $hd_bg = "1";
 $back_link = "/";
+$twoYearsAgo = date('Y-m', strtotime('-2 years', mktime(0, 0, 0, 1, 1, date('Y'))));
+$thisYear = date(date('Y').'-12');
+$device_type = session('auth')['device_type'] ?? '';
+$device_kind = session('auth')['device_kind'] ?? '';
+
+$userAgent = $_SERVER['HTTP_USER_AGENT'];
+$phpisIOS = false;
+if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== false || strpos($userAgent, 'iPod') !== false) {
+    $phpisIOS = true;
+} else {
+    $phpisIOS = false;
+}
 ?>
 @include('common.headm02')
 
@@ -26,11 +38,32 @@ $back_link = "/";
                     <div class="d-block d-lg-flex mt-0 mt-lg-3 mt-lg-0">
                         <div class="m_top mb-0">
                             <div class="input-group">
-                                <input type="month" name="ym" id="ym" value="{{ $ym }}" class="form-control form-control-lg col-6" onchange="this.form.submit()">
+{{--                                <input type="month" name="ym" id="ym" value="{{ $ym }}" min="{{ $twoYearsAgo }}" max="{{ $thisYear }}" class="form-control form-control-lg col-6"--}}
+{{--                                       @if ($device_type === 'iPhone' || $device_type === 'iPad')--}}
+{{--                                           onBlur="this.form.submit()"--}}
+{{--                                       @else--}}
+{{--                                           onchange="this.form.submit()"--}}
+{{--                                       @endif--}}
+{{--                                >--}}
+
+                                @if ($device_kind == 'iOS' || $phpisIOS)
+                                    <select name="ym" id="ym" onchange="this.form.submit()" class="form-control form-control-lg col-6 col-lg-5">
+                                        @php
+                                            for ($date = strtotime($twoYearsAgo); $date <= strtotime($thisYear); $date = strtotime("+1 month", $date)) {
+                                                $yearMonth = date('Y-m', $date);
+                                                $selected = ($yearMonth == $ym) ? 'selected' : ''; // $ym과 일치하는 경우 selected 속성 추가
+                                            echo "<option value='$yearMonth' $selected>$yearMonth</option>";
+                                            }
+                                        @endphp
+                                    </select>
+                                @else
+                                    <input type="month" name="ym" id="ym" value="{{ $ym }}" min="{{ $twoYearsAgo }}" max="{{ $thisYear }}" class="form-control form-control-lg col-6 col-lg-5" onchange="this.form.submit()">
+                                @endif
+
                                 <div class="position-relative gr_r m_select_wrap">
                                     <div class="input_wrap">
                                         <input type="hidden" name="search_user_id" value="{{ $search_user_id }}" >
-                                        <input type="text" name="search_text" id="search_text" value="{{ $search_text }}" class="form-control bg-white custom-select m_select" autocomplete="off" placeholder="전체">
+                                        <input type="text" name="search_text" id="search_text" value="{{ $search_text }}" class="form-control bg-white custom-select m_select" autocomplete="off" placeholder="전체" @if ($device_kind == 'iOS' || $phpisIOS)style="height: var(--height_md);"@endif>
                                         <button class="m_delete"><img src="/img/ic_delete_sm.png"></button>
                                     </div>
                                     <ul id="searchList" class="m_select_list none_scroll_bar"></ul>
@@ -172,7 +205,7 @@ $back_link = "/";
         @else
             @if(isset(session('auth')['user_type']) && session('auth')['user_type'] == "m")
         <div class="f_btn_wr d-block d-lg-none">
-            <button type="button" class="btn float_btn" onclick="location.href='/advice/note/write?ym={{ $ym }}'"><img src="/img/ic_write.png" style="width: 3rem;"></button>
+            <button type="button" class="btn float_btn" onclick="location.href='/advice/note/write?ym={{ $ym }}&search_user_id={{ $search_user_id }}&search_text={{ $search_text }}'"><img src="/img/ic_write.png" style="width: 3rem;"></button>
         </div>
             @endif
         @endif
@@ -186,17 +219,26 @@ $back_link = "/";
         <div class="modal-content">
             <div class="modal-body text-center">
                 <h4 class="tit_h4 py-4 border-bottom border-text">작성 선택</h4>
-                <button class="btn btn-block h-auto px-0 py-4 border-bottom" value="" onclick="location.href='/advice/letter/write?ym={{ $ym }}'">
+                <button class="btn btn-block h-auto px-0 py-4 border-bottom" value="" onclick="location.href='/advice/letter/write?ym={{ $ym }}&search_user_id={{ $search_user_id }}'">
                     <p class="py-2 fs_16 fw_400">가정통신문 작성</p>
                 </button>
-                <button class="btn btn-block h-auto px-0 py-4 border-bottom mt-0" value="m" onclick="location.href='/advice/note/write?ym={{ $ym }}'">
+                @if(session('auth')['user_type'] != "a")
+                <button class="btn btn-block h-auto px-0 py-4 border-bottom mt-0" value="m" onclick="location.href='/advice/note/write?ym={{ $ym }}&search_user_id={{ $search_user_id }}'">
                     <p class="py-2 fs_16 fw_400">알림장 작성</p>
                 </button>
+                @endif
             </div>
         </div>
     </div>
 </div>
 @endif
+
+<div class="loading_wrap" id="loading" style="display: none">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
 
 <script>
     const data = {!! $studentList !!};
@@ -215,6 +257,23 @@ $back_link = "/";
         autoSearch(data, "searchList", "search_text", sClick, undefined, xClick);
 
         getVimeoThumbs();
+    });
+
+
+
+    // document.querySelectorAll('a').forEach(function(anchor) {
+    //     anchor.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
+    //
+    // document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+    //     element.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
+    document.querySelector('.back_button').addEventListener('click', function(event) {
+        $('#loading').show();
     });
 </script>
 

@@ -6,6 +6,27 @@ class="body"
 <?php
 $title = "가정통신문 작성";
 $hd_bg = "1";
+$type = 'letterWrite';
+// /advice/letter/write?ym=2023-09
+// /advice/143205/letter/view/962603
+
+if ($id && $userId) {
+    $back_link = '/advice/'.$userId.'/letter/view/'.$id;
+} else {
+    $back_link = '/advice';
+}
+
+$device_type = session('auth')['device_type'] ?? '';
+$device_kind = session('auth')['device_kind'] ?? '';
+
+$userAgent = $_SERVER['HTTP_USER_AGENT'];
+$phpisIOS = false;
+if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== false || strpos($userAgent, 'iPod') !== false) {
+    $phpisIOS = true;
+} else {
+    $phpisIOS = false;
+}
+
 ?>
 @include('common.headm04')
 @include('advice.letterPreview')
@@ -27,20 +48,22 @@ $hd_bg = "1";
                 <button type="button" class="btn btn-md border border-primary text-primary px-5 mr-3" onclick="jalert2('임시저장을 하시겠습니까?', '임시저장', tmpSave);">임시저장</button>
                     @endif
                 @endif
-                <button type="button" class="btn btn-md border border-primary text-primary px-5"onclick="getAdvicePreview()">미리보기</button>
+                <button type="button" class="btn btn-md border border-primary text-primary px-5" onclick="getAdvicePreview()">미리보기</button>
             </div>
         </div>
 
         <form name="adviceForm" id="adviceForm" class="mt-3" method="POST" action="/advice/writeAction" onsubmit="return frm_form_chk(this);" enctype="multipart/form-data">
             <input type="hidden" name="mode" value="{{ $mode }}">
             <input type="hidden" name="id" value="{{ $id }}">
+            <input type="hidden" name="userId" value="{{ $userId }}">
             <input type="hidden" name="type" value="letter" />
             <div class="grid02_list">
                 <div class="ip_wr">
                     <div class="ip_tit d-flex align-items-center justify-content-between">
                         <h5>작성일자</h5>
                     </div>
-                    <input type="date" name="ymd" id="ymd" value="{{ $ymd }}" max="<?php echo date("Y-m-d") ?>" @if($mode != "w")readonly="readonly"@endif class="form-control text-dark_gray">
+{{--                    <input type="date" name="ymd" id="ymd" value="{{ $ymd }}" max="<?php echo date("Y-m-d") ?>" @if($mode != "w")readonly="readonly"@endif class="form-control text-dark_gray">--}}
+                    <input type="month" name="ymd" id="ymd" value="{{ $ym }}" min="{{ $minMonth ?? ''}}" max="{{ $nextMonth ?? ''}}" @if(($mode != "w" && $id) || session('auth')['user_type'] != 'a')readonly="readonly"@endif class="form-control text-dark_gray">
                 </div>
                 <div class="d-none d-lg-block"></div>
                 @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='m')
@@ -65,13 +88,13 @@ $hd_bg = "1";
                     <div class="ip_tit d-flex align-items-center justify-content-between">
                         <h5>아소비 교육원 알림</h5>
                     </div>
-                    <textarea id="prefix_content" name="prefix_content" class="form-control" placeholder="내용을 입력해주세요" rows="5">{{ $row['prefix_content']??'' }}</textarea>
+                    <textarea id="prefix_content" name="prefix_content" class="form-control" placeholder="내용을 입력해주세요" rows="5" {{ $row ? 'readonly' : ''}}>{{ $row['prefix_content']??'' }}</textarea>
                 </div>
                 <div class="ip_wr">
                     <div class="ip_tit d-flex align-items-center justify-content-between">
                         <h5>교육정보</h5>
                     </div>
-                    <textarea id="this_month_education_info" name="this_month_education_info" class="form-control" placeholder="내용을 입력해주세요" rows="5">{{ $row['this_month_education_info']??'' }}</textarea>
+                    <textarea id="this_month_education_info" name="this_month_education_info" class="form-control" placeholder="내용을 입력해주세요" rows="5" {{ $row ? 'readonly' : ''}}>{{ $row['this_month_education_info']??'' }}</textarea>
                 </div>
                 <!-- // 본사일 때 작성시 -->
                 @endif
@@ -79,7 +102,7 @@ $hd_bg = "1";
 
             @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='m')
             <!-- 학생선택은 교육원일 때만 노출 -->
-                @if($mode == 'w')
+                @if(session('auth')['user_type'] == 'm')
                     <div class="d-flex align-items-center justify-content-between mt-3 pt-3 mb-4">
                         <div class="ip_wr">
                             <div class="ip_tit mb-0">
@@ -103,7 +126,7 @@ $hd_bg = "1";
                     @if(count($student) > 0)
                     <ul class="grid03_list note_stu_list_chk pb-3">
                         @foreach($student as $l)
-                            @if($l['letter'] == "0")
+{{--                            @if($l['letter'] == "0")--}}
                             <li>
                                 <label>
                                     <input type="checkbox" name="student[]" @if($search_user_id!="" && $search_user_id == $l['id']) checked="checked" @endif value="{{ $l['id'] }}" class="chkStudent d-none">
@@ -118,7 +141,7 @@ $hd_bg = "1";
                                     </div>
                                 </label>
                             </li>
-                            @endif
+{{--                            @endif--}}
                         @endforeach
                     </ul>
                     @else
@@ -145,6 +168,13 @@ $hd_bg = "1";
     </div>
 </article>
 
+<div class="loading_wrap" id="loading" style="display: none;">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
+
 <script>
     var fsubmit = false;
 
@@ -165,12 +195,12 @@ $hd_bg = "1";
             return false;
         }
 
-        if (ymdValue > currentDate) {
-            fsubmit = false;
-            $("#fsubmit").prop('disabled',false);
-            jalert('미래 날짜는 선택할 수 없습니다.');
-            return false;
-        }
+        // if (ymdValue > currentDate) {
+        //     fsubmit = false;
+        //     $("#fsubmit").prop('disabled',false);
+        //     jalert('미래 날짜는 선택할 수 없습니다.');
+        //     return false;
+        // }
 
         @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='m')
             // if (f.content.value == "") {
@@ -216,6 +246,12 @@ $hd_bg = "1";
                 return false;
             }
         @endif
+
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function(event) {
+                $('#loading').show();
+            });
+        });
 
         return true;
     }
@@ -284,15 +320,15 @@ $hd_bg = "1";
         let crDt = [year, month, day].join('.') + " " + [H, i].join(':');
 
         @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='m')
-        let content = $('#content').val();
-        let class_content = $('#class_content').val();
-        $('#contentModal').text(content);
-        $('#classContentModal').text(class_content);
+            let content = $('#content').val();
+            let class_content = $('#class_content').val();
+            $('#contentModal').text(content);
+            $('#classContentModal').text(class_content);
         @elseif(isset(session('auth')['user_type']) && session('auth')['user_type'] =='a')
-        let prefix_content = $('#prefix_content').val();
-        let this_month_education_info = $('#this_month_education_info').val();
-        $('#prefixContentModal').text(prefix_content);
-        $('#thisMonthEducationInfoModal').text(this_month_education_info);
+            let prefix_content = $('#prefix_content').val();
+            let this_month_education_info = $('#this_month_education_info').val();
+            $('#prefixContentModal').text(prefix_content);
+            $('#thisMonthEducationInfoModal').text(this_month_education_info);
         @endif
 
         $('#subjectModal').text(month + "월 가정통신문");
@@ -317,6 +353,33 @@ $hd_bg = "1";
         }
         @endif
     });
+
+    document.querySelector('input[type="month"]').addEventListener('change', function(event) {
+        const selectedDate = event.target.value; // 선택한 날짜 값
+        const url = new URL(window.location.href);
+        // const url = new URL(window.location.origin + window.location.pathname);
+
+        url.searchParams.set('ym', selectedDate);
+
+        window.location.href = url;
+    });
+
+    // document.querySelectorAll('a').forEach(function(anchor) {
+    //     anchor.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
+    //
+    // document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+    //     element.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
+
+    document.querySelector('.back_button').addEventListener('click', function(event) {
+        $('#loading').show();
+    });
+
 </script>
 
 @endsection

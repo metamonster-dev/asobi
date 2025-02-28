@@ -7,11 +7,86 @@ class="body"
 $title = "앨범 상세";
 $hd_bg = "2";
 
-$date = substr($row['reg_date'],0,7);
-$back_link = '/album?ym='.$date;
+$date = substr($row['date'],0,7);
+$dateParts = explode(' ', $row['date']); // 공백을 기준으로 문자열을 나눔
+$dateArray = explode('.', $dateParts[0]); // 마침표를 기준으로 나눔
+$year = $dateArray[0];
+$month = str_pad($dateArray[1], 2, '0', STR_PAD_LEFT); // 한 자리 수인 경우 앞에 0을 붙임
+$resultDateString = $year . '-' . $month;
+
+$back_link = '/album?ym='.$resultDateString;
 // $back_link = '/album';
+
+$userAgent = $_SERVER['HTTP_USER_AGENT'];
+
+if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== false) {
+    $phpisMobile = true;
+} else {
+    $phpisMobile = false;
+}
 ?>
 @include('common.headm03')
+
+<style>
+    .swiper {
+        width: 100%;
+        height: 100%;
+        display: none; /* 초기에는 숨김 */
+    }
+
+    .swiper-slide {
+        text-align: center;
+        font-size: 18px;
+        background: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        /*width: 100% !important;*/
+    }
+
+    .swiper-slide img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .swiper-slide .video_area {
+        width: 100%;
+        height: 100vh;
+    }
+
+    .fullscreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 99999;
+        background: #fff;
+    }
+
+    .closeButton {
+        position: absolute;
+        top: 5px;
+        left: 0;
+        background: transparent;
+        color: black;
+        border: none;
+        padding: 10px 20px;
+        cursor: pointer;
+        border-radius: 1rem;
+        z-index: 99999;
+    }
+
+    div > iframe {
+        pointer-events:none;
+    }
+
+    .video_none {
+        display: none;
+    }
+</style>
 
 <article class="sub_pg">
     <div class="container pt-4 pt_lg_50">
@@ -28,7 +103,7 @@ $back_link = '/album?ym='.$date;
             </div>
             @if(isset(session('auth')['user_type']) && (session('auth')['user_type'] =='m' || session('auth')['user_type'] =='a'))
             <!-- ※ 수정, 삭제 버튼은 교육원, 본사일 때 노출 -->
-            <div class="position-relative d-block d-lg-none">
+            <div class="position-relative d-lg-none">
                 <button type="button" class="btn p-0 btn_more h-auto"><img src="/img/ic_more.png" style="width: 1.6rem;"></button>
                 <ul class="more_cont">
                     <li><button class="btn" onclick="location.href='/album/write/{{ $id }}'">수정</button></li>
@@ -45,36 +120,28 @@ $back_link = '/album?ym='.$date;
                     @foreach($row['file'] as $l)
                     <li>
                         <div class="att_img">
-                            @if(isset($l['file_path']) && $l['file_path'])
-                            <a href="javascript:;" onclick="bigImgShow('{{ $l['file_path'] }}', '{{ $j }}')">
-                                <div class="area_img rounded overflow-hidden">
-                                    <img src="{{ $l['file_path'] }}" class="w-100">
-                                </div>
-                            </a>
-                            <a onclick="javascript:ycommon.downloadImage(os,'/album/downloadFile/{{ $l['file_id'] }}','{{ $l['file_path'] }}');" class="btn btn_dl"><img src="/img/ic_download.svg"></a>
-                                @php $j++; @endphp
-                            @elseif(isset($l['video_id']) && $l['video_id'])
-                            <div class="area video_area" id="vimeo{{ $k }}" data-vimeo="{{ $l['video_id'] }}">
-                                <img src="/img/loading.gif" class="loading_img">
-{{--                                <iframe src="https://player.vimeo.com/video/{{ $l['video_id'] }}?title=0&byline=0&portrait=0&controls=0" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen="" title="Untitled" data-ready="true"></iframe>--}}
-                            </div>
-                                @php $k = $k + 1; @endphp
+
+                                @if(isset($l['video_id']) && $l['video_id'])
+                                <div class="area video_area video_download expand_button thumnail_img{{$k}} mySlide slide-number{{ $j }}">
+                                        <img src="/img/loading.gif" alt="" @if ($phpisMobile) @else class="loading_img" @endif>
+                                    </div>
+                                    @php $k = $k + 1; @endphp
+                                @elseif(isset($l['file_path']) && $l['file_path'])
+                                        <div class="area_img rounded overflow-hidden expand_button mySlide slide-number{{ $j }}">
+                                        <img src="{{ $l['file_path'] }}" class="w-100">
+                                    </div>
+                                    <a onclick="javascript:ycommon.downloadImage(os,'/album/downloadFile/{{ $l['file_id'] }}','{{ $l['file_path'] }}');" class="btn btn_dl"><img src="/img/ic_download.svg"></a>
                             @else
                             <div class="area">
                                 <i class="no_img"></i>
                             </div>
                             @endif
+                                @php $j++; @endphp
+
                         </div>
                     </li>
                     @endforeach
                 @else
-                    <!-- <li>
-                        <div class="att_img">
-                            <div class="area">
-                                <i class="no_img"></i>
-                            </div>
-                        </div>
-                    </li> -->
                 @endif
                 </ul>
             </div>
@@ -108,10 +175,10 @@ $back_link = '/album?ym='.$date;
         <div class="botton_btns d-none d-lg-flex pt_80 pb-4">
             @if(isset(session('auth')['user_type']) && (session('auth')['user_type'] =='m' || session('auth')['user_type'] =='a'))
             <button type="button" class="btn btn-primary" onclick="location.href='/album/write/{{ $id }}'">수정</button>
-            <button type="button" class="btn btn-gray text-white" onclick="location.href='/album'">목록</button>
+            <button type="button" class="btn btn-gray text-white" onclick="location.href='{{ $back_link }}'">목록</button>
             <button type="button" class="btn btn-gray text-white" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/album/delete/{{ $id }}';})">삭제</button>
             @else
-            <button type="button" class="btn btn-gray text-white" onclick="location.href='/album'">목록</button>
+            <button type="button" class="btn btn-gray text-white" onclick="location.href='{{ $back_link }}'">목록</button>
             @endif
         </div>
         <hr class="line mt-5 mb-3">
@@ -135,6 +202,13 @@ $back_link = '/album?ym='.$date;
     </div>
 </article>
 
+<div class="loading_wrap" id="loading" style="display: none">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
+
 <!-- 원본 이미지 보기 -->
 <div class="modal_bg" id="bigImgModal">
     <div class="modal_wrap md_big_img">
@@ -144,7 +218,81 @@ $back_link = '/album?ym='.$date;
     </div>
 </div>
 
+<!-- Swiper -->
+{{--@if ($phpisMobile)--}}
+    <div class="swiper mySwiper">
+        <div class="swiper-wrapper">
+            @if(isset($row['file']) && is_array($row['file']) && count($row['file']) > 0)
+                @php $k = 0; $j=0; @endphp
+                @foreach($row['file'] as $l)
+                    @if(isset($l['video_id']) && $l['video_id'])
+{{--                        <div class="swiper-slide @if($phpisMobile)thumnail_img @endif">--}}
+                        <div class="swiper-slide">
+                        <button class="closeButton" onclick="closeFullscreen()">
+                                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <g clip-path="url(#clip0_3569_2209)">
+                                        <path d="M16.9913 12L9 19.9943L17 28" stroke="#6B7280" stroke-width="1.6" stroke-miterlimit="10" stroke-linecap="square"/>
+                                    </g>
+                                    <defs>
+                                        <clipPath id="clip0_3569_2209">
+                                            <rect width="24" height="24" fill="white" transform="translate(8 8)"/>
+                                        </clipPath>
+                                    </defs>
+                                </svg>
+                            </button>
+                            <img src="/img/loading.gif" class="loading_img pc_loading_img">
+                            <div class="area video_area video_none" id="vimeo{{ $k }}" data-vimeo="{{ $l['video_id'] }}"></div>
+                        </div>
+                        @php $k = $k + 1; @endphp
+                    @elseif(isset($l['file_path']) && $l['file_path'])
+                        <div class="swiper-slide">
+                            <button class="closeButton" onclick="closeFullscreen()">
+                                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <g clip-path="url(#clip0_3569_2209)">
+                                        <path d="M16.9913 12L9 19.9943L17 28" stroke="#6B7280" stroke-width="1.6" stroke-miterlimit="10" stroke-linecap="square"/>
+                                    </g>
+                                    <defs>
+                                        <clipPath id="clip0_3569_2209">
+                                            <rect width="24" height="24" fill="white" transform="translate(8 8)"/>
+                                        </clipPath>
+                                    </defs>
+                                </svg>
+                            </button>
+                            <div class="area_img rounded swiper-zoom-container">
+                                <img src="{{ $l['file_path'] }}" class="w-100" id="test">
+                            </div>
+                            <a onclick="javascript:ycommon.downloadImage(os,'/album/downloadFile/{{ $l['file_id'] }}','{{ $l['file_path'] }}');" class="btn btn_dl"><img src="/img/ic_download.svg"></a>
+                        </div>
+                    @endif
+                @endforeach
+            @endif
+        </div>
+    </div>
+{{--@else--}}
+{{--@endif--}}
+
+<div class="loading_wrap" id="loading" style="display: none">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
+
 <script>
+    var originalElem = document.getElementById("test");
+    var elem = document.createElement("img");
+    elem.onload = () => {
+        originalElem.parentElement
+            .querySelector(".swiper-zoom-container")
+            .appendChild(elem);
+        originalElem.parentElement
+            .querySelector(".swiper-zoom-container")
+            .classList.add("zoomed");
+        originalElem.parentElement
+            .querySelector(".swiper-zoom-container")
+            .appendChild(originalElem);
+    };
+
     $(window).on("load", function() {
         getVimeoVideo();
     });
@@ -158,22 +306,26 @@ $back_link = '/album?ym='.$date;
         @endforeach
     @endif
 
+    // console.log(file_lists);
+
     // 원본 이미지 보기
-    function bigImgShow(imgSrc, k) {
-        if (os == 'web') {
-            let winW = $(window).width();
-            if (winW > 767 && imgSrc) {
-                $("#bigImgModal").find("img").attr("src", imgSrc);
-                $("#bigImgModal").addClass("show");
-                $("body").addClass("overflow-hidden");
-            }
-        } else {
-            window.webViewBridge.send('bigImgShow', {files:file_lists, idx: k}, function(res) {
-                // console.log(res);
-            }, function(err) {
-                // console.error(err);
-            });
-        }
+    function bigImgShow(imgSrc, k, type) {
+        // if (os == 'web') {
+        //     let winW = $(window).width();
+        //     if (winW > 767 && imgSrc && type === 'image') {
+        //         $("#bigImgModal").find("img").attr("src", imgSrc);
+        //         $("#bigImgModal").addClass("show");
+        //         $("body").addClass("overflow-hidden");
+        //     }
+        // }
+        // else {
+        //     console.log(file_lists);
+            // window.webViewBridge.send('bigImgShow', {files:file_lists, idx: k, type: type}, function(res) {
+            //     console.log(res);
+            // }, function(err) {
+            //     console.error(err);
+            // });
+        // }
     }
 
     function test(e) {
@@ -205,6 +357,11 @@ $back_link = '/album?ym='.$date;
             let data = res.list;
             // console.log(res);
             // console.log(data);
+            if (res.count > 0) {
+                document.querySelectorAll('.commentDisable').forEach((elem) => {
+                    elem.style.display = 'none';
+                })
+            }
 
             let commentListHtml = '';
             let replyListHtml = '';
@@ -413,12 +570,50 @@ $back_link = '/album?ym='.$date;
         if (event.origin !== undefined && event.origin == "https://player.vimeo.com") {
             return false;
         }
-        const data = JSON.parse(event.data);
+        const data = JSON.stringify(event.data);
         if(data.msg) {
             jalert(data.name, data.msg);
         }
     });
 
+    var swiper = new Swiper(".mySwiper", {
+        zoom: {
+            maxRatio: 5
+        }
+    });
+
+    // var myPinchZoom = new PinchZoom.default(document.querySelector('.swiper'));
+
+    function closeFullscreen() {
+        document.querySelector(".swiper").classList.remove("fullscreen");
+        document.querySelector(".swiper").style.display = "none";
+        document.querySelector(".expand_button").style.display = "block";
+
+        // document.querySelector("body").style.overflowY = 'none';
+
+        swiper.update(); // 스와이퍼 업데이트
+    }
+
+    if (document.querySelectorAll(".expand_button")) {
+        document.querySelectorAll(".expand_button").forEach((elem) => {
+            elem.addEventListener("click", () => {
+                document.querySelector(".swiper").style.display = 'block';
+                document.querySelector(".swiper").classList.toggle("fullscreen");
+
+                swiper.update(); // 스와이퍼 업데이트
+            })
+        })
+
+        for (let i = 0; i < $('.mySlide').length; i++) {
+            document.querySelector(`.slide-number${i}`).addEventListener("click", () => {
+                swiper.slideToLoop(i, 0);
+            });
+        }
+    }
+
+    document.querySelector('.back_button').addEventListener('click', function(event) {
+        $('#loading').show();
+    });
 </script>
 
 

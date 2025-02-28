@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 
-use App\User;
+use App\Models\RaonMember;
 use App\UserAppInfo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -32,7 +32,7 @@ class StudentController extends Controller
         $userId = $request->input('user') ?? "";
         if (!is_numeric($userId)) \App::make('helper')->alert("잘못된 접근입니다.1");
 
-        $user = User::where('id','=',$userId)->first();
+        $user = RaonMember::whereIdx($userId)->first();
 
         //로그인 한 정보가 없을 경우..
         if (empty($user)) \App::make('helper')->alert("잘못된 접근입니다.2");
@@ -44,16 +44,19 @@ class StudentController extends Controller
 //        echo "</pre>";
 
         $sessionUserId = $auth['account_id'] ?? '';
-        $sessionUser = User::where('user_id','=',$sessionUserId)->first();
+
+        $sessionUser = RaonMember::where('id','=',$sessionUserId)->first();
         if (empty($sessionUser)) \App::make('helper')->alert("잘못된 접근입니다.3");
 
         //학부모 자녀의 계정인지 체크
-        $children_rs = User::where(DB::raw("REPLACE(`phone`, '-', '')"), str_replace('-','',$sessionUser->phone))
-            ->where('user_type', 's')
-            ->where('id','=',$userId)
-            ->whereIn('status', array('W', 'Y'))
-            ->orderBy('status', 'desc')
-            ->get();
+//        $children_rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), str_replace('-','',$sessionUser->mobilephone))
+        $children_rs = RaonMember::where('idx', '=', $userId)
+        ->where('mtype', 's')
+//            ->where('idx','=',$userId)
+              ->whereIn('s_status', array('Y'))
+//            ->orderBy('s_status', 'desc')
+              ->get();
+
         if ($children_rs->count() == 0) \App::make('helper')->alert("잘못된 접근입니다.4");
 
         $req = Request::create('/api/logout', 'GET', [
@@ -72,7 +75,7 @@ class StudentController extends Controller
 
         $ip = \App::make('helper')->getClientIp();
         $req = Request::create('/api/login', 'GET', [
-            'login_id' => $user->user_id,
+            'login_id' => $user->id,
             'password' => '1',
             'device_kind' => $auth['device_kind'],
             'device_type' => $auth['device_type'],
@@ -94,6 +97,6 @@ class StudentController extends Controller
         ]);
         session(['auth' => $arr]);
 
-        return redirect('/student');
+        return redirect('/');
     }
 }

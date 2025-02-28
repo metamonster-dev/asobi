@@ -21,6 +21,32 @@ class AuthController extends Controller
         ]);
     }
 
+    public function intra_login(Request $request)
+    {
+        $fcmToken = ($request->input('fcmToken')) ? $request->input('fcmToken') : "web";
+        $deviceId = ($request->input('deviceId')) ? $request->input('deviceId') : "web";
+
+        $os = ($request->input('os')) ? $request->input('os') : "web";
+        $deviceType = ($request->input('deviceType')) ? $request->input('deviceType') : "web";
+        $login_id = ($request->input('login_id')) ? $request->input('login_id') : "";
+
+        //echo $os;
+        //echo $deviceType;
+        //echo $deviceId;
+        //echo $fcmToken;
+        //echo $login_id;
+
+
+
+        return view('auth/intra_login',[
+            'device_kind' => $os,
+            'login_id' => $login_id,
+            'device_type' => $deviceType,
+            'device_id' => $deviceId,
+            'push_key' => $fcmToken,
+        ]);
+    }
+
     public function join()
     {
         $req = Request::create('/api/centerAll', 'GET', []);
@@ -120,6 +146,7 @@ class AuthController extends Controller
 
         // \App::make('helper')->vardump($res->original);
         // exit;
+
         return view('mypage/mypage',[
             'account' => $res->original ?? []
         ]);

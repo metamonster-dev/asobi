@@ -35,7 +35,7 @@ $back_link = "/";
                         <a href="/education/view/{{ $l['id'] }}">
                             <div class="rect rect3 rounded-lg">
                                 @if(isset($l['image']) && $l['image'])
-                                <img src="{{ $l['image'] }}">
+                                <img src="{{ $l['image'] }}" style="object-fit: contain;">
                                 @else
                                 <i class="no_img"></i>
                                 @endif
@@ -72,5 +72,29 @@ $back_link = "/";
         @endif
     </div>
 </article>
+
+<div class="loading_wrap" id="loading" style="display: none">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
+
+<script>
+    // document.querySelectorAll('a').forEach(function(anchor) {
+    //     anchor.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
+    //
+    // document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+    //     element.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
+    document.querySelector('.back_button').addEventListener('click', function(event) {
+        $('#loading').show();
+    });
+</script>
 
 @endsection

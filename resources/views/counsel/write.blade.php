@@ -22,6 +22,7 @@ $hd_bg = "7";
         <form action="/counsel/writeAction" id="frm" name="frm" method="POST" onsubmit="return frm_form_chk(this);" enctype="multipart/form-data" class="mt-3">
             <input type="hidden" name="mode" value="{{ $mode }}">
             <input type="hidden" name="id" value="{{ $id }}">
+            <input type="hidden" name="ymd" value="{{ $ymd }}">
             <div class="grid02_list">
                 <div class="ip_wr">
                     <div class="ip_tit d-flex align-items-center justify-content-between">
@@ -77,11 +78,11 @@ $hd_bg = "7";
             jalert("작성일자를 입력해주세요.");
             return false;
         }
-        
-        if (ymdValue > currentDate) {
-            jalert('미래 날짜는 선택할 수 없습니다.');
-            return false;
-        }
+
+        //if (ymdValue > currentDate) {
+        //    jalert('미래 날짜는 선택할 수 없습니다.');
+        //    return false;
+        //}
 
         if(f.content.value =="") {
             jalert("내용을 입력해주세요.");
@@ -99,9 +100,22 @@ $hd_bg = "7";
             // console.log(res);
             let list = res.list;
 
-            let data = list?.map(function(item) {
-                return {idx: item.id,name: item.name};
-            });
+            let data = list?.reduce(function(acc, item) {
+                let found = acc.find(element => element.idx === item.id && element.name === item.name);
+
+                if (!found) {
+                    acc.push({idx: item.id, name: item.name});
+                }
+
+                return acc;
+            }, []);
+
+            // let data = list?.map(function(item) {
+            //     return {idx: item.id,name: item.name};
+            // });
+
+            // console.log(data);
+
             // let data = '';
             // list?.map(e => {
             //     let option = '';

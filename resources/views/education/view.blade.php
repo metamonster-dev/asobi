@@ -17,8 +17,13 @@ $back_link = "/education";
         </div>
 
         <div class="pb-4 mb-3 mb-lg-2 border-bottom d-flex align-items-center justify-content-between">
-            <div class="d-flex flex-column">
-                <p class="fs_14 fw_300 mb-3 text-light">{{ $row['date'] }}</p>
+            <div class="w-100">
+                <div class="fs_14 fw_300 mb-3 text-light d-flex justify-content-between">
+                    <div>{{ $row['date'] }}</div>
+                    @if(isset(session('auth')['user_type']) && session('auth')['user_type'] == 'a')
+                        <div class="fs_14 fw_300 text-light" style="text-align: right; min-width: 80px;">전체 조회수: {{ number_format($getAllCountBoardView) }} / 순 조회수: {{ number_format($getFilterCountBoardView) }}</div>
+                    @endif
+                </div>
                 <h4 class="tit_h4 line_h1">{!! nl2br($row['subject']) !!}</h4>
             </div>
             @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='a')
@@ -65,6 +70,13 @@ $back_link = "/education";
 {{--        </div>--}}
     </div>
 </article>
+
+<div class="loading_wrap" id="loading" style="display: none">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
 
 <script>
     //댓글 리스트
@@ -273,5 +285,20 @@ $back_link = "/education";
     //     CommentList();
     // });
 
+    // document.querySelectorAll('a').forEach(function(anchor) {
+    //     anchor.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
+    //
+    // document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+    //     element.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
+
+    document.querySelector('.back_button').addEventListener('click', function(event) {
+        $('#loading').show();
+    });
 </script>
 @endsection

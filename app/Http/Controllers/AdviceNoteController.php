@@ -7,13 +7,13 @@ use App\AdviceNote;
 use App\AdviceNoteAdmin;
 use App\AdviceComment;
 use App\AdviceNoteHistory;
+use App\AdviceNoteShareHistory;
 use App\AppendFile;
 use App\File;
 use App\Jobs\BatchPush;
 use App\Jobs\BatchPost;
-use App\User;
+use App\Models\RaonMember;
 use App\RequestLog;
-use App\UserMemberDetail;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -49,7 +49,7 @@ class AdviceNoteController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -57,7 +57,7 @@ class AdviceNoteController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m'])) {
+        if (!in_array($user->mtype, ['m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -70,12 +70,11 @@ class AdviceNoteController extends Controller
 
         $search_user_id = $request->input('search_user_id') ?? "";
 
-
-        $rs = User::where('center_id', $user->id)
-            ->where('user_type', 's')
-            ->where('status', 'Y')
+        $rs = RaonMember::where('midx', $user->idx)
+            ->where('mtype', 's')
+            ->where('s_status', 'Y')
             ->when($search_user_id != "", function ($q) use ($search_user_id) {
-                $q->where('id', $search_user_id);
+                $q->where('idx', $search_user_id);
             })
             ->orderBy('name', 'asc')
             ->get();
@@ -84,7 +83,7 @@ class AdviceNoteController extends Controller
         $result = Arr::add($result, 'count', $rs->count());
 
         if ($rs) {
-            $users = $rs->pluck('id')->toArray();
+            $users = $rs->pluck('idx')->toArray();
 //            $result = Arr::add($result, 'users', $users);
             $adviceObj = AdviceNote::where('type', AdviceNote::ADVICE_TYPE)
                 ->whereIn('sidx', $users)
@@ -127,15 +126,15 @@ class AdviceNoteController extends Controller
             $result = Arr::add($result, 'letter_count', count($letterArr));
 
             foreach ($rs as $index => $row) {
-                $userMemberDetail = UserMemberDetail::where('user_id', $row->id)->first();
-                $profile_image = $userMemberDetail->profile_image ?? '';
+                $userMemberDetail = RaonMember::where('idx', $row->idx)->first();
+                $profile_image = $userMemberDetail->user_picture ?? '';
 
-                $result = Arr::add($result, "list.{$index}.id", $row->id);
+                $result = Arr::add($result, "list.{$index}.id", $row->idx);
                 $result = Arr::add($result, "list.{$index}.name", $row->name);
                 $result = Arr::add($result, "list.{$index}.profile_image", $profile_image ? \App::make('helper')->getImage($profile_image) : null);
 
-                $advice = $adviceArr[$row->id] ?? [];
-                $letter = $letterArr[$row->id] ?? [];
+                $advice = $adviceArr[$row->idx] ?? [];
+                $letter = $letterArr[$row->idx] ?? [];
                 if ($day) {
                     $result = Arr::add($result, "list.{$index}.advice", $advice['id'] ?? null);
                     $result = Arr::add($result, "list.{$index}.letter", $letter['id'] ?? null);
@@ -156,7 +155,7 @@ class AdviceNoteController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -164,7 +163,7 @@ class AdviceNoteController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['s'])) {
+        if (!in_array($user->mtype, ['s'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -177,12 +176,15 @@ class AdviceNoteController extends Controller
         $search_text = trim($search_text);
 
         $rs = AdviceNote::with('files')
-            ->where($user->user_type . 'idx', $user->id)
+            ->where($user->mtype . 'idx', $user->idx)
             ->where('status', 'Y')
             ->where('year', $year)
             ->where('month', $month)
             ->when($search_text, function ($q) use ($search_text){
-                $q->where('advice_notes.content','like','%'.$search_text.'%');
+                $q->where(function ($query) use ($search_text) {
+                    $query->where('advice_notes.content','like','%'.$search_text.'%')
+                        ->orWhere('advice_notes.title', 'like', '%'.$search_text.'%');
+                });
             })
             ->orderByDesc('type')
             ->orderByDesc('created_at')
@@ -225,7 +227,7 @@ class AdviceNoteController extends Controller
         $result = array();
         $modify = $request->input('modify') ?? '';
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -233,17 +235,17 @@ class AdviceNoteController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m','s'])) {
+        if (!in_array($user->mtype, ['m','s'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
         }
 
-        if ($user->user_type == 's') {
-            $children_rs = User::where('phone', $user->phone)->where(
-                'password',
-                $user->password
-            )->where('user_type', 's')->where('status', 'Y')->get();
+        if ($user->mtype == 's') {
+            $children_rs = RaonMember::where('mobilephone', $user->mobilephone)->where(
+                'pw',
+                $user->pw
+            )->where('mtype', 's')->where('s_status', 'Y')->get();
             if (sizeof($children_rs) > 1) {
                 $check_row = AdviceNote::find($adviceNote_id);
                 if ($check_row) {
@@ -257,7 +259,7 @@ class AdviceNoteController extends Controller
         }
 
         $row = AdviceNote::with('files')
-            ->where($user->user_type . 'idx', $user->id)
+            ->where($user->mtype . 'idx', $user->idx)
             ->where('status', 'Y')
             ->whereId($adviceNote_id)
             ->first();
@@ -274,12 +276,16 @@ class AdviceNoteController extends Controller
         $result = Arr::add($result, "type_name", ($row->type == 'advice')?"알림장":"가정통신문");
         $result = Arr::add($result, "title", $row->title);
         $result = Arr::add($result, "content", $row->content);
+//        dd($row);
         $this_date = Carbon::create($row->year, $row->month, $row->day);
+
+
         $result = Arr::add($result, "date", $this_date->format('Y.m.d')." / ".$row->created_at->format('Y.m.d H:i'));
         $result = Arr::add($result, "date2", $this_date->format('Y-m-d'));
+        $result = Arr::add($result, "ym", $this_date->format('Y-m'));
 //        $result = Arr::add($result, "reg_date", $row->created_at->format(AdviceNote::REG_DATE_FORMAT));
         $result = Arr::add($result, "student", $row->sidx);
-        $student = User::whereId($row->sidx)->first();
+        $student = RaonMember::whereIdx($row->sidx)->first();
         $result = Arr::add($result, "student_name", $student->name);
 
         if ($row->type == AdviceNote::LETTER_TYPE) {
@@ -292,32 +298,44 @@ class AdviceNoteController extends Controller
                 $result = Arr::add($result, "this_month_education_info", null);
             }
 
-            $this_course = DB::table('orders AS o')
-                ->join('order_member_details AS omd', 'omd.order_id', '=', 'o.id')
-                ->join('products AS sp', 'sp.id', '=', 'omd.product_id')
+            $this_course = DB::connection('mysql')->table('order AS o')
+                ->join('order_member_detail AS omd', 'omd.order_idx', '=', 'o.idx')
+                ->join('shopProduct AS sp', 'sp.idx', '=', 'omd.product_idx')
                 ->select('sp.name', 'sp.content')
                 ->where('o.course', $row->this_month)
                 ->where('o.status', '33')
-                ->where('omd.member_id', $row->sidx)
+                ->where('omd.sidx', $row->sidx)
                 ->where('omd.order_type', 'B')
                 ->where('omd.status', '33')
-                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.id)"), '=', 0)
-                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_details` WHERE `order_member_id` = omd.id AND `status` = '99')"), '=', 0)
-                ->orderBy('omd.id', 'ASC')
+                //->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.idx)"), '=', 0)
+                //->where(DB::raw("(SELECT COUNT(*) FROM `order_cancel_detail` WHERE `order_member_idx` = omd.order_member_idx )"), '=', 0)
+                //->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail` WHERE `order_member_idx` = omd.idx AND `status` = '99')"), '=', 0)
+                // 2024-03-29 박성복 수정 - 기존 API 쿼리문으로 수정함 Start
+                ->where('omd.cancel', '0')
+                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail` WHERE `cancel` = omd.idx)"), '<', 1)
+                ->where(DB::raw("(SELECT COUNT(*) FROM `order_cancel_detail` WHERE `order_member_detail_idx` = omd.idx AND `status` = '99')"), '=', 0)
+                // 2024-03-29 박성복 수정 - 기존 API 쿼리문으로 수정함 End
+                ->orderBy('omd.idx', 'ASC')
                 ->get();
 
-            $next_course = DB::table('orders AS o')
-                ->join('order_member_details AS omd', 'omd.order_id', '=', 'o.id')
-                ->join('products AS sp', 'sp.id', '=', 'omd.product_id')
+            $next_course = DB::connection('mysql')->table('order AS o')
+                ->join('order_member_detail AS omd', 'omd.order_idx', '=', 'o.idx')
+                ->join('shopProduct AS sp', 'sp.idx', '=', 'omd.product_idx')
                 ->select('sp.name', 'sp.content')
                 ->where('o.course', $row->next_month)
                 ->where('o.status', '33')
-                ->where('omd.member_id', $row->sidx)
+                ->where('omd.sidx', $row->sidx)
                 ->where('omd.order_type', 'B')
                 ->where('omd.status', '33')
-                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.id)"), '=', 0)
-                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_details` WHERE `order_member_id` = omd.id AND `status` = '99')"), '=', 0)
-                ->orderBy('omd.id', 'ASC')
+//              //->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.idx)"), '=', 0)
+                //->where(DB::raw("(SELECT COUNT(*) FROM `order_cancel_detail` WHERE `order_member_idx` = omd.order_member_idx)"), '=', 0)
+                //->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail` WHERE `order_member_idx` = omd.idx AND `status` = '99')"), '=', 0)
+                // 2024-03-29 박성복 수정 - 기존 API 쿼리문으로 수정함 Start
+                ->where('omd.cancel', '0')
+                ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail` WHERE `cancel` = omd.idx)"), '<', 1)
+                ->where(DB::raw("(SELECT COUNT(*) FROM `order_cancel_detail` WHERE `order_member_detail_idx` = omd.idx AND `status` = '99')"), '=', 0)
+                // 2024-03-29 박성복 수정 - 기존 API 쿼리문으로 수정함 End
+                ->orderBy('omd.idx', 'ASC')
                 ->get();
 
             if ($this_course->count()) {
@@ -378,32 +396,32 @@ class AdviceNoteController extends Controller
             }
         }
 
-        if ($user->user_type == 's') {
-            if ($row->histories->where('sidx', $user->id)->count() === 0) {
+        if ($user->mtype == 's') {
+            if ($row->histories->where('sidx', $user->idx)->count() === 0) {
                 $row->histories()->create(
                     [
-                        'hidx' => $user->branch_id,
-                        'midx' => $user->center_id,
-                        'sidx' => $user->id
+                        'hidx' => $user->hidx,
+                        'midx' => $user->midx,
+                        'sidx' => $user->idx
                     ]
                 );
             }
         } else {
-            if ($user->user_type == 'm') {
-                if ($row->histories->where('midx', $user->id)->count() === 0) {
+            if ($user->mtype == 'm') {
+                if ($row->histories->where('midx', $user->idx)->count() === 0) {
                     $row->histories()->create(
                         [
-                            'hidx' => $user->branch_id,
-                            'midx' => $user->center_id
+                            'hidx' => $user->hidx,
+                            'midx' => $user->midx
                         ]
                     );
                 }
             } else {
-                if ($user->user_type == 'h') {
-                    if ($row->histories->where('hidx', $user->id)->count() === 0) {
+                if ($user->mtype == 'h') {
+                    if ($row->histories->where('hidx', $user->idx)->count() === 0) {
                         $row->histories()->create(
                             [
-                                'hidx' => $user->branch_id
+                                'hidx' => $user->hidx
                             ]
                         );
                     }
@@ -411,10 +429,10 @@ class AdviceNoteController extends Controller
             }
         }
 
-        if ($user->user_type == 'm') {
-            $adviceNoteHistory = AdviceNoteHistory::where('hidx', $user->branch_id)
-                ->where('midx', $user->id)
-                ->where('sidx', $student->id)
+        if ($user->mtype == 'm') {
+            $adviceNoteHistory = AdviceNoteHistory::where('hidx', $user->hidx)
+                ->where('midx', $user->idx)
+                ->where('sidx', $student->idx)
                 ->where('advice_note_id', $row->id)
                 ->first();
 
@@ -430,7 +448,7 @@ class AdviceNoteController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -440,7 +458,7 @@ class AdviceNoteController extends Controller
 
         $student = $request->input('student');
 
-        if (!($user->user_type == 'm' && $student)) {
+        if (!($user->mtype == 'm' && $student)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -469,32 +487,32 @@ class AdviceNoteController extends Controller
             $result = Arr::add($result, "this_month_education_info", null);
         }
 
-        $this_course = DB::table('orders AS o')
-            ->join('order_member_details AS omd', 'omd.order_id', '=', 'o.id')
-            ->join('products AS sp', 'sp.id', '=', 'omd.product_id')
+        $this_course = DB::connection('mysql')->table('order AS o')
+            ->join('order_member_detail AS omd', 'omd.order_idx', '=', 'o.idx')
+            ->join('shopProduct AS sp', 'sp.idx', '=', 'omd.product_idx')
             ->select('sp.name', 'sp.content')
             ->where('o.course', $this_month)
             ->where('o.status', '33')
-            ->where('omd.member_id', $student)
+            ->where('omd.sidx', $student)
             ->where('omd.order_type', 'B')
             ->where('omd.status', '33')
-            ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.id)"), '=', 0)
-            ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_details` WHERE `order_member_id` = omd.id AND `status` = '99')"), '=', 0)
-            ->orderBy('omd.id', 'ASC')
+//            ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.idx)"), '=', 0)
+            ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail` WHERE `order_member_id` = omd.idx AND `status` = '99')"), '=', 0)
+            ->orderBy('omd.idx', 'ASC')
             ->get();
 
-        $next_course = DB::table('orders AS o')
-            ->join('order_member_details AS omd', 'omd.order_id', '=', 'o.id')
-            ->join('products AS sp', 'sp.id', '=', 'omd.product_id')
+        $next_course = DB::connection('mysql')->table('order AS o')
+            ->join('order_member_detail AS omd', 'omd.order_idx', '=', 'o.idx')
+            ->join('shopProduct AS sp', 'sp.idx', '=', 'omd.product_idx')
             ->select('sp.name', 'sp.content')
             ->where('o.course', $next_month)
             ->where('o.status', '33')
-            ->where('omd.member_id', $student)
+            ->where('omd.sidx', $student)
             ->where('omd.order_type', 'B')
             ->where('omd.status', '33')
-            ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.id)"), '=', 0)
-            ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_details` WHERE `order_member_id` = omd.id AND `status` = '99')"), '=', 0)
-            ->orderBy('omd.id', 'ASC')
+//            ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail_cancellations` WHERE `order_member_detail_id` = omd.idx)"), '=', 0)
+            ->where(DB::raw("(SELECT COUNT(*) FROM `order_member_detail` WHERE `order_member_id` = omd.idx AND `status` = '99')"), '=', 0)
+            ->orderBy('omd.idx', 'ASC')
             ->get();
 
         if ($this_course->count()) {
@@ -515,7 +533,7 @@ class AdviceNoteController extends Controller
             $result = Arr::add($result, "next_schedule", null);
         }
 
-        $advice_note_letter = AdviceNote::where('midx', $user->id)
+        $advice_note_letter = AdviceNote::where('midx', $user->idx)
             ->where('sidx', $student)
             ->where('type', AdviceNote::LETTER_TYPE)
             ->where('year', $year)
@@ -542,6 +560,9 @@ class AdviceNoteController extends Controller
             $result = Arr::add($result, "this_month_letter_count", 1);
         }
 
+//        $result = Arr::add($result, "write_possible", true);
+//        $result = Arr::add($result, "this_month_letter_count", $advice_note_letter);
+
         return response()->json($result);
     }
 
@@ -549,7 +570,7 @@ class AdviceNoteController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -557,7 +578,7 @@ class AdviceNoteController extends Controller
             return response()->json($result);
         }
 
-        if ($user->user_type != 'm') {
+        if ($user->mtype != 'm') {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -567,7 +588,9 @@ class AdviceNoteController extends Controller
         $year = $request->input('year') ? sprintf('%04d',$request->input('year')) : $now->format('Y');
         $month = $request->input('month') ? sprintf('%02d',$request->input('month')) : $now->format('m');
 
-        // @2021-10-01 마지막주만 작성가능
+//         @2021-10-01 마지막주만 작성가능
+//        $result = Arr::add($result, "write_possible", true);
+
         $now_year_month = date('Y-m');
         $last_day = date('t', strtotime($now_year_month . '-01'));
         $write_possible_date = strtotime(date('Y-m-d 00:00:00', strtotime($now_year_month . '-' . $last_day . ' -5 day')));
@@ -575,11 +598,15 @@ class AdviceNoteController extends Controller
 
         $result = Arr::add($result, "write_possible_date", date('Y-m-d H:i:s', $write_possible_date)."~");
 
-        if ($write_possible_date < $now_date && $now_year_month == $year."-".$month) {
+        if ($write_possible_date < $now_date && $now_year_month == $year."-".$month || session('auth')['user_type'] == 'a') {
             $result = Arr::add($result, "write_possible", true);
         } else {
             $result = Arr::add($result, "write_possible", false);
         }
+
+//        if ($_SERVER['REMOTE_ADDR'] === '221.148.221.39') {
+//            dd($user->mtype);
+//        }
 
         return response()->json($result);
     }
@@ -588,7 +615,7 @@ class AdviceNoteController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         $validator = Validator::make($request->all(), [
             'upload_files' => [new UploadFile],
@@ -597,7 +624,7 @@ class AdviceNoteController extends Controller
         if($validator->fails()){
             return response()->json([
                 'result' => 'fail',
-                'error' => "업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 500Mb 이하로만 가능합니다."
+                'error' => "업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 100Mb 이하로만 가능합니다."
             ]);
         }
 
@@ -628,7 +655,7 @@ class AdviceNoteController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m'])) {
+        if (!in_array($user->mtype, ['m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -664,6 +691,23 @@ class AdviceNoteController extends Controller
         $day = $request->input('day') ? sprintf('%02d', $request->input('day')) : $now->format('d');
         $debug_write = $request->input('debug_write') ? true : false;
         if (env('APP_ENV') != 'development') $debug_write = false;
+
+        $id = $request->input('id') ?? null;
+
+        $adviceNote = AdviceNote::whereId($id)->first();
+
+        if ($adviceNote) {
+            $adviceNote->content = $content;
+            $adviceNote->class_content = $class_content;
+
+            $adviceNote->save();
+
+            $result = Arr::add($result, 'result', 'success');
+            $result = Arr::add($result, 'error', '등록 되었습니다.');
+            $result = Arr::add($result, 'ids', $id);
+
+            return response()->json($result);
+        }
 
         if ($type == AdviceNote::LETTER_TYPE) {
             $this_date = Carbon::create($year, $month);
@@ -703,6 +747,8 @@ class AdviceNoteController extends Controller
             }
         }
 
+//        $is_write = true;
+
         if (!$is_write) {
             if ($write_not_possible === true) {
                 $result = Arr::add($result, 'result', 'fail');
@@ -714,7 +760,7 @@ class AdviceNoteController extends Controller
                 if (isset($check_letter) && $check_letter->count() > 0) {
                     $names = [];
                     if (isset($check_letter) && $check_letter->count() > 0) {
-                        $name_arr = User::select('name')
+                        $name_arr = RaonMember::select('name')
                             ->whereIn('id', $check_letter->pluck('sidx')->toArray())
                             ->get()
                             ->toArray();
@@ -741,15 +787,23 @@ class AdviceNoteController extends Controller
 //        BatchPost::dispatch($student, $type, $user, $title, $content, $class_content, $year, $month, $day, $this_month, $next_month, $request);
         foreach ($student as $l) {
             if ($type == AdviceNote::ADVICE_TYPE) {
-                $student_row = User::whereId($l)->first();
+                $student_row = RaonMember::whereIdx($l)->first();
                 if ($student_row) {
                     $title = $student_row->name . "의 선생님이 알립니다.";
+
+//                    dd($ymd);
+//
+//                    $year = null;
+//                    $month = null;
+//                    $day = 1;
+//                    $this_month = null;
+//                    $next_month = null;
                 }
             }
             $payload = [
                 'type' => $type,
-                'hidx' => $user->branch_id,
-                'midx' => $user->id,
+                'hidx' => $user->hidx,
+                'midx' => $user->idx,
                 'sidx' => $l,
                 'title' => $title,
                 'content' => $content,
@@ -762,6 +816,8 @@ class AdviceNoteController extends Controller
                 'status' => 'Y',
                 'batch' => 'N'
             ];
+
+//            dd($payload);
 
             $adviceNote = new AdviceNote($payload);
             $adviceNote->save();
@@ -789,6 +845,7 @@ class AdviceNoteController extends Controller
                     if ($vimeo_id) {
                         $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                     } else {
+                        $file = \App::make('helper')->rotateImage($file);
                         $file_path = \App::make('helper')->putResizeS3(AdviceFile::FILE_DIR, $file);
                     }
 
@@ -821,7 +878,7 @@ class AdviceNoteController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         $validator = Validator::make($request->all(), [
             'upload_files' => [new UploadFile],
@@ -830,7 +887,7 @@ class AdviceNoteController extends Controller
         if($validator->fails()){
             return response()->json([
                 'result' => 'fail',
-                'error' => "업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 500Mb 이하로만 가능합니다."
+                'error' => "업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 100Mb 이하로만 가능합니다."
             ]);
         }
 
@@ -861,7 +918,7 @@ class AdviceNoteController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m'])) {
+        if (!in_array($user->mtype, ['m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -877,7 +934,7 @@ class AdviceNoteController extends Controller
         $content = $request->input('content');
         $class_content = $request->input('class_content');
         $student = $request->input('student');
-        $adviceNote = AdviceNote::whereId($adviceNote_id)->where('midx', $user->id)->where('sidx', $student)->first();
+        $adviceNote = AdviceNote::whereId($adviceNote_id)->where('midx', $user->idx)->where('sidx', $student)->first();
         if (empty($adviceNote)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '잘못된 요청입니다.');
@@ -906,6 +963,7 @@ class AdviceNoteController extends Controller
                 if ($vimeo_id) {
                     $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                 } else {
+                    $file = \App::make('helper')->rotateImage($file);
                     $file_path = \App::make('helper')->putResizeS3(AdviceFile::FILE_DIR, $file);
                 }
 
@@ -931,7 +989,7 @@ class AdviceNoteController extends Controller
         $result = array();
         $user_id = $request->input('user');
 
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         $arr_request_file = array();
         if ($request->allFiles()) {
@@ -960,7 +1018,7 @@ class AdviceNoteController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m'])) {
+        if (!in_array($user->mtype, ['m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -983,13 +1041,13 @@ class AdviceNoteController extends Controller
         $debug_write = $request->input('debug_write') ? true : false;
         if (env('APP_ENV') != 'development') $debug_write = false;
 
-        $studentCount = User::where('center_id', $user->id)
-            ->where('user_type', 's')
-            ->where('status', 'Y')
+        $studentCount = RaonMember::where('midx', $user->idx)
+            ->where('mtype', 's')
+            ->where('s_status', 'Y')
             ->count();
 
         $advice_note_count = AdviceNote::where('type', $type)
-            ->where('midx', $user->id)
+            ->where('midx', $user->idx)
             ->where('this_month', $this_month)
             ->where('status', 'Y')
             ->count();
@@ -1033,12 +1091,12 @@ class AdviceNoteController extends Controller
             return response()->json($result);
         }
 
-        $students = User::where('center_id', $user->id)
-            ->where('user_type', 's')
-            ->where('status', 'Y')
+        $students = RaonMember::where('midx', $user->idx)
+            ->where('mtype', 's')
+            ->where('s_status', 'Y')
             ->whereRaw("`id` NOT IN (
                 SELECT `sidx` FROM advice_notes
-                WHERE advice_notes.type = '{$type}' and advice_notes.midx = {$user->id} AND advice_notes.deleted_at IS NULL
+                WHERE advice_notes.type = '{$type}' and advice_notes.midx = {$user->idx} AND advice_notes.deleted_at IS NULL
                     AND advice_notes.year = '{$year}' AND advice_notes.month = '{$month}'
                 )")
             ->get();
@@ -1068,9 +1126,9 @@ class AdviceNoteController extends Controller
         $students->map(function($student) use($params, $request) {
             $payload = [
                 'type' => $params['type'],
-                'hidx' => $params['user']->branch_id,
-                'midx' => $params['user']->center_id,
-                'sidx' => $student->id,
+                'hidx' => $params['user']->hidx,
+                'midx' => $params['user']->midx,
+                'sidx' => $student->idx,
                 'title' => $params['title'],
                 'content' => $params['content'],
                 'class_content' => $params['class_content'],
@@ -1137,7 +1195,7 @@ class AdviceNoteController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         RequestLog::create(
             [
@@ -1154,7 +1212,7 @@ class AdviceNoteController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m'])) {
+        if (!in_array($user->mtype, ['m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -1175,13 +1233,13 @@ class AdviceNoteController extends Controller
         $batch_exec = 'N';
         $write_not_possible = false;
 
-        $studentCount = User::where('center_id', $user->id)
-            ->where('user_type', 's')
-            ->where('status', 'Y')
+        $studentCount = RaonMember::where('midx', $user->idx)
+            ->where('mtype', 's')
+            ->where('s_status', 'Y')
             ->count();
 
         $advice_note_count = AdviceNote::where('type', $type)
-            ->where('midx', $user->id)
+            ->where('midx', $user->idx)
             ->where('this_month', $this_month)
             ->where('status', 'Y')
             ->count();
@@ -1230,7 +1288,7 @@ class AdviceNoteController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         RequestLog::create(
             [
@@ -1247,16 +1305,16 @@ class AdviceNoteController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['a','m'])) {
+        if (!in_array($user->mtype, ['a','m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
         }
 
-        if ($user->user_type === 'a') {
+        if ($user->mtype === 'a') {
             $adviceNote = AdviceNote::with('files')->whereId($adviceNote_id)->first();
         } else {
-            $adviceNote = AdviceNote::with('files')->whereId($adviceNote_id)->where('midx', $user->id)->first();
+            $adviceNote = AdviceNote::with('files')->whereId($adviceNote_id)->where('midx', $user->idx)->first();
         }
 
         if (empty($adviceNote)) {
@@ -1306,7 +1364,7 @@ class AdviceNoteController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -1321,7 +1379,7 @@ class AdviceNoteController extends Controller
             return response()->json($result);
         }
 
-        $adviceNote = AdviceNote::whereMidx($user->id)->whereId($file->advice_note_id)->first();
+        $adviceNote = AdviceNote::whereMidx($user->idx)->whereId($file->advice_note_id)->first();
         if (empty($adviceNote)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
@@ -1348,7 +1406,7 @@ class AdviceNoteController extends Controller
         $result = array();
         $user_id = $request->input('user');
 
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -1356,7 +1414,7 @@ class AdviceNoteController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m'])) {
+        if (!in_array($user->mtype, ['m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -1399,6 +1457,7 @@ class AdviceNoteController extends Controller
     public function advice(Request $request)
     {
         $ym = $request->input('ym') ?? date('Y-m');
+
         $search_text = $request->input('search_text') ?? '';
         $search_user_id = $request->input('search_user_id') ?? '';
 
@@ -1446,7 +1505,6 @@ class AdviceNoteController extends Controller
                 'month' => $month,
                 'search_user_id' => $search_user_id,
             ]);
-
             $res = $this->student($req);
             $list = $res->original['list'] ?? [];
             $count = $res->original['count'] ?? 0;
@@ -1469,7 +1527,7 @@ class AdviceNoteController extends Controller
             'month' => $month,
         ]);
         $res = $this->checkLetter($req);
-        $writeMode = $res->original['write_possible'] ?? false;
+        $writeMode = $res->original['write_possible'];
 
         return view('advice/advice', [
             'user' => $user,
@@ -1516,8 +1574,27 @@ class AdviceNoteController extends Controller
         ]);
     }
 
-    public function noteView($user_id, $id)
+    public function noteView(Request $request, $user_id, $id)
     {
+        $isCopy = $request->input('iscopy');
+
+        if ($isCopy) {
+            $adviceNoteShareHistory = AdviceNoteShareHistory::where('advice_note_id', $id)->first();
+
+            if ($adviceNoteShareHistory) {
+                $adviceNoteShareHistory->confirmed_at = date('Y-m-d H:i:s', time());
+
+                $adviceNoteShareHistory->save();
+            }
+        }
+
+        // 알람 통해서 이동했는데 다른 자녀일 경우 홈으로
+        if (session()->get('auth')['user_type'] == 's') {
+            if (session()->get('auth')['user_id'] != $user_id) {
+                return redirect('/');
+            }
+        }
+
         $user = $user_id;
         $userType = \App::make('helper')->getUsertType();
 
@@ -1582,13 +1659,23 @@ class AdviceNoteController extends Controller
                 $ymd = $row['date2'];
             }
         } else {
-            //전체 학생리스트
-            $req = Request::create('/api/children', 'GET', [
-                'user' => $user,
-            ]);
-            $userController = new UserController();
-            $res = $userController->children($req);
-            $student = $res->original['list'] ?? [];
+            if ($search_user_id) {
+                $req = Request::create('/api/selectChild', 'GET', [
+                    'user' => $search_user_id,
+                ]);
+
+                $userController = new UserController();
+                $res = $userController->selectChild($req);
+                $student = $res->original['list'] ?? [];
+            } else {
+                //전체 학생리스트
+                $req = Request::create('/api/children', 'GET', [
+                    'user' => $user,
+                ]);
+                $userController = new UserController();
+                $res = $userController->children($req);
+                $student = $res->original['list'] ?? [];
+            }
         }
 
         return view('advice/noteWrite', [
@@ -1601,8 +1688,27 @@ class AdviceNoteController extends Controller
         ]);
     }
 
-    public function letterView($user_id, $id)
+    public function letterView(Request $request, $user_id, $id)
     {
+        $isCopy = $request->input('iscopy');
+
+        if ($isCopy) {
+            $adviceNoteShareHistory = AdviceNoteShareHistory::where('advice_note_id', $id)->first();
+
+            if ($adviceNoteShareHistory) {
+                $adviceNoteShareHistory->confirmed_at = date('Y-m-d H:i:s', time());
+
+                $adviceNoteShareHistory->save();
+            }
+        }
+
+        // 알람 통해서 이동했는데 다른 자녀일 경우 홈으로
+        if (session()->get('auth')['user_type'] == 's') {
+            if (session()->get('auth')['user_id'] != $user_id) {
+                return redirect('/');
+            }
+        }
+
         $user = $user_id;
         $userType = \App::make('helper')->getUsertType();
         // \App::make('helper')->vardump($userType);
@@ -1614,25 +1720,31 @@ class AdviceNoteController extends Controller
             'user' => $user
         ]);
         $res = $this->show($req, $id);
+
         // \App::make('helper')->vardump($res->original);
 
         if ($res->original['result'] != 'success') {
             $error = \App::make('helper')->getErrorMsg($res->original['error']);
             \App::make('helper')->alert($error);
         }
+
         return view('advice/letterView',[
             'row' => $res->original ?? [],
+            'userId' => $user_id,
             'id' => $id,
         ]);
     }
 
     public function letterWrite(Request $request, $id="")
     {
+        // $id 가 있으면 편집 모드
+        // 없으면 쓰기 모드인데 날짜로 조회해서 값이 있으면 편집 모드
         $ymd = date('Y-m-d');
         $mode = "w";
 
         $ym = $request->input('ym') ?? '';
         $search_user_id = $request->input('search_user_id') ?? '';
+        $userId = $request->input('userId') ?? '';
 
         if ($ym != "" && $ym != date('Y-m')) {
             $ymd = $ym."-01";
@@ -1644,7 +1756,11 @@ class AdviceNoteController extends Controller
             $user = session()->get('center');
         }
 
+        $nextMonth = Carbon::now()->addMonthNoOverflow()->format('Y-m');
+        $minMonth = '2020-02';
+
         $row = [];
+        // id가 있으니 편집 모드
         if ($id != "") {
             $mode = "u";
 
@@ -1661,12 +1777,34 @@ class AdviceNoteController extends Controller
             $row = $res->original ?? [];
             if (isset($row['date2']) && $row['date2'] != "") {
                 $ymd = $row['date2'];
+                $ym = $row['ym'];
             }
-        } else {
 
+            //전체 학생리스트
+            $req = Request::create('/adviceNote/student/list', 'GET', [
+                'user' => $user,
+                'year' => $ymdArr[0] ?? "",
+                'month' => $ymdArr[1] ?? "",
+                'search_user_id' => $userId ?? "",
+            ]);
+            $res = $this->student($req);
+            $student = $res->original['list'] ?? [];
+        } else {
+            // 이번 달이 아니면 가정통신문 작성 불가
+            $nowDate = date('Y-m');
+
+            if ($userType != 'a' && $nowDate != $ym) {
+                $error = \App::make('helper')->getErrorMsg("이번 달에 해당하는 가정통신문만 작성할 수 있습니다.");
+                \App::make('helper')->alert($error);
+            }
+
+            // 날짜로 조회
             $ymdArr = explode('-',$ymd);
-            if ($userType == 'a') {
-                $mode = 'a';
+            if ($userType == 'a' || $mode == 'w') {
+                if ($userType == 'a') {
+                    $mode = 'a';
+                }
+
                 $req = Request::create('/adviceNoteAdmin/write/'.$id, 'GET', [
                     'user' => \App::make('helper')->getUsertId(),
                     'year' => $ymdArr[0] ?? "",
@@ -1674,9 +1812,13 @@ class AdviceNoteController extends Controller
                 ]);
                 $adviceNoteAdminController = new AdviceNoteAdminController();
                 $res = $adviceNoteAdminController->show($req);
+
                 if ($res->original['result'] == 'success') {
+//                    $mode = "u";
                     $row['prefix_content'] = $res->original['prefix_content'];
                     $row['this_month_education_info'] = $res->original['this_month_education_info'];
+                    $nextMonth = $res->original['nextMonth'];
+                    $minMonth = $res->original['minMonth'];
                     $ymd = $res->original['date'];
                 }
             }
@@ -1686,9 +1828,16 @@ class AdviceNoteController extends Controller
                 'user' => $user,
                 'year' => $ymdArr[0] ?? "",
                 'month' => $ymdArr[1] ?? "",
-                'search_user_id' => "",
+                'search_user_id' => $search_user_id ?? "",
             ]);
             $res = $this->student($req);
+
+            // 가정통신문 발송한 학생은 제외
+            foreach ($res->original['list'] as $key => $list) {
+                if ($list['letter'] > 0) {
+                    unset($res->original['list'][$key]);
+                }
+            }
 //            $req = Request::create('/api/children', 'GET', [
 //                'user' => $user,
 //            ]);
@@ -1708,9 +1857,10 @@ class AdviceNoteController extends Controller
                     }
                 }
             }
-            if ($student_cnt == $letter_cnt && $letter_cnt > 0) {
-                \App::make('helper')->alert("가정통신문 발송이 완료 되었습니다.");
-            }
+//            if ($student_cnt == $letter_cnt && $letter_cnt > 0) {
+//                \App::make('helper')->alert("가정통신문 발송이 완료 되었습니다.");
+//            }
+
             if ($search_user_is_letter) {
                 $smonth = $ymdArr[1] ?? "";
                 $smonth = $smonth ? sprintf('%02d', $smonth) : date("m");
@@ -1718,19 +1868,24 @@ class AdviceNoteController extends Controller
                 \App::make('helper')->alert($search_user_letter_name."회원의 ".$smonth."월 가정통신문이 이미 발송 되었습니다.");
             }
 
-            if (count($student) == 0) {
-
+            if (count($student) == 0 && $userType !== 'a') {
                 \App::make('helper')->alert("모든 학생에게 가정통신문을 발송하여 더이상 가정통신문 작성을 할 수 없습니다.");
             }
         }
 
+        // 작성 후 수정되었습니다 -> 모든 학생에게 가정통신문을 발송하여 더이상 가정통신문 작성을 할 수 없습니다.
+
         return view('advice/letterWrite', [
+            'ym' => $ym,
             'ymd' => $ymd,
-            'student' => $student ?? "",
+            'nextMonth' => $nextMonth,
+            'minMonth' => $minMonth,
+            'student' => $student ?? [],
             'mode' => $mode,
             'id' => $id,
             'row' => $row,
             'search_user_id' => $search_user_id,
+            'userId' => $userId
         ]);
     }
 
@@ -1738,6 +1893,7 @@ class AdviceNoteController extends Controller
     {
         $mode = $request->input('mode') ?? '';
         $id = $request->input('id') ?? '';
+        $userId = $request->input('userId') ?? '';
         $type = $request->input('type') ?? '';
         $ymd = $request->input('ymd') ?? '';
         $content = $request->input('content') ?? '';
@@ -1749,14 +1905,13 @@ class AdviceNoteController extends Controller
         $multiform_delete_idx = $request->input('multiform_delete_idx') ?? '';
         $multiform_idx = $request->input('multiform_idx') ?? '';
 
-
-        if ($mode != 'a') {
+        if ($mode != 'a' && session('auth')['user_type'] =='m') {
             if ($ymd == "") \App::make('helper')->alert('작성일자를 입력해주세요.');
             $ymdArr = explode('-', $ymd);
             $year = $ymdArr[0]??-1;
             $month = $ymdArr[1]??-1;
-            $day = $ymdArr[2]??-1;
-            if (! checkdate((int)$month,(int)$day,(int)$year)) \App::make('helper')->alert('올바른 작성일자가 아닙니다.');
+            $day = $ymdArr[2]??1;
+//            if (! checkdate((int)$month,(int)$day,(int)$year)) \App::make('helper')->alert('올바른 작성일자가 아닙니다.');
             if ($content == "" && $type != "letter") \App::make('helper')->alert('내용을 입력해주세요.');
 //            if (!$upload_files) \App::make('helper')->alert('사진·동영상을 등록해주세요.');
             if ($student == "") \App::make('helper')->alert('학생을 선택해 주세요.');
@@ -1770,7 +1925,6 @@ class AdviceNoteController extends Controller
         if (in_array($userType, ['a','h'])) {
             $user = session()->get('center');
         }
-
 
 //        \App::make('helper')->vardump($upload_files);
 
@@ -1798,8 +1952,15 @@ class AdviceNoteController extends Controller
 //        \App::make('helper')->vardump($delete_upload_keys);
 //        return;
 
-        if ($mode == 'u') {
+        // 1. $mode = 'w' + $type = 'advice' -> 알림장 작성
+        // 2. $mode = 'u' + $type = 'advice' -> 알림장 수정
 
+        // 3. $mode = 'a' + $type = 'letter' -> 관리자 가정통신문 작성
+        // 3. $mode = 'w' + $type = 'letter' -> 원장 가정통신문 작성
+        // 4. $mode = 'u' + $type = 'letter' -> 관리자 가정통신문 수정
+
+        // 알림장 수정
+        if ($mode == 'u' && $type == 'advice') {
             //파일 삭제
             $delete_ids = $request->input('delete_ids') ?? '';
             if ($delete_ids != "") {
@@ -1820,12 +1981,30 @@ class AdviceNoteController extends Controller
                 'type' => $type,
             ]);
             $res = $this->update($request, $id);
+        // 가정통신문 작성
         } else if ($mode == 'a') {
             $request->merge([
                 'user' => \App::make('helper')->getUsertId(),
             ]);
             $adviceNoteAdminController = new AdviceNoteAdminController();
             $res = $adviceNoteAdminController->store($request);
+        } else if ($mode == 'u' && $type = 'letter') {
+            // 어드민 가정통신문 수정
+            if (session('auth')['user_type'] == 'a') {
+                $request->merge([
+                    'user' => \App::make('helper')->getUsertId(),
+                ]);
+                $adviceNoteAdminController = new AdviceNoteAdminController();
+                $res = $adviceNoteAdminController->store($request);
+            }
+        // 원장 가정통신문 작성
+        } else if ($mode == 'w' && $type == 'letter') {
+            $request->merge([
+                'user' => \App::make('helper')->getUsertId(),
+            ]);
+
+            $res = $this->store($request);
+        // 알림장 작성
         } else {
             $requestMergeData = [
                 'user' => $user,
@@ -1856,6 +2035,7 @@ class AdviceNoteController extends Controller
                     }
                 }
             }
+
             $request->merge($requestMergeData);
 
             $res = $this->store($request);
@@ -1874,13 +2054,28 @@ class AdviceNoteController extends Controller
             \App::make('helper')->alert($error);
         }
 
+        // 가정통신문 작성
         if ($mode == 'a') {
             \App::make('helper')->alert("가정통신문 작성이 완료 되었습니다.");
         } else {
             $typelink = ($type == 'advice') ? "note":"letter";
             $link = "/advice";
-            if ($mode == 'u') $link = "/advice/".$student."/".$typelink."/view/".$id;
-            else {
+            if ($mode == 'u') {
+                // 가정통신문 수정
+                if ($type == 'letter') {
+                    if ($userId && $id) {
+                        $link = "/advice/letter/write/".$id.'?userId='.$userId;
+                    } elseif ($id) {
+                        $link = "/advice/letter/write/".$id;
+                    } else {
+                        $link = "/advice/letter/write?ym=".$ymd;
+                    }
+                // 알림장 수정
+                } else {
+                    $link = "/advice/".$student."/".$typelink."/view/".$id;
+                }
+            // 알림장 등록
+            } else {
                 if ($type == 'letter') {
                     //전체 학생리스트
                     $req = Request::create('/adviceNote/student/list', 'GET', [
@@ -1899,7 +2094,7 @@ class AdviceNoteController extends Controller
                         }
                     }
                     if ($student_cnt == $letter_cnt && $letter_cnt > 0) {
-                        \App::make('helper')->alert("가정통신문이 전체 발송 되었습니다.",$link);
+                        \App::make('helper')->alert("가정통신문이 발송 되었습니다.",$link);
                     }
                 }
             }

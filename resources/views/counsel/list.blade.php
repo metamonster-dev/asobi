@@ -7,8 +7,26 @@ class="body sub_bg7"
 $title = "상담일지";
 $hd_bg = "7";
 $back_link = "/";
+
+$device_type = session('auth')['device_type'] ?? '';
+$device_kind = session('auth')['device_kind'] ?? '';
+
+$userAgent = $_SERVER['HTTP_USER_AGENT'];
+$phpisIOS = false;
+if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== false || strpos($userAgent, 'iPod') !== false) {
+    $phpisIOS = true;
+} else {
+    $phpisIOS = false;
+}
 ?>
 @include('common.headm02')
+
+<style>
+    select {
+        /*max-height: 150px;*/
+        /*overflow-y: auto;*/
+    }
+</style>
 
 <article class="sub_pg sub_bg sub_bg7">
     <div class="container pt-4 pt_lg_50">
@@ -27,11 +45,23 @@ $back_link = "/";
                     <div class="d-block d-lg-flex mt-0 mt-lg-3 mt-lg-0">
                         <div class="m_top mb-0">
                             <div class="input-group">
-                                <input type="month" name="ym" id="ym" value="{{ $ym }}" class="form-control form-control-lg col-6" onchange="this.form.submit()">
+
+                                <select id="ymSelector" name="ym" class="form-control form-control-lg col-6">
+                                    <option value="all">전체 기간</option>
+                                    <!-- 올해의 각 월 옵션 추가 -->
+                                </select>
+
+{{--                                <input type="month" name="ym" id="ym" value="{{ $ym }}" class="form-control form-control-lg col-6"--}}
+{{--                                @if ($device_kind == 'iOS' || $phpisIOS)--}}
+{{--                                    onBlur="this.form.submit()"--}}
+{{--                                @else--}}
+{{--                                    onchange="this.form.submit()"--}}
+{{--                                @endif--}}
+{{--                                >--}}
                                 <div class="position-relative gr_r m_select_wrap">
                                     <div class="input_wrap">
                                         <input type="hidden" name="search_user_id" value="{{ $search_user_id }}" >
-                                        <input type="text" name="search_text" id="searchText" value="{{ $search_text }}" class="form-control bg-white custom-select m_select" autocomplete="off" placeholder="전체">
+                                        <input type="text" name="search_text" id="searchText" value="{{ $search_text }}" class="form-control bg-white custom-select m_select" autocomplete="off" placeholder="전체 학생">
                                         <button class="m_delete"><img src="/img/ic_delete_sm.png"></button>
                                     </div>
                                     <ul id="searchList" class="m_select_list none_scroll_bar"></ul>
@@ -123,6 +153,13 @@ $back_link = "/";
     </div>
 </article>
 
+<div class="loading_wrap" id="loading" style="display: none">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
+
 <script>
     const data = {!! $studentList !!};
     function sClick(e) {
@@ -141,6 +178,47 @@ $back_link = "/";
         // 학생검색
         autoSearch(data, "searchList", "searchText", sClick, undefined, xClick);
     });
+
+    // document.querySelectorAll('a').forEach(function(anchor) {
+    //     anchor.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
+    //
+    // document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+    //     element.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
+    document.querySelector('.back_button').addEventListener('click', function(event) {
+        $('#loading').show();
+    });
+
+    const minYear = <?=$minYear?>;
+    const minMonth = <?=$minMonth?>;
+
+    function populateMonthOptions() {
+        const select = document.getElementById('ymSelector');
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth() + 1;
+
+        for (let year = minYear; year <= currentYear; year++) {
+            // 해당 연도의 월 범위 설정
+            const startMonth = year === minYear ? minMonth : 1;
+            const endMonth = year === currentYear ? currentMonth : 12;
+
+            // 각 월에 대해 옵션 추가
+            for (let month = startMonth; month <= endMonth; month++) {
+                const optionValue = `${year}-${String(month).padStart(2, '0')}`;
+                const optionText = `${year}년 ${month}월`;
+                const option = new Option(optionText, optionValue);
+                select.add(option);
+            }
+        }
+    }
+
+    populateMonthOptions(minYear, minMonth);
 </script>
 
 @endsection

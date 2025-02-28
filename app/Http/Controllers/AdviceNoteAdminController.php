@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\AdviceNoteAdmin;
-use App\User;
+use App\Models\RaonMember;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -15,7 +15,7 @@ class AdviceNoteAdminController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -23,7 +23,7 @@ class AdviceNoteAdminController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['a'])) {
+        if (!in_array($user->mtype, ['a', 'm'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -35,6 +35,9 @@ class AdviceNoteAdminController extends Controller
         $this_date = Carbon::create($year, $month);
         $this_month = $this_date->format('Y-m');
         $adviceNoteAdmin = AdviceNoteAdmin::where('this_month', $this_month)->first();
+        $maxMonth = AdviceNoteAdmin::max('this_month');
+        $nextMonth = Carbon::createFromFormat('Y-m', $maxMonth)->addMonth()->format('Y-m');
+        $minMonth = AdviceNoteAdmin::min('this_month');
 
         if (empty($adviceNoteAdmin)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -46,6 +49,8 @@ class AdviceNoteAdminController extends Controller
         $result = Arr::add($result, 'prefix_content', $adviceNoteAdmin->prefix_content);
         $result = Arr::add($result, 'this_month_education_info', $adviceNoteAdmin->this_month_education_info);
         $result = Arr::add($result, 'date', $adviceNoteAdmin->created_at->format('Y-m-d'));
+        $result = Arr::add($result, 'nextMonth', $nextMonth);
+        $result = Arr::add($result, 'minMonth', $minMonth);
 
         return response()->json($result);
     }
@@ -54,7 +59,7 @@ class AdviceNoteAdminController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -62,7 +67,7 @@ class AdviceNoteAdminController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['a'])) {
+        if (!in_array($user->mtype, ['a'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -73,7 +78,11 @@ class AdviceNoteAdminController extends Controller
         $month = $request->input('month') ? sprintf('%02d', $request->input('month')) : $now->format('m');
         $this_date = Carbon::create($year, $month);
         $this_month = $this_date->format('Y-m');
-        $adviceNoteAdmin = AdviceNoteAdmin::where('this_month', $this_month)->first();
+//        $adviceNoteAdmin = AdviceNoteAdmin::where('this_month', $this_month)->first();
+
+        $ym = $request->input('ymd');
+        $adviceNoteAdmin = AdviceNoteAdmin::where('this_month', $ym)->first();
+
         $payload = array_merge($request->only(['prefix_content', 'this_month_education_info']), []);
 
         $result = Arr::add($result, 'result', 'success');
@@ -83,7 +92,7 @@ class AdviceNoteAdminController extends Controller
             $result = Arr::add($result, 'error', '수정 되었습니다.');
         } else {
             $adviceNoteAdmin = new AdviceNoteAdmin([
-                'this_month' => $this_month
+                'this_month' => $ym
             ]);
             $adviceNoteAdmin->fill($payload);
             $adviceNoteAdmin->save();
@@ -92,5 +101,4 @@ class AdviceNoteAdminController extends Controller
 
         return response()->json($result);
     }
-
 }

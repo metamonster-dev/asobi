@@ -6,7 +6,7 @@ use App\AdviceFile;
 use App\AdviceNote;
 use App\AppendFile;
 use App\Http\Controllers\VimeoController;
-use App\User;
+use App\Models\RaonMember;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -64,15 +64,15 @@ class BatchPost implements ShouldQueue
         //
         foreach ($this->student as $l) {
             if ($this->type == AdviceNote::ADVICE_TYPE) {
-                $student_row = User::whereId($l)->first();
+                $student_row = RaonMember::whereIdx($l)->first();
                 if ($student_row) {
                     $this->title = $student_row->name . "의 선생님이 알립니다.";
                 }
             }
             $payload = [
-                'type' => $this->type,
-                'hidx' => $this->user->branch_id,
-                'midx' => $this->user->id,
+                'type' => $this->mtype,
+                'hidx' => $this->user->hidx,
+                'midx' => $this->user->idx,
                 'sidx' => $l,
                 'title' => $this->title,
                 'content' => $this->content,
@@ -112,6 +112,7 @@ class BatchPost implements ShouldQueue
                     if ($vimeo_id) {
                         $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                     } else {
+                        $file = \App::make('helper')->rotateImage($file);
                         $file_path = \App::make('helper')->putResizeS3(AdviceFile::FILE_DIR, $file);
                     }
 

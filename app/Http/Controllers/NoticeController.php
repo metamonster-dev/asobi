@@ -5,14 +5,17 @@ namespace App\Http\Controllers;
 use App\AppendFile;
 use App\CommonComment;
 use App\Jobs\BatchPush;
+use App\Models\BoardView;
 use App\Notice;
 use App\NoticeFile;
 use App\NoticeHistory;
-use App\User;
+use App\Models\RaonMember;
 use App\RequestLog;
+use Aws\Api\Parser\XmlParser;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
@@ -28,7 +31,7 @@ class NoticeController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -36,7 +39,7 @@ class NoticeController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m','s'])) {
+        if (!in_array($user->mtype, ['m','s'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -49,21 +52,21 @@ class NoticeController extends Controller
         $search_text = $request->input('search_text') ?? '';
         $search_text = trim($search_text);
 
-        if (in_array($user->user_type, ['a'])) {
+        if (in_array($user->mtype, ['a'])) {
             $rs = Notice::with('files')
                 ->where('writer_type', 'a')
                 ->when($search_text != "", function ($q) use ($search_text) {
                     return $q->whereRaw('(title like ? or content like ?)',['%'.$search_text.'%','%'.$search_text.'%']);
                 })
                 ->orderByDesc('created_at')->get();
-        } else if (in_array($user->user_type, ['h','m'])) {
+        } else if (in_array($user->mtype, ['h','m'])) {
             $writer_type = $request->input('type');
             $rs = Notice::with('files')
                 ->where('status', 'Y')
-                ->where('view_type', 'like', "%" . json_encode($user->user_type) . "%")
-                ->when($user->user_type === 'm', function($query) use($user) {
-                    return $query->whereIn('hidx', [0, $user->branch_id])
-                        ->whereIn('midx', [0, $user->id]);
+                ->where('view_type', 'like', "%" . json_encode($user->mtype) . "%")
+                ->when($user->mtype === 'm', function($query) use($user) {
+                    return $query->whereIn('hidx', [0, $user->hidx])
+                        ->whereIn('midx', [0, $user->idx]);
                 })
                 ->when($writer_type, function($query) use($writer_type) {
                     if ($writer_type == "a") {
@@ -72,8 +75,8 @@ class NoticeController extends Controller
                         $query->where('writer_type', $writer_type);
                     }
                 })
-                ->when($user->user_type === 'h', function($query) use($user) {
-                    return $query->whereIn('hidx', [0, $user->id]);
+                ->when($user->mtype === 'h', function($query) use($user) {
+                    return $query->whereIn('hidx', [0, $user->idx]);
                 })
                 ->when($year, function($query) use($year) {
                     return $query->where('year', $year);
@@ -89,12 +92,12 @@ class NoticeController extends Controller
                 })
                 ->orderByDesc('created_at')
                 ->get();
-        } else if (in_array($user->user_type, ['s'])) {
+        } else if (in_array($user->mtype, ['s'])) {
             $writer_type = $request->input('type');
             $rs = Notice::with('files')
                 ->where('status', 'Y')
-                ->whereIn('midx', [$user->center_id, 0])
-                ->where('view_type', 'like', "%" . json_encode($user->user_type) . "%")
+                ->whereIn('midx', [$user->midx, 0])
+                ->where('view_type', 'like', "%" . json_encode($user->mtype) . "%")
                 ->when($writer_type, function($query) use($writer_type) {
                     if ($writer_type == "a") {
                         $query->whereRaw(' (writer_type = "a" or writer_type = "admin") ');
@@ -157,7 +160,7 @@ class NoticeController extends Controller
         $result = array();
         $modify = $request->input('modify') ?? '';
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -166,6 +169,7 @@ class NoticeController extends Controller
         }
 
         $row = Notice::with('files')->whereId($notice_id)->where('status', 'Y')->first();
+
         if (empty($row)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '잘못된 요청입니다.');
@@ -196,32 +200,32 @@ class NoticeController extends Controller
             }
         }
 
-        if ($user->user_type == 's') {
-            if ($row->histories->where('sidx', $user->id)->count() === 0) {
+        if ($user->mtype == 's') {
+            if ($row->histories->where('sidx', $user->idx)->count() === 0) {
                 $row->histories()->create(
                     [
-                        'hidx' => $user->branch_id,
-                        'midx' => $user->center_id,
-                        'sidx' => $user->id
+                        'hidx' => $user->hidx,
+                        'midx' => $user->midx,
+                        'sidx' => $user->idx
                     ]
                 );
             }
         } else {
-            if ($user->user_type == 'm') {
-                if ($row->histories->where('midx', $user->id)->count() === 0) {
+            if ($user->mtype == 'm') {
+                if ($row->histories->where('midx', $user->idx)->count() === 0) {
                     $row->histories()->create(
                         [
-                            'hidx' => $user->branch_id,
-                            'midx' => $user->center_id
+                            'hidx' => $user->hidx,
+                            'midx' => $user->midx
                         ]
                     );
                 }
             } else {
-                if ($user->user_type == 'h') {
-                    if ($row->histories->where('hidx', $user->id)->count() === 0) {
+                if ($user->mtype == 'h') {
+                    if ($row->histories->where('hidx', $user->idx)->count() === 0) {
                         $row->histories()->create(
                             [
-                                'hidx' => $user->branch_id
+                                'hidx' => $user->hidx
                             ]
                         );
                     }
@@ -229,35 +233,45 @@ class NoticeController extends Controller
             }
         }
 
-        if ($user->user_type == 'm') {
-            $readed_students = NoticeHistory::select(
-                'users.id',
-                'users.user_id',
-                'users.name'
-            )
-            ->join('users', 'users.id', '=', 'notice_histories.sidx')
-            ->where('notice_histories.notice_id', $notice_id)
-            ->where('notice_histories.hidx', $user->branch_id)
-            ->where('notice_histories.midx', $user->id)
-            ->whereNotNull('notice_histories.sidx')
-            ->get();
+        if ($user->mtype == 'm') {
+
+//            $readed_students = NoticeHistory::select(
+//                'raon_member.idx',
+//                'raon_member.id',
+//                'raon_member.name'
+//            )
+//            ->join('raon_member', 'raon_member.idx', '=', 'notice_histories.sidx')
+//            ->where('notice_histories.notice_id', $notice_id)
+//            ->where('notice_histories.hidx', $user->hidx)
+//            ->where('notice_histories.midx', $user->idx)
+//            ->whereNotNull('notice_histories.sidx')
+//            ->get();
+
+            $noticeHistorySidx = NoticeHistory::where('notice_histories.notice_id', $notice_id)
+                ->where('notice_histories.hidx', $user->hidx)
+                ->where('notice_histories.midx', $user->idx)
+                ->whereNotNull('notice_histories.sidx')
+                ->pluck('sidx')
+                ->toArray();
+
+            $readed_students = RaonMember::select('idx', 'id', 'name')->whereIn('idx', $noticeHistorySidx)->get();
 
             $readed_students_array = [];
 
             if ($readed_students->count()) {
-                $readed_students_array = $readed_students->pluck('id');
+                $readed_students_array = $readed_students->pluck('idx');
             }
 
-            $not_readed_students = User::select(
+            $not_readed_students = RaonMember::select(
+                'idx',
                 'id',
-                'user_id',
                 'name'
             )
-            ->where('center_id', $user->id)
-            ->where('user_type', 's')
-            ->where('status', 'Y')
+            ->where('midx', $user->idx)
+            ->where('mtype', 's')
+            ->where('s_status', 'Y')
             ->when(count($readed_students_array) > 0, function($query) use($readed_students_array) {
-                return $query->whereNotIn('id', $readed_students_array->toArray());
+                return $query->whereNotIn('idx', $readed_students_array->toArray());
             })
             ->get();
 
@@ -273,7 +287,7 @@ class NoticeController extends Controller
     public function store(Request $request) {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         $validator = Validator::make($request->all(), [
             'upload_files' => [new UploadFile],
@@ -282,7 +296,7 @@ class NoticeController extends Controller
         if($validator->fails()){
             return response()->json([
                 'result' => 'fail',
-                'error' => "업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 500Mb 이하로만 가능합니다."
+                'error' => "업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 100Mb 이하로만 가능합니다."
             ]);
         }
 
@@ -313,7 +327,7 @@ class NoticeController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['a','m'])) {
+        if (!in_array($user->mtype, ['a','m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -322,17 +336,19 @@ class NoticeController extends Controller
         $title = $request->input('title');
         $content = $request->input('content');
 
+        $content = preg_replace('/(<br\s*\/?>)/', ' $1', $content);
+
         //권한 설정
         // @20200103 지사 공지사항 일 경우 해당 지사의 교육원만 볼 수 있다.
-        if ($user->user_type === 'h') {
+        if ($user->mtype === 'h') {
             $arr_view_type = array('m');
         } else {
             $arr_view_type = array();
             $arr_view_type[0] = "s";
-            if ($user->user_type == 'a') {
+            if ($user->mtype == 'a') {
                 $arr_view_type[1] = "m";
                 //$arr_view_type[2] = "h";
-            } else if ($user->user_type == "m") {
+            } else if ($user->mtype == "m") {
                 $arr_view_type[1] = "m";
             }
         }
@@ -343,14 +359,14 @@ class NoticeController extends Controller
         $day = $request->input('day') ? sprintf('%02d', $request->input('day')) : $now->format('d');
 
         $midx = 0;
-        if ($user->user_type === 'm' ) {
-            $midx = $user->id;
+        if ($user->mtype === 'm' ) {
+            $midx = $user->idx;
         }
 
         $payload = [
-            'hidx' => $user->user_type == 'h' ? $user->id : $user->branch_id,
+            'hidx' => $user->mtype == 'h' ? $user->idx : $user->hidx,
             'midx' => $midx,
-            'writer_type' => $user->user_type,
+            'writer_type' => $user->mtype,
             'view_type' => json_encode($arr_view_type),
             'title' => $title,
             'content' => $content,
@@ -358,9 +374,11 @@ class NoticeController extends Controller
             'month' => $month,
             'day' => $day,
             'status' => 'Y',
-            'user_id' => $user->id
+            'user_id' => $user->idx
         ];
         $notice = new Notice($payload);
+
+
         $notice->save();
 
         $tmp_upload = $request->input('upload_files');
@@ -386,6 +404,7 @@ class NoticeController extends Controller
                 if ($vimeo_id) {
                     $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                 } else {
+                    $file = \App::make('helper')->rotateImage($file);
                     $file_path = \App::make('helper')->putResizeS3(NoticeFile::FILE_DIR, $file);
                 }
 
@@ -415,7 +434,7 @@ class NoticeController extends Controller
     public function update(Request $request, $notice_id) {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         $validator = Validator::make($request->all(), [
             'upload_files' => [new UploadFile],
@@ -424,7 +443,7 @@ class NoticeController extends Controller
         if($validator->fails()){
             return response()->json([
                 'result' => 'fail',
-                'error' => "업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 500Mb 이하로만 가능합니다."
+                'error' => "업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 100Mb 이하로만 가능합니다."
             ]);
         }
 
@@ -455,13 +474,13 @@ class NoticeController extends Controller
             return response()->json($result);
         }
 
-        if (in_array($user->user_type, ['s'])) {
+        if (in_array($user->mtype, ['s'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
         }
 
-        $notice = Notice::whereId($notice_id)->where('status', 'Y')->where('writer_type', $user->user_type)->first();
+        $notice = Notice::whereId($notice_id)->where('status', 'Y')->where('writer_type', $user->mtype)->first();
         if (empty($notice)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '잘못된 요청입니다.');
@@ -493,6 +512,7 @@ class NoticeController extends Controller
                 if ($vimeo_id) {
                     $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                 } else {
+                    $file = \App::make('helper')->rotateImage($file);
                     $file_path = \App::make('helper')->putResizeS3(NoticeFile::FILE_DIR, $file);
                 }
 
@@ -517,7 +537,7 @@ class NoticeController extends Controller
     public function destroy($notice_id, Request $request) {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -525,16 +545,16 @@ class NoticeController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['a','m'])) {
+        if (!in_array($user->mtype, ['a','m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
         }
 
-        if ($user->user_type === 'a') {
+        if ($user->mtype === 'a') {
             $notice = Notice::whereId($notice_id)->first();
         } else {
-            $notice = Notice::whereId($notice_id)->where('midx', $user->id)->first();
+            $notice = Notice::whereId($notice_id)->where('midx', $user->idx)->first();
         }
         if (empty($notice)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -581,7 +601,7 @@ class NoticeController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -596,7 +616,7 @@ class NoticeController extends Controller
             return response()->json($result);
         }
 
-        $notice = Notice::whereId($file->notice_id)->where('status', 'Y')->where('writer_type', $user->user_type)->first();
+        $notice = Notice::whereId($file->notice_id)->where('status', 'Y')->where('writer_type', $user->mtype)->first();
         if (empty($notice)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
@@ -657,13 +677,13 @@ class NoticeController extends Controller
     public function noticeView(Request $request, $id)
     {
         $ym = $request->input('ym') ?? date('Y-m');
-        $uesrId = \App::make('helper')->getUsertId();
+        $userId = \App::make('helper')->getUsertId();
         $userType = \App::make('helper')->getUsertType();
         if (in_array($userType, ['a','h'])) {
-            $uesrId = session()->get('center');
+            $userId = session()->get('center');
         }
         $albumReq = Request::create('/api/notice/view/'.$id, 'GET', [
-            'user' => $uesrId,
+            'user' => $userId,
         ]);
         $res = $this->show($albumReq, $id);
         $student = $res->original['student'] ?? [];
@@ -673,6 +693,19 @@ class NoticeController extends Controller
             \App::make('helper')->alert($error);
         }
 
+        $boardView = new BoardView();
+
+        $boardView->user_id = $userId;
+        $boardView->board_type = 'notice';
+        $boardView->board_id = $id;
+
+        $boardView->save();
+
+        $getCountQuery = BoardView::where('board_type', 'notice')->where('board_id', $id);
+
+        $getAllCountBoardView = $getCountQuery->count();
+        $getFilterCountBoardView = $getCountQuery->distinct()->count('user_id');
+
         return view('notice/view',[
             'row' => $res->original ?? [],
             'modifyBtn' => \App::make('helper')->getUsertId() == $res->original['user_id'],
@@ -681,6 +714,8 @@ class NoticeController extends Controller
             'studentReadY' => $res->original['readed_students'] ?? [],
             'back_link' => "/notice?ym=".$ym,
             'id' => $id,
+            'getAllCountBoardView' => $getAllCountBoardView ?? 0,
+            'getFilterCountBoardView' => $getFilterCountBoardView ?? 0,
         ]);
     }
 
@@ -749,7 +784,7 @@ class NoticeController extends Controller
 
         $user = \App::make('helper')->getUsertId();
         $userType = \App::make('helper')->getUsertType();
-        if (in_array($userType, ['a','h'])) {
+        if (in_array($userType, ['h'])) {
             $user = session()->get('center');
         }
 

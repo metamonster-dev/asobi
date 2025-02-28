@@ -4,11 +4,41 @@ class="body"
 @endsection
 @section('contents')
 <?php
+ini_set('memory_limit', '-1');
 $title = "앨범 작성";
 $hd_bg = "2";
+
+$userAgent = $_SERVER['HTTP_USER_AGENT'];
+
+$phpisIOS = false;
+if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== false || strpos($userAgent, 'iPod') !== false) {
+    $phpisIOS = true;
+} else {
+    $phpisIOS = false;
+}
+$user = \App::make('helper')->getUsertId();
+
 ?>
 @include('common.headm04')
 @include('album.preview')
+
+<style>
+    /*img {*/
+    /*    max-width: 200px;*/
+    /*    max-height: 200px;*/
+    /*    padding: 5px;*/
+    /*    vertical-align: middle;*/
+    /*    text-align: center;*/
+    /*}*/
+
+    /*@supports (object-fit: cover) {*/
+    /*    img {*/
+    /*        width: 200px;*/
+    /*        height: 200px;*/
+    /*        object-fit: cover;*/
+    /*    }*/
+    /*}*/
+</style>
 
 <article class="sub_pg">
     <div class="container pt-4 pt_lg_50">
@@ -42,7 +72,7 @@ $hd_bg = "2";
                     </div>
                     <input id="title" name="title" type="text" value="{{ $row['title'] ?? '' }}" class="form-control text-dark_gray" placeholder="제목을 입력해주세요">
                 </div>
-                <div class="ip_wr">
+                <div class="ip_wr" @if ($mode=="u") style="display: none;" @endif>
                     <div class="ip_tit d-flex align-items-center justify-content-between">
                         <h5>작성일자</h5>
                     </div>
@@ -52,7 +82,7 @@ $hd_bg = "2";
             <div class="form-group ip_wr mt-4 mt-lg-5 mb-0 mb-lg-4">
                 <div class="ip_tit d-flex align-items-center">
                     <h5 class="mr-3">사진·동영상</h5>
-                    <p class="fs_13 text-light"><span id="uploadCount">0</span>/20</p>
+                    <p class="fs_13 text-light"><span id="uploadCount">0</span>/10</p>
                 </div>
                 <div class="scroll_wrap none_scroll_bar_lg">
                     <div class="input-group-prepend" id="imgUpload">
@@ -97,7 +127,7 @@ $hd_bg = "2";
                                 $studentId = $l['id'];
                                 $isChecked = false;
                                 if (is_array($row['student'])) {
-                                    $isChecked = in_array($studentId, array_column($row['student'], 'id'));
+                                    $isChecked = in_array($studentId, array_column($row['student'], 'idx'));
                                 }
                             }
                         @endphp
@@ -124,9 +154,7 @@ $hd_bg = "2";
                         </div>
                     </li>
                 @endif
-
             </ul>
-
 
             <div class="cmt_wr note_btns pt-0 pt_lg_50 pb-0 pb-lg-4">
                 <button type="submit" id="fsubmit" class="btn btn-primary">전송</button>
@@ -139,6 +167,13 @@ $hd_bg = "2";
     </div>
 </article>
 
+<div class="loading_wrap" id="loading" style="display: none;">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
+
 <script>
     var delete_ids = [];
     var tmp_file_ids = [];
@@ -146,6 +181,7 @@ $hd_bg = "2";
     var upload_cont = 0;
     var multiform_idx = [];
     var multiform_delete_idx = [];
+    let isSetTmp = false;
 
     @if(isset($row['file']) && is_array($row['file']) && count($row['file']) > 0)
         upload_cont = {{ count($row['file']) }}
@@ -161,6 +197,13 @@ $hd_bg = "2";
         fsubmit = true;
         $("#fsubmit").prop('disabled',true);
 
+        if (ycommon.getUploadCount(upload_cont-delete_ids.length+tmp_file_ids.length) > 10 ) {
+            fsubmit = false;
+            $("#fsubmit").prop('disabled',false);
+            jalert("사진 및 동영상을 10개 초과할 수 없습니다.");
+            return false;
+        }
+
         if (ycommon.getUploadCount(upload_cont-delete_ids.length+tmp_file_ids.length) == 0) {
             fsubmit = false;
             $("#fsubmit").prop('disabled',false);
@@ -170,6 +213,12 @@ $hd_bg = "2";
 
         const currentDate = new Date();
         const ymdValue = new Date(f.ymd.value);
+
+        @if($user == "86293")
+            //jalert(currentDate);
+            //jalert(ymdValue);
+            //return false;
+        @endif
 
         if (delete_ids.length > 0) {
             f.delete_ids.value = delete_ids.join(',');
@@ -193,12 +242,12 @@ $hd_bg = "2";
             return false;
         }
 
-        if (ymdValue > currentDate) {
-            fsubmit = false;
-            $("#fsubmit").prop('disabled',false);
-            jalert('미래 날짜는 선택할 수 없습니다.');
-            return false;
-        }
+        //if (ymdValue > currentDate) {
+        //    fsubmit = false;
+        //    $("#fsubmit").prop('disabled',false);
+        //    jalert('미래 날짜는 선택할 수 없습니다.');
+        //    return false;
+        //}
 
         @if($mode == "w")
         if ($("input[name='student[]']:checked").length == 0) {
@@ -218,6 +267,11 @@ $hd_bg = "2";
 
         ycommon.setDeleteUploadFile(multiform_delete_idx);
 
+        ycommon.deleteData('album');
+        ycommon.deleteData('file');
+
+        $('#loading').show();
+
         return true;
     }
 
@@ -232,6 +286,7 @@ $hd_bg = "2";
             const formData = new FormData();
             formData.append("user", userId);
             formData.append("type", '4');
+            formData.append("isSetTmp", isSetTmp);
             if ($('.upload_files').length > 0) {
                 for(let i=0; i < $('.upload_files').length; i++) {
                     let del_keys = [];
@@ -250,30 +305,67 @@ $hd_bg = "2";
                 formData.append("delete_files", tmp_file_delete_ids.join(','));
             }
 
+            $('#loading').show();
+
             let action = `/api/tmpFileSave`;
-            ycommon.ajaxJson('post', action, formData, undefined, undefined,undefined,function (jqXHR, textStatus, errorThrown){
-                jalert("파일 임시저장에 실패하였습니다.");
-            },undefined,undefined,{processData:false, contentType: false});
+            ycommon.ajaxJson('post', action, formData, undefined, function () {
+                    let title = $('#title').val();
+                    let ymd = $('#ymd').val();
+                    let studentChk = $('input[name="student[]"]:checked');
+                    let student = [];
+                    if (studentChk.length > 0) {
+                        for (let i=0; i<studentChk.length; i++) {
+                            if ($(studentChk[i]).val()) student.push($(studentChk[i]).val());
+                        }
+                    }
+                    ycommon.setData('album',{
+                        title: title,
+                        ymd: ymd,
+                        student: student
+                    });
+
+                    $('#loading').hide();
+                    jalert("임시저장 되었습니다.");
+                }, undefined,
+                function (jqXHR, textStatus, errorThrown){
+                    $('#loading').hide();
+                    jalert("파일 임시저장에 실패하였습니다.");
+                    }, 30000, undefined, {processData: false, contentType: false},
+            );
+
+            ycommon.setData('file', {
+                file: 'Y'
+            });
+        } else {
+            ycommon.deleteData('file');
+
+            let title = $('#title').val();
+            let ymd = $('#ymd').val();
+            let studentChk = $('input[name="student[]"]:checked');
+            let student = [];
+            if (studentChk.length > 0) {
+                for (let i=0; i<studentChk.length; i++) {
+                    if ($(studentChk[i]).val()) student.push($(studentChk[i]).val());
+                }
+            }
+            ycommon.setData('album',{
+                title: title,
+                ymd: ymd,
+                student: student
+            });
+
+            jalert("임시저장 되었습니다.");
         }
 
-        let title = $('#title').val();
-        let ymd = $('#ymd').val();
-        let studentChk = $('input[name="student[]"]:checked');
-        let student = [];
-        if (studentChk.length > 0) {
-            for (let i=0; i<studentChk.length; i++) {
-                if ($(studentChk[i]).val()) student.push($(studentChk[i]).val());
-            }
-        }
-        ycommon.setData('album',{
-            title: title,
-            ymd: ymd,
-            student: student
-        });
-        jalert("임시저장 되었습니다.");
     }
 
     function setTmpSave() {
+        // ycommon.setData('file', {
+        //     file: 'Y'
+        // });
+
+        isSetTmp = true;
+
         // console.log("임시 저장 불러오기!!!");
         let tmpData = ycommon.getData('album');
         if (tmpData.title !== undefined) $('#title').val(tmpData.title);
@@ -284,54 +376,76 @@ $hd_bg = "2";
             }
         }
 
-        let action = `/api/tmpFiles`;
-        ycommon.ajaxJson('get', action, {user: userId, type: "4"}, undefined, function (data){
-            // console.log(data)
-            if (data.count !== undefined && data.count > 0) {
-                let privewUploade = '<div class="image-upload2 on mr-3" data-id="{i}" id="image-upload-{i}">'+
-                    '<label id="label_upload_file_{i}" for="upload_file_{i}">' +
-                    '<div class="upload-icon2">' +
-                    '<button type="button" class="btn del" data-tmpid="{image_id}"></button>' +
-                    '{image}' +
-                    '</div>' +
-                    '</label>' +
-                    '</div>';
-                let previewHtml = '<div class="att_img mb-4" id="imageVideo{i}">' +
-                    '<div class="rounded overflow-hidden">' +
-                    '{imageVideo}' +
-                    '</div>' +
-                    '</div>' ;
+        let fileData = ycommon.getData('file');
 
-                let privewUploadeTmp, previewHtmlTmp;
+        if (fileData) {
+            let action = `/api/tmpFiles`;
+            ycommon.ajaxJson('get', action, {user: userId, type: "4"}, undefined, function (data){
+                // console.log(data)
+                if (data.count !== undefined && data.count > 0) {
+                    let privewUploade = '<div class="image-upload2 on mr-3 videoThumnail" data-id="{i}" id="image-upload-{i}">'+
+                        '<label id="label_upload_file_{i}" for="upload_file_{i}">' +
+                        '<div class="upload-icon2">' +
+                        '<button type="button" class="btn del" data-tmpid="{image_id}"></button>' +
+                        '{image}' +
+                        '</div>' +
+                        '</label>' +
+                        '</div>';
+                    let previewHtml = '<div class="att_img mb-4" id="imageVideo{i}">' +
+                        '<div class="rounded overflow-hidden">' +
+                        '{imageVideo}' +
+                        '</div>' +
+                        '</div>' ;
 
-                for(let i=0;i<data.list.length; i++) {
-                    tmp_file_ids.push(data.list[i].file_id);
+                    let privewUploadeTmp, previewHtmlTmp;
 
-                    privewUploadeTmp = privewUploade;
-                    privewUploadeTmp = privewUploadeTmp.replaceAll("{i}", data.list[i].file_id);
-                    privewUploadeTmp = privewUploadeTmp.replaceAll('{image_id}', data.list[i].file_id);
-                    if (data.list[i].vimeo_id == "video") {
-                        privewUploadeTmp = privewUploadeTmp.replaceAll('{image}', "<video><source src='"+data.list[i].file_path+"' /></video>");
-                    } else {
-                        privewUploadeTmp = privewUploadeTmp.replaceAll('{image}', "<img src='"+data.list[i].file_path+"' />");
+                    for(let i=0;i<data.list.length; i++) {
+                        tmp_file_ids.push(data.list[i].file_id);
+
+                        privewUploadeTmp = privewUploade;
+                        privewUploadeTmp = privewUploadeTmp.replaceAll("{i}", data.list[i].file_id);
+                        privewUploadeTmp = privewUploadeTmp.replaceAll('{image_id}', data.list[i].file_id);
+                        if (data.list[i].vimeo_id == "video") {
+                            privewUploadeTmp = privewUploadeTmp.replaceAll('{image}', "<video preload='metadata'><source src='"+data.list[i].file_path+'#t=1'+"' /></video>");
+                        } else {
+                            privewUploadeTmp = privewUploadeTmp.replaceAll('{image}', "<img src='"+data.list[i].file_path+"' />");
+                        }
+
+                        previewHtmlTmp = previewHtml;
+                        previewHtmlTmp = previewHtmlTmp.replaceAll("{i}", data.list[i].file_id);
+                        if (data.list[i].vimeo_id == "video") {
+                            previewHtmlTmp = previewHtmlTmp.replaceAll('{imageVideo}', '<video preload="metadata"><source src="'+data.list[i].file_path+"#t=1"+'" class="w-100"></video>');
+                        } else {
+                            previewHtmlTmp = previewHtmlTmp.replaceAll('{imageVideo}', '<img src="'+data.list[i].file_path+'" class="w-100">');
+                        }
+
+                        $('#imgUpload').append(privewUploadeTmp)
+                        $('#imageVideo').append(previewHtmlTmp)
+
+                        const attImgTag = document.querySelector('.att_img video');
+                        if (attImgTag) {
+                            attImgTag.load();
+                            attImgTag.pause();
+                        }
+
+                        const videoThumnailTag = document.querySelectorAll('.videoThumnail');
+
+                        videoThumnailTag.forEach((elem) => {
+                            let videoTag = elem.querySelector('video');
+
+                            if (videoTag) {
+                                videoTag.load();
+                                videoTag.pause();
+                            }
+                        })
                     }
-
-                    previewHtmlTmp = previewHtml;
-                    previewHtmlTmp = previewHtmlTmp.replaceAll("{i}", data.list[i].file_id);
-                    if (data.list[i].vimeo_id == "video") {
-                        previewHtmlTmp = previewHtmlTmp.replaceAll('{imageVideo}', '<video><source src="'+data.list[i].file_path+'" class="w-100"></video>');
-                    } else {
-                        previewHtmlTmp = previewHtmlTmp.replaceAll('{imageVideo}', '<img src="'+data.list[i].file_path+'" class="w-100">');
-                    }
-
-                    $('#imgUpload').append(privewUploadeTmp)
-                    $('#imageVideo').append(previewHtmlTmp)
+                    setTimeout(function (){
+                        ycommon.setUploadCount(tmp_file_ids.length);
+                    },100);
                 }
-                setTimeout(function (){
-                    ycommon.setUploadCount(tmp_file_ids.length);
-                },100);
-            }
-        });
+            });
+        }
+
     }
 
     function getAlbumPreview() {
@@ -365,10 +479,11 @@ $hd_bg = "2";
 
         var i = 0;
         $(".addBtn").on('click', function(e) {
-            if (ycommon.getUploadCount(upload_cont-delete_ids.length+tmp_file_ids.length) >= 20) {
-                jalert("사진 동영상은 20개까지만 등록 가능합니다.");
-                return;
-            }
+            // if (ycommon.getUploadCount(upload_cont-delete_ids.length+tmp_file_ids.length) > 10) {
+            //     jalert("사진 동영상은 10개까지만 등록 가능합니다.");
+            //     return;
+            // }
+
             let addForm = '<div class="image-upload2 mr-3" data-id="'+i+'" id="image-upload-'+i+'">'+
                 '<label id="label_upload_file_'+i+'" for="upload_file_'+i+'">' +
                 '<div class="upload-icon2">' +
@@ -377,14 +492,16 @@ $hd_bg = "2";
                 '</label>' +
                 '</div>';
 
-            addForm += '<input id="upload_file_'+i+'" multiple="multiple" name="upload_files[]" class="upload_files d-none" data-id="'+i+'" type="file" accept="image/*,video/*" />';
 
-            $('#imgUpload').append(addForm)
+            addForm += '<input id="upload_file_'+i+'" multiple="multiple" name="upload_files[]" class="upload_files d-none" data-id="'+i+'" type="file" accept="image/jpg,image/jpeg,video/mp4" />';
+
+            $('#imgUpload').append(addForm);
             $('#label_upload_file_'+i).trigger('click');
             i++;
         });
 
         @if(isset($row['file']) && is_array($row['file']) && count($row['file']) > 0)
+
         //수정시 썸네일 이미지 처리
         let privewUploade = '<div class="image-upload2 on mr-3" data-id="{i}" id="image-upload-{i}">'+
             '<label id="label_upload_file_{i}" for="upload_file_{i}">' +
@@ -418,7 +535,58 @@ $hd_bg = "2";
         },100);
         @endif
 
+
         $(document).on('change', '.upload_files', function(e) {
+            let entireCount = parseInt(document.getElementById('uploadCount').innerText);
+
+            if (entireCount + this.files.length > 10) {
+                jalert("사진 동영상은 10개까지만 등록 가능합니다.");
+                return;
+            }
+
+            const imageMaxSize = 10 * 1024 * 1024; // 10MB
+            const videoMaxSize = 10 * 10 * 1024 * 1024 * 1.1; // 110MB
+
+            let breaker = false;
+            let videoCount = 0;
+            for (var i = 0; i < this.files.length; i++) {
+
+                if (this.files[i].type.startsWith('image/')) {
+                    if (this.files[i].size > imageMaxSize) {
+                        jalert('파일 크기가 너무 큽니다. 10MB 이하의 파일을 선택하세요.');
+                        this.value = '';
+                        return;
+                    }
+                } else if (this.files[i].type.startsWith('video/')) {
+                    videoCount++;
+                    document.querySelectorAll('video').forEach((elem) => {
+                        if (elem) {
+                            breaker = true;
+                        }
+                    })
+
+                    if (breaker) {
+                        jalert('동영상은 하나만 첨부할 수 있습니다.');
+                        this.value = '';
+                        return;
+                    }
+
+                    if (this.files[i].size > videoMaxSize) {
+                        jalert('파일 크기가 너무 큽니다. 100MB 이하의 파일을 선택하세요.');
+                        this.value = '';
+                        return;
+                    }
+                }
+            }
+
+            if (videoCount > 1) {
+                jalert('동영상은 하나만 첨부할 수 있습니다.');
+                this.value = '';
+                return;
+            }
+
+            // $('#loading').show();
+
             let id = $(this).data('id');
             ycommon.previewImage(e, id, upload_cont-delete_ids.length+tmp_file_ids.length);
         });
@@ -453,6 +621,10 @@ $hd_bg = "2";
             jalert2('임시 저장된 내용을 불러오시겠습니까?', '불러오기', setTmpSave);
         }
         @endif
+    });
+
+    document.querySelector('.back_button').addEventListener('click', function(event) {
+        $('#loading').show();
     });
 </script>
 

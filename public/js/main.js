@@ -89,7 +89,7 @@ $(".modal_bg").on("click", function(e) {
 
 // 로딩 show-hide
 function loadingShow() {
-    $("#loading").show();
+    // $("#loading").show();
 }
 function loadingHide() {
     $("#loading").hide();
@@ -415,6 +415,17 @@ function getVimeoVideo () {
                     // <a href="${link}" class="btn btn_dl"><img src="/img/ic_download.svg"></a>
                     // <iframe src="${src}&title=0&byline=0&portrait=0&controls=0" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="Untitled"></iframe>`;
                     // $(`.video_area#vimeo${i}`).html(iframeHtml);
+                    function isMobile(){
+                        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                    }
+
+                    function isIOS(){
+                        return /iPhone|iPad|iPad/i.test(navigator.userAgent);
+                    }
+
+                    function isAndroid(){
+                        return /Android|android/i.test(navigator.userAgent);
+                    }
 
                     const options = {
                         id: num,
@@ -422,32 +433,159 @@ function getVimeoVideo () {
                         byline: false,
                         portrait: false,
                         controls: false,
-                    }
+                        autoplay: false,
+                        // playsinline: false,
+                    };
+
+                    // let options = {};
+                    //
+                    // if (isAndroid()) {
+                    //     options = {
+                    //         id: num,
+                    //         title: false,
+                    //         byline: false,
+                    //         portrait: false,
+                    //         controls: true,
+                    //         autoplay: false,
+                    //         // playsinline: false,
+                    //     }
+                    // } else {
+                    //     options = {
+                    //         id: num,
+                    //         title: false,
+                    //         byline: false,
+                    //         portrait: false,
+                    //         controls: false,
+                    //         autoplay: false,
+                    //         // playsinline: false,
+                    //     }
+                    // }
+
                     const player = new Vimeo.Player(elId, options);
                     // player.on('play', function() {
                     //     console.log('played the video!');
                     // });
+
+                    // 로드 되자마자 자동 재생 방지
+                    player.on('loaded', function () {
+                        player.pause().then(function (){
+                        });
+                    });
+
                     player.on('ended', function() {
                         $('#playButton'+i).show();
                         $('#playButton'+i).removeClass('plaing');
+
+                        player.setCurrentTime(0);
                     });
+
                     player.on('pause', function() {
                         $('#playButton'+i).show();
                         $('#playButton'+i).removeClass('plaing');
                     });
 
-                    const playButton = `<button type="button" class="btn btn_play" id="playButton${i}"><img src="/img/ic_play.png" /></button>`;
+                    const playButton = `<button type="button" class="btn btn_play" style="z-index: 9999" id="playButton${i}"><img src="/img/ic_play.png" /></button>`;
                     const pauseButton = `<button type="button" class="btn btn_pause" id="pauseButton${i}"><img src="/img/ic_pause.png" /></button>`;
                     const downloadButton = `<a href="${link}" class="btn btn_dl"><img src="/img/ic_download.svg"></a>`;
+
+                    // 썸네일 넣기
+                    const resData2 = data?.data?.body?.pictures;
+                    const src = resData2?.sizes[4]?.link;
+
+                    // if (document.querySelectorAll('.thumnail_img')) {
+                    //     document.querySelectorAll('.thumnail_img > img').forEach((elem) => {
+                    //         elem.src = src;
+                    //         elem.style.height = '100%';
+                    //     })
+                    // }
+
+                    if (document.querySelector('.mySwiper')) {
+                        document.querySelector(`.thumnail_img${i} > img`).src = src;
+                        document.querySelector(`.thumnail_img${i} > img`).style.height = '100%';
+                    }
+
+                    // 다운로드 버튼 넣기
+                    if (document.querySelectorAll('.video_download')) {
+                        document.querySelectorAll('.video_download').forEach((elem) => {
+                            elem.innerHTML += `<a href="${link}" class="btn btn_dl thumbnail_download"><img src="/img/ic_download.svg"></a>`;
+                        })
+                    }
+
+                    // 썸네일에 다운로드 버튼 넣기
+                    if (document.querySelectorAll('.thumbnail_download')) {
+                        document.querySelectorAll('.thumbnail_download').forEach((elem) => {
+                            elem.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                            })
+                        })
+                    }
+
+                    const playHtumnailButton = `<button type="button" class="btn btn_play" style="z-index: 9999"><img src="/img/ic_play.png" /></button>`;
+
+                    $(`.thumnail_img${i}`).append(playHtumnailButton);
 
                     $(`.video_area#vimeo${i}`).find('img').hide();
                     $(`.video_area#vimeo${i}`).append(playButton + pauseButton + downloadButton);
 
-                    $(document).on('click','#playButton'+i,function (){
-                        let $this = $(this)
-                        player.play().then(function (){
-                            $this.addClass('plaing');
-                            $this.hide();
+
+                    // if (isMobile()) {
+                        player.loadVideo(num).then(function () {
+                            document.querySelectorAll('iframe').forEach((elem) => {
+                                elem.width = '100%';
+                                elem.height = '94%';
+                                elem.style.position = 'absolute';
+                                elem.style.bottom = '0';
+
+                                if (document.querySelector('.mySwiper')) {
+                                    elem.style.left = '0';
+                                }
+                            })
+                            // document.querySelector('iframe').width = '100%';
+                            // document.querySelector('iframe').height = '100%';
+
+                            // document.querySelector('iframe').height = '94%';
+                            // document.querySelector('iframe').style.position = 'absolute';
+                            // document.querySelector('iframe').style.bottom = '0';
+                            // document.querySelector('iframe').style.left = '0';
+
+                            // if (!isMobile()) {
+                                // document.querySelector('.loading_img').style.display = 'none';
+                                document.querySelectorAll('.pc_loading_img').forEach((elem) => {
+                                    elem.style.display = 'none';
+                                })
+                            // }
+                            document.querySelectorAll('.video_none').forEach((elem) => {
+                                elem.style.display = 'block';
+                            })
+                            // document.querySelector('.video_none').style.display = 'block';
+
+                            player.pause().then(function (){
+                            });
+                        })
+                    // }
+
+                    player.ready().then(function () {
+                        $(document).on('click','#playButton'+i,function (){
+                            let $this = $(this)
+                                player.play().then(function (){
+                                    $this.addClass('plaing');
+                                    $this.hide();
+                                    document.getElementById('pauseButton'+i).style.opacity = '0';
+
+                                    // if (isMobile()) {
+                                    //     player.requestFullscreen().then(function() {
+                                    //
+                                    //     }).catch(function(error) {
+                                            // alert(error);
+                                        // });
+
+                                        // player.on('fullscreenchange', function(event) {
+                                        //     if(!event.fullscreen) {
+                                        //         player.pause();
+                                        //     }
+                                        // });
+                                    // }
+                                });
                         });
                     });
 

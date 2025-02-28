@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\DB;
 
 class MainController extends Controller
 {
@@ -14,6 +15,7 @@ class MainController extends Controller
     }
     public function main(Request $request)
     {
+
         $userId = \App::make('helper')->getUsertId();
         $userType = \App::make('helper')->getUsertType();
         $branch = $center = "";
@@ -44,11 +46,31 @@ class MainController extends Controller
         $appMainController = new AppMainController();
         $mainRes = $appMainController->index($mainReq);
 
+//        var_dump(session()->get('branch'));
+//        dd(session()->get('center'));
+
         // 본사면..
         if ($userType == 'a') {
-            $branch = session()->get('branch') ?? '';
-            $center = session()->get('center') ?? '';
+//            $branch = session()->get('branch') ?? '';
+//            $center = session()->get('center') ?? '';
+
+            if (session()->get('branch')) {
+                $branch = session()->get('branch');
+            } else {
+                session(['branch' => '70']);
+                $branch = '70';
+            }
+
+            if (session()->get('center')) {
+                $center = session()->get('center');
+            }
+
+            if (session()->get('branch') === '70') {
+                session(['center' => '86293']);
+                $center = '86293';
+            }
         }
+
         // 지사면..
         if ($userType == 'h') {
             $branch = \App::make('helper')->getUsertId();
@@ -87,4 +109,22 @@ class MainController extends Controller
         }
         return redirect('/');
     }
+
+    public function testDatabaseConnections()
+    {
+        try {
+            DB::connection('mysql')->getPdo();
+            echo "Connection 1 is established.";
+        } catch (\Exception $e) {
+            die("Could not connect to the database. Please check your configuration.");
+        }
+
+        try {
+            DB::connection('mysql')->getPdo();
+            echo "Connection 2 is established.";
+        } catch (\Exception $e) {
+            die("Could not connect to the database. Please check your configuration.");
+        }
+    }
+
 }

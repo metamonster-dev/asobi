@@ -83,6 +83,13 @@ $hd_bg = "3";
     </div>
 </article>
 
+<div class="loading_wrap" id="loading" style="display: none">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
+
 <script>
     var fsubmit = false;
     function frm_form_chk(f) {
@@ -108,12 +115,12 @@ $hd_bg = "3";
             return false;
         }
 
-        if (ymdValue > currentDate) {
-            fsubmit = false;
-            $("#fsubmit").prop('disabled',false);
-            jalert('미래 날짜는 선택할 수 없습니다.');
-            return false;
-        }
+        //if (ymdValue > currentDate) {
+        //    fsubmit = false;
+        //    $("#fsubmit").prop('disabled',false);
+        //    jalert('미래 날짜는 선택할 수 없습니다.');
+        //   return false;
+        //}
 
         if (f.content.value == "") {
             fsubmit = false;
@@ -176,6 +183,13 @@ $hd_bg = "3";
         }
         @endif
     });
+
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function(event) {
+            $('#loading').show();
+        });
+    });
+</script>
 </script>
 
 @endsection

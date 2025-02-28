@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Route;
 use App\AdviceNote;
 use App\AdviceNoteHistory;
 use App\AdviceNoteShareHistory;
-use App\User;
+use App\Models\RaonMember;
 
 class ShareController extends Controller
 {
@@ -32,7 +32,7 @@ class ShareController extends Controller
         }
 
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -40,7 +40,7 @@ class ShareController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m','s'])) {
+        if (!in_array($user->mtype, ['m','s'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -48,13 +48,13 @@ class ShareController extends Controller
 
         $advice_note = null;
 
-        if ($user->user_type == 'm') {
+        if ($user->mtype == 'm') {
             $advice_note = AdviceNote::where('id', $id)
                 ->where('type', $type)
                 ->where('midx', $user_id)
                 ->where('status', 'Y')
                 ->first();
-        } else if ($user->user_type == 's') {
+        } else if ($user->mtype == 's') {
             $advice_note = AdviceNote::where('id', $id)
                 ->where('type', $type)
                 ->where('sidx', $user_id)
@@ -70,7 +70,7 @@ class ShareController extends Controller
             $result = Arr::add($result, 'share_url', $share_url);
             $result = Arr::add($result, 'error', '');
 
-            if ($user->user_type == 'm') {
+            if ($user->mtype == 'm') {
                 $nowDate = date('Y-m-d H:i:s', time());
 
                 $advice_note_share_history = AdviceNoteShareHistory::where('advice_note_id', $id)->first();
@@ -150,8 +150,8 @@ class ShareController extends Controller
 
     public function webDeepLink(Request $request)
     {
-
-        $link = $request->input('link');
+        $id = $request->input('id', '');
+        $link = $request->input('link').'?iscopy=1';
 //        $link = 'https://asobi.tenbilsoft.com/advice/138435/note/view/774509';
         $result = array();
         $arr = array();
@@ -177,9 +177,26 @@ class ShareController extends Controller
             $response = "json"
         );
 
-//        \App::make('helper')->log('webDeepLink', ['res' => $res], 'webDeepLink');
-
         if (isset($res['shortLink'])) {
+            if ($id != '') {
+                $advice_note_share_history = AdviceNoteShareHistory::where('advice_note_id', $id)->first();
+
+                $nowDate = date('Y-m-d H:i:s', time());
+
+                if ($advice_note_share_history) {
+                    $advice_note_share_history->shared_at = $nowDate;
+                    $advice_note_share_history->updated_at = $nowDate;
+                } else {
+                    $advice_note_share_history = new AdviceNoteShareHistory;
+
+                    $advice_note_share_history->advice_note_id = $id;
+                    $advice_note_share_history->shared_at = $nowDate;
+                    $advice_note_share_history->created_at = $nowDate;
+                }
+
+                $advice_note_share_history->save();
+            }
+//
             $result = Arr::add($result, 'result', 'success');
             $result = Arr::add($result, 'shortLink', $res['shortLink']);
             return response()->json($result);

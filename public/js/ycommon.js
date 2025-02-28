@@ -139,7 +139,7 @@ var ycommon = (function(ycommon, $, window) {
             dateFormat:"yy-mm-dd",
             dayNames : ['일요일','월요일','화요일','수요일','목요일','금요일','토요일'],
             dayNamesMin : ['일','월','화','수','목','금','토'],
-            monthNamesShort:  [ "1월", "2월", "3월", "4월", "5월", "6월","7월", "8월", "9월", "10월", "11월", "12월" ]
+            monthNamesShort:  [ "1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월" ]
         });
     }
 
@@ -527,6 +527,7 @@ var ycommon = (function(ycommon, $, window) {
             err_msg = '요청 된 페이지를 찾을 수 없습니다. [404]';
         } else if (jqXHR.status == 500) {
             err_msg = '내부 서버 오류. [500]';
+            // err_msg = '푸시 발송 점검중입니다';
         } else if (textStatus === 'parsererror') {
             err_msg = '요청 된 JSON 구문 분석에 실패했습니다.';
         } else if (textStatus === 'timeout') {
@@ -1074,7 +1075,7 @@ var ycommon = (function(ycommon, $, window) {
     ycommon.setDeleteUploadFile = function (multiform_delete_idx) {
 
         let multiform_delete_idx2 = ycommon.getMultiformDeleteIdxs(multiform_delete_idx);
-        console.log('multiform_delete_idx2', multiform_delete_idx2);
+        // console.log('multiform_delete_idx2', multiform_delete_idx2);
         for(let i=0; i < $('.upload_files').length; i++) {
             let del_keys = [];
             for(let j=0; j < multiform_delete_idx2.length; j++) {
@@ -1105,88 +1106,212 @@ var ycommon = (function(ycommon, $, window) {
     }
 
     ycommon.previewImage = function (e, id, upload_cont) {
+        const userAgent = navigator.userAgent.toLowerCase();
+
+        let device = '';
+        if (userAgent.indexOf("iphone") > -1 || userAgent.indexOf("ipad") > -1 || userAgent.indexOf("ipod") > -1 ) {
+            device = 'ios';
+        }
+
         var files = e.target.files;
         var filesArr = Array.prototype.slice.call(files);
-        filesArr.forEach(function(f,i) {
-            // console.log(f);
-            if(f.type.match("image.*")) {
-                if(f.size > 10 * 1000 * 1000) {
-                    alert("이미지는 10메가 이하만 가능합니다.");
-                    return;
+
+        async function processFiles(filesArr) {
+            try {
+                for (let i=0; i < filesArr.length; i++) {
+                    await readFile(i, filesArr[i]); // 각 파일을 처리하는 함수 호출 (비동기 처리)
                 }
-            } else if (f.type.match("video.*")) {
-                if(f.size > 500 * 1000 * 1000) {
-                    alert("이미지는 500메가 이하만 가능합니다.");
-                    return;
-                }
-            } else {
-                alert("확장자는 이미지 및 비디오만 가능합니다.");
-                return;
+            } catch (error) {
+                sendErrorToServer(error, filesArr[0]);
             }
+        }
 
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                // console.log('i',i)
-                let id2 = id;
-                if (i > 0) {
-                    id2 = id+"_"+i;
-                } else if (i == 0) {
-                    $('#label_upload_file_'+id).attr('for','00');
+        processFiles(filesArr) // 파일 처리 함수 호출
+            .then(() => {
+                if (document.getElementById('loading')) {
+                    document.getElementById('loading').style.display = 'none';
+                    $('#loading').hide();
                 }
-                multiform_idx.push(id2);
-                // console.log(e.target.result);
-                $("#image-upload-"+id2).addClass('on');
-                if (e.target.result.match("video.*")) {
-                    let html = '<div class="att_img mb-4" id="imageVideo'+id2+'">' +
-                        '<div class="rounded overflow-hidden">' +
-                            '<video>' +
-                                '<source src="'+e.target.result+'" class="w-100">' +
-                            '</video>' +
-                        '</div>' +
-                    '</div>' ;
-                    // console.log(html);
-                    $("#imageVideo").append(html);
-                    if (i == 0) {
-                        $("#image-upload-"+id2).find('.del').after('<video><source src="'+e.target.result+'" /></video>');
-                    } else {
-                        let addForm = '<div class="image-upload2 mr-3 on" data-id="'+id2+'" id="image-upload-'+id2+'">'+
-                            '<label id="label_upload_file_'+id2+'" for="upload_file_'+id2+'">' +
-                            '<div class="upload-icon2">' +
-                            '<button type="button" class="btn del"></button>' +
-                            '<video><source src="'+e.target.result+'" /></video>' +
-                            '</div>' +
-                            '</label>' +
-                            '</div>';
-                        $('#imgUpload').append(addForm);
-                    }
-                } else {
-                    let html = '<div class="att_img mb-4" id="imageVideo'+id2+'">' +
-                        '<div class="rounded overflow-hidden">' +
-                            '<img src="'+e.target.result+'" class="w-100">' +
-                        '</div>' +
-                    '</div>' ;
-                    // console.log(html);
-                    $("#imageVideo").append(html);
-
-                    if (i == 0) {
-                        $("#image-upload-"+id2).find('.del').after('<img src="'+e.target.result+'" />');
-                    } else {
-                        let addForm = '<div class="image-upload2 mr-3 on" data-id="'+id2+'" id="image-upload-'+id2+'">'+
-                            '<label id="label_upload_file_'+id2+'" for="upload_file_'+id2+'">' +
-                            '<div class="upload-icon2">' +
-                            '<button type="button" class="btn del"></button>' +
-                            '<img src="'+e.target.result+'" />' +
-                            '</div>' +
-                            '</label>' +
-                            '</div>';
-                        $('#imgUpload').append(addForm);
-                    }
+                // 모든 파일 처리가 완료된 후에 실행할 작업
+                // console.log('모든 파일 처리 완료');
+            })
+            .catch((error) => {
+                // 에러 처리
+                // console.error('파일 처리 중 에러 발생:', error);
+                if (document.getElementById('loading')) {
+                    document.getElementById('loading').style.display = 'none';
+                    $('#loading').hide();
                 }
 
-                ycommon.setUploadCount(upload_cont);
-            }
-            reader.readAsDataURL(f);
-        });
+                // sendErrorToServer(error, filesArr);
+            });
+
+        function sendErrorToServer(error, file) {
+            const errorData = {
+                data: JSON.stringify(error), // 에러 메시지
+                userAgent: navigator.userAgent,
+                file: {
+                    fileName: file.name,
+                    fileSize: file.size,
+                    fileType: file.type
+                }
+            };
+
+            // AJAX 요청 보내기
+            fetch('/api/jsErrorLog', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(errorData), // 오류 데이터를 JSON 형식으로 전송
+            }).then((response) => {
+                    if (!response.ok) {
+                        throw new Error('서버 응답 오류');
+                    }
+                    // 서버 응답 처리
+                })
+                .catch((error) => {
+                    console.error('서버로의 오류 보내기 실패:', error);
+                });
+        }
+
+        function readFile(i, f) {
+            return new Promise((resolve, reject) => {
+                // if(f.type.match("image.*")) {
+                //     if(f.size >= 10 * 1024 * 1024) {
+                //         alert("이미지는 10메가 이하만 가능합니다.");
+                //         return;
+                //     }
+                // } else if (f.type.match("video.*")) {
+                //     if(f.size >= 10 * 10 * 1024 * 1024) {
+                //         alert("비디오는 100메가 이하만 가능합니다.");
+                //         return;
+                //     }
+                // } else {
+                //     alert("확장자는 이미지 및 비디오만 가능합니다.");
+                //     return;
+                // }
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    let id2 = id;
+                    if (i > 0) {
+                        id2 = id+"_"+i;
+                    } else if (i == 0) {
+                        $('#label_upload_file_'+id).attr('for','00');
+                    }
+                    multiform_idx.push(id2);
+
+                    $("#image-upload-"+id2).addClass('on');
+
+                    const arrayBuffer = e.target.result;// ArrayBuffer를 Blob으로 변환
+                    const blob = new Blob([arrayBuffer], { type: f.type });
+                    const imageUrl = URL.createObjectURL(blob);
+
+                    // if (e.target.result.match("video.*")) {
+                    if (f.type.match("video.*")) {
+                        let html;
+                        if (device === 'ios') {
+                            html = '<div class="att_img mb-4" id="imageVideo'+id2+'">' +
+                                '<div class="rounded overflow-hidden">' +
+                                '<video>' +
+                                '<source src="'+imageUrl+'" class="w-100">' +
+                                '</video>' +
+                                '</div>' +
+                                '</div>' ;
+                        } else {
+                            html = '<div class="att_img mb-4" id="imageVideo'+id2+'">' +
+                                '<div class="rounded overflow-hidden">' +
+                                '<video>' +
+                                '<source src="'+imageUrl+'#t=1'+'" class="w-100">' +
+                                '</video>' +
+                                '</div>' +
+                                '</div>' ;
+                        }
+                        $("#imageVideo").append(html);
+
+                        const attImgTag = document.querySelector('.att_img video');
+                        attImgTag.load();
+                        attImgTag.pause();
+
+                        if (i == 0) {
+                            if (device === 'ios') {
+                                $("#image-upload-"+id2).find('.del').after('<video preload="none"><source src="' + imageUrl + '"/></video>');
+                            } else {
+                                $("#image-upload-"+id2).find('.del').after('<video preload="metadata"><source src="' + imageUrl + '#t=1'+'"/></video>');
+                            }
+                        } else {
+                            if (device === 'ios') {
+                                let addForm = '<div class="image-upload2 mr-3 on" data-id="'+id2+'" id="image-upload-'+id2+'">'+
+                                    '<label id="label_upload_file_'+id2+'" for="upload_file_'+id2+'">' +
+                                    '<div class="upload-icon2">' +
+                                    '<button type="button" class="btn del"></button>' +
+                                    '<video preload="none"><source src="' + imageUrl + '"/></video>' +
+                                    '</div>' +
+                                    '</label>' +
+                                    '</div>';
+                                $('#imgUpload').append(addForm);
+                            } else {
+                                let addForm = '<div class="image-upload2 mr-3 on" data-id="'+id2+'" id="image-upload-'+id2+'">'+
+                                    '<label id="label_upload_file_'+id2+'" for="upload_file_'+id2+'">' +
+                                    '<div class="upload-icon2">' +
+                                    '<button type="button" class="btn del"></button>' +
+                                    '<video preload="metadata"><source src="' + imageUrl +'#t=1'+'"/></video>' +
+                                    '</div>' +
+                                    '</label>' +
+                                    '</div>';
+                                $('#imgUpload').append(addForm);
+                            }
+                        }
+                        const thisVideo = document.querySelector('.image-upload2[data-id="' + id2 + '"] video');
+
+                        thisVideo.load();
+                        thisVideo.pause();
+                    } else {
+                        let html = '<div class="att_img mb-4" id="imageVideo'+id2+'">' +
+                            '<div class="rounded overflow-hidden">' +
+                            '<img src="'+imageUrl+'" class="w-100">' +
+                            '</div>' +
+                            '</div>' ;
+                        // console.log(html);
+                        $("#imageVideo").append(html);
+                        // $("#imageVideo").prepend(html);
+
+                        if (i == 0) {
+                            $("#image-upload-"+id2).find('.del').after('<img src="'+imageUrl+'" />');
+                        } else {
+                            let addForm = '<div class="image-upload2 mr-3 on" data-id="'+id2+'" id="image-upload-'+id2+'">'+
+                                '<label id="label_upload_file_'+id2+'" for="upload_file_'+id2+'">' +
+                                '<div class="upload-icon2">' +
+                                '<button type="button" class="btn del"></button>' +
+                                '<img src="'+imageUrl+'" />' +
+                                '</div>' +
+                                '</label>' +
+                                '</div>';
+                            $('#imgUpload').append(addForm);
+                        }
+                    }
+
+                    if (document.getElementById('loading')) {
+                        document.getElementById('loading').style.display = 'none';
+                        $('#loading').hide();
+                    }
+
+                    ycommon.setUploadCount(upload_cont);
+
+                    resolve(); // 작업이 완료되면 resolve 호출
+                };
+                reader.onerror = function (error) {
+                    if (document.getElementById('loading')) {
+                        document.getElementById('loading').style.display = 'none';
+                        $('#loading').hide();
+                    }
+
+                    reject(error); // 에러 발생 시 reject 호출
+                };
+                reader.readAsArrayBuffer(f); // 파일 읽기 작업 시작
+            });
+        }
     }
 
     ycommon.getUploadCount = function (upload_cont) {
@@ -1225,7 +1350,12 @@ var ycommon = (function(ycommon, $, window) {
     }
 
     ycommon.setUploadCount = function (upload_cont) {
-        $('#uploadCount').text(ycommon.getUploadCount(upload_cont));
+        if (parseInt(ycommon.getUploadCount(upload_cont)) > 10) {
+            $('#uploadCount').text(10);
+        } else {
+            $('#uploadCount').text(ycommon.getUploadCount(upload_cont));
+        }
+
     }
 
     /* 2번째 이미지 */
@@ -1236,13 +1366,13 @@ var ycommon = (function(ycommon, $, window) {
         filesArr.forEach(function(f,i) {
             // console.log(f);
             if(f.type.match("image.*")) {
-                if(f.size > 10 * 1000 * 1000) {
+                if(f.size > 10 * 1024 * 1024) {
                     alert("이미지는 10메가 이하만 가능합니다.");
                     return;
                 }
             } else if (f.type.match("video.*")) {
-                if(f.size > 500 * 1000 * 1000) {
-                    alert("이미지는 500메가 이하만 가능합니다.");
+                if(f.size > 10 * 10 * 1024 * 1024) {
+                    alert("이미지는 100메가 이하만 가능합니다.");
                     return;
                 }
             } else {
@@ -1362,13 +1492,13 @@ var ycommon = (function(ycommon, $, window) {
         filesArr.forEach(function(f,i) {
             // console.log(f);
             if(f.type.match("image.*")) {
-                if(f.size > 10 * 1000 * 1000) {
+                if(f.size > 10 * 1024 * 1024) {
                     alert("이미지는 10메가 이하만 가능합니다.");
                     return;
                 }
             } else if (f.type.match("video.*")) {
-                if(f.size > 500 * 1000 * 1000) {
-                    alert("이미지는 500메가 이하만 가능합니다.");
+                if(f.size > 10 * 10 * 1024 * 1024) {
+                    alert("이미지는 100메가 이하만 가능합니다.");
                     return;
                 }
             } else {

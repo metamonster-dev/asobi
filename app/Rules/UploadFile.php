@@ -52,13 +52,13 @@ class UploadFile implements Rule
             return false;
         }
         if (Str::startsWith($mimeType, 'video')) {
-            //500Mb
-            if (filesize($file->path()) <= 500 * 1000 * 1000) {
+            //500Mb -> 100Mb 변경
+            if (filesize($file->path()) <= 10 * 10 * 1024 * 1024 * 1.1) {
                 $bool = true;
             }
         } else if (Str::startsWith($mimeType, 'image')) {
             //10Mb
-            if (filesize($file->path()) <= 10 * 1000 * 1000) {
+            if (filesize($file->path()) <= 10 * 1024 * 1024) {
                 $bool = true;
             }
         }
@@ -72,6 +72,6 @@ class UploadFile implements Rule
      */
     public function message()
     {
-        return ':attribute는 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 500Mb 이하로만 가능합니다.';
+        return ':attribute는 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 100Mb 이하로만 가능합니다.';
     }
 }

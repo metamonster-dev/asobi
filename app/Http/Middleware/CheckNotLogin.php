@@ -17,6 +17,7 @@ class CheckNotLogin
     public function handle(Request $request, Closure $next)
     {
         $auth = session()->get('auth');
+
         if ($auth) {
 //            \App::make('helper')->alert("잘못된 접근입니다. (0)");
             redirect('/');

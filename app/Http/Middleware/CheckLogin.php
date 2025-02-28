@@ -2,10 +2,11 @@
 
 namespace App\Http\Middleware;
 
-use App\User;
+use App\Models\RaonMember;
 use App\UserAppInfo;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cookie;
 
 class CheckLogin
 {
@@ -22,6 +23,7 @@ class CheckLogin
         $userId = ($request->input('userId')) ? $request->input('userId') : "";
         $deviceId = ($request->input('deviceId')) ? $request->input('deviceId') : "";
         $deviceKind = ($request->input('os')) ? $request->input('os') : "";
+
         if ($deviceKind) {
             if ($deviceKind == 'ios') $deviceKind = "iOS";
             else $deviceKind = "android";
@@ -43,7 +45,7 @@ class CheckLogin
                     ->where('device_type', "web")
                     ->where('device_id', "web")->first();
 
-                $user = User::where('id','=',$cookieAutoLogin)->first();
+                $user = RaonMember::whereIdx($cookieAutoLogin)->first();
 
                 //로그인 한 정보가 없을 경우..
                 if (empty($rs) || empty($user)) return redirect('/auth/login');
@@ -52,7 +54,9 @@ class CheckLogin
 
             // 앱 자동로그인이면..
             } else {
-                if ($fcmToken == "") return redirect('/auth/login');
+
+//                if ($fcmToken == "") return redirect('/auth/login');
+                if ($fcmToken == "") return redirect('/auth/login?fcmToken='.$fcmToken.'&deviceId='.$deviceId.'&os='.$deviceKind.'&deviceType='.$deviceType);
 
                 //디비에 로그인한 정보가 있는지 확인..
                 $rs = UserAppInfo::where('user_id', $userId)
@@ -60,7 +64,7 @@ class CheckLogin
                     ->where('device_type', $deviceType)
                     ->where('device_id', $deviceId)->first();
 
-                $user = User::where('id','=',$userId)->first();
+                $user = RaonMember::whereIdx($userId)->first();
 
                 //로그인 한 정보가 없을 경우..
                 if (empty($rs) || empty($user)) return redirect('/auth/login?fcmToken='.$fcmToken.'&deviceId='.$deviceId.'&os='.$deviceKind.'&deviceType='.$deviceType);
@@ -85,9 +89,9 @@ class CheckLogin
             $arr = array_merge([
                 'user_id' => $rs->user_id,
                 'user_name' => $user->name,
-                'account_id' => $user->user_id,
-                'user_type' => $user->user_type,
-                'login_id' => ($user->user_type == 's') ? str_replace('-', '', $rs->phone ?? '') : $rs->user_id,
+                'account_id' => $user->id,
+                'user_type' => $user->mtype,
+                'login_id' => ($user->mtype == 's') ? str_replace('-', '', $rs->mobilephone ?? '') : $rs->user_id,
 //                'login_id' => \App::make('helper')->hypenPhone($rs->phone ?? ''),
                 'push_alarm' => $rs->push_alarm,
                 'notice_alarm' => $rs->notice_alarm,
@@ -98,7 +102,7 @@ class CheckLogin
                 'event_alarm' => $rs->event_alarm,
                 'auto_login' => 1
             ], [
-                'user_type_ko' => \App::make('helper')->getUserType($user->user_type),
+                'user_type_ko' => \App::make('helper')->getUserType($user->mtype),
                 'device_kind' => $deviceKind,
                 'device_type' => $deviceType,
                 'device_id' => $deviceId,

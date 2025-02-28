@@ -7,6 +7,7 @@ class="body"
 $title = "공지사항 상세";
 $hd_bg = "3";
 $back_link = '/asobiNotice';
+//$back_link = $_SERVER['HTTP_REFERER'];
 ?>
 @include('common.headm03')
 
@@ -47,15 +48,40 @@ $back_link = '/asobiNotice';
                 @if($modifyBtn)
                 <button type="button" class="btn btn-primary" onclick="location.href='/asobiNotice/write/{{ $row['id'] }}'">수정</button>
                 @endif
-                <button type="button" class="btn btn-gray text-white" onclick="location.href='/asobiNotice'">목록</button>
+                <button type="button" class="btn btn-gray text-white" onclick="location.href='{{ $back_link }}'">목록</button>
                 @if($deleteBtn)
                 <button type="button" class="btn btn-gray text-white" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/asobiNotice/delete/{{ $row['id'] }}';})">삭제</button>
                 @endif
             @else
-            <button type="button" class="btn btn-gray text-white" onclick="location.href='/asobiNotice'">목록</button>
+            <button type="button" class="btn btn-gray text-white" onclick="location.href='{{ $back_link }}'">목록</button>
             @endif
         </div>
     </div>
 </article>
+
+<div class="loading_wrap" id="loading" style="display: none">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
+
+<script>
+    // document.querySelectorAll('a').forEach(function(anchor) {
+    //     anchor.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
+    //
+    // document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+    //     element.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
+    document.querySelector('.back_button').addEventListener('click', function(event) {
+        $('#loading').show();
+    });
+
+</script>
 
 @endsection

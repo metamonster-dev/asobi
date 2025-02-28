@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\AppendFile;
 use App\CommonHistory;
+use App\Models\BoardView;
 use App\Rules\UploadFile;
-use App\User;
+use App\Models\RaonMember;
 use App\EducatonInfo;
 use App\CommonComment;
 use App\EditorFile;
 use App\File;
+use App\UserAppInfo;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -26,7 +28,7 @@ class EducatonInfoController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -34,7 +36,7 @@ class EducatonInfoController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['a'])) {
+        if (!in_array($user->mtype, ['a'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -105,6 +107,7 @@ class EducatonInfoController extends Controller
                 if ($vimeo_id) {
                     $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                 } else {
+                    $file = \App::make('helper')->rotateImage($file);
                     $file_path = \App::make('helper')->putResizeS3(File::FILE_DIR, $file);
                 }
 
@@ -135,7 +138,7 @@ class EducatonInfoController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -143,7 +146,7 @@ class EducatonInfoController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['a'])) {
+        if (!in_array($user->mtype, ['a'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -207,7 +210,7 @@ class EducatonInfoController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -215,7 +218,7 @@ class EducatonInfoController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['a'])) {
+        if (!in_array($user->mtype, ['a'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -324,7 +327,8 @@ class EducatonInfoController extends Controller
                 if ($vimeo_id) {
                     $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                 } else {
-                    $file_path = \App::make('helper')->putResizeS3(File::FILE_DIR, $file, 1160,180);
+                    $file = \App::make('helper')->rotateImage($file);
+                    $file_path = \App::make('helper')->putResizeS3(File::FILE_DIR, $file);
                 }
 
                 $payload = [
@@ -353,7 +357,7 @@ class EducatonInfoController extends Controller
         $result = array();
 
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '사용자 정보가 없습니다.');
@@ -367,35 +371,35 @@ class EducatonInfoController extends Controller
             return response()->json($result);
         }
 
-        if ($user->user_type == 's') {
-            if (CommonHistory::where('type','=','1')->where('type_id','=',$id)->where('sidx', $user->id)->count() === 0) {
+        if ($user->mtype == 's') {
+            if (CommonHistory::where('type','=','1')->where('type_id','=',$id)->where('sidx', $user->idx)->count() === 0) {
                 $commonHistory = new CommonHistory([
                     'type' => '1',
                     'type_id' => $id,
-                    'hidx' => $user->branch_id,
-                    'midx' => $user->center_id,
-                    'sidx' => $user->id
+                    'hidx' => $user->hidx,
+                    'midx' => $user->midx,
+                    'sidx' => $user->idx
                 ]);
                 $commonHistory->save();
             }
         } else {
-            if ($user->user_type == 'm') {
-                if (CommonHistory::where('type','=','1')->where('type_id','=',$id)->where('midx', $user->id)->count() === 0) {
+            if ($user->mtype == 'm') {
+                if (CommonHistory::where('type','=','1')->where('type_id','=',$id)->where('midx', $user->idx)->count() === 0) {
                     $commonHistory = new CommonHistory([
                         'type' => '1',
                         'type_id' => $id,
-                        'hidx' => $user->branch_id,
-                        'midx' => $user->center_id,
+                        'hidx' => $user->hidx,
+                        'midx' => $user->midx,
                     ]);
                     $commonHistory->save();
                 }
             } else {
-                if ($user->user_type == 'h') {
-                    if (CommonHistory::where('type','=','1')->where('type_id','=',$id)->where('hidx', $user->id)->count() === 0) {
+                if ($user->mtype == 'h') {
+                    if (CommonHistory::where('type','=','1')->where('type_id','=',$id)->where('hidx', $user->idx)->count() === 0) {
                         $commonHistory = new CommonHistory([
                             'type' => '1',
                             'type_id' => $id,
-                            'hidx' => $user->branch_id,
+                            'hidx' => $user->hidx,
                         ]);
                         $commonHistory->save();
                     }
@@ -468,6 +472,37 @@ class EducatonInfoController extends Controller
 
     public function education()
     {
+//        $rs = RaonMember::where(function($query) {
+//            $query->where('mtype', 's')->where('s_status', 'Y');
+//        })->orWhere(function($query) {
+//            $query->where('mtype', 'm')->where('m_status', 'Y');
+//        })->orWhere(function($query) {
+//            $query->where('mtype', 'h')->where('h_status', 'Y');
+//        })
+//            ->pluck('idx')
+//            ->toArray();
+//
+//        $arr_push = UserAppInfo::whereIn('user_id', $rs)
+//            ->where('notice_alarm', 'Y')
+//            ->whereNotNull('push_key')
+//            ->take(10)
+//            ->pluck('push_key')
+//            ->toArray();
+//
+//        $arr_push = array_unique($arr_push);
+//        $arr_push = array_values($arr_push);
+//
+//        $myId = UserAppInfo::where('user_id', '132895')->where('device_kind', 'iOS')->pluck('push_key')->toArray();
+//
+//        $arr_push = array_merge($myId, $arr_push);
+
+//        $arr_push = array_unique($arr_push);
+//        $arr_push = array_values($arr_push);
+
+//        dd($arr_push);
+
+
+
         $req = Request::create('/api/educatonInfo/list', 'GET');
 
         $res = $this->index($req);
@@ -481,10 +516,10 @@ class EducatonInfoController extends Controller
 
     public function educationView($id)
     {
-        $uesrId = \App::make('helper')->getUsertId();
+        $userId = \App::make('helper')->getUsertId();
         $userType = \App::make('helper')->getUsertType();
         $eventReq = Request::create('/api/educatonInfo/view/'.$id, 'GET', [
-            'user' => $uesrId
+            'user' => $userId
         ]);
         $res = $this->show($eventReq, $id);
 
@@ -493,9 +528,24 @@ class EducatonInfoController extends Controller
             \App::make('helper')->alert($error);
         }
 
+        $boardView = new BoardView();
+
+        $boardView->user_id = $userId;
+        $boardView->board_type = 'education';
+        $boardView->board_id = $id;
+
+        $boardView->save();
+
+        $getCountQuery = BoardView::where('board_type', 'education')->where('board_id', $id);
+
+        $getAllCountBoardView = $getCountQuery->count();
+        $getFilterCountBoardView = $getCountQuery->distinct()->count('user_id');
+
         return view('education/view',[
             'row' => $res->original ?? [],
             'id' => $id,
+            'getAllCountBoardView' => $getAllCountBoardView ?? 0,
+            'getFilterCountBoardView' => $getFilterCountBoardView ?? 0,
         ]);
     }
 

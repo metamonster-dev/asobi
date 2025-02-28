@@ -6,6 +6,18 @@ class="body sub_bg3"
 <?php
 // ※ 학부모일 때, 공지사항 / 나머지, 학부모 공지
 // $title = "학부모 공지";
+$twoYearsAgo = date('Y-m', strtotime('-2 years', mktime(0, 0, 0, 1, 1, date('Y'))));
+$thisYear = date(date('Y').'-12');
+$device_type = session('auth')['device_type'] ?? '';
+$device_kind = session('auth')['device_kind'] ?? '';
+
+$userAgent = $_SERVER['HTTP_USER_AGENT'];
+$phpisIOS = false;
+if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== false || strpos($userAgent, 'iPod') !== false) {
+    $phpisIOS = true;
+} else {
+    $phpisIOS = false;
+}
 ?>
 @php
     if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='s') $title = "공지사항";
@@ -28,11 +40,32 @@ class="body sub_bg3"
                 <form id="notice_form" name="notice_form" class="notice_form" method="GET" action="/notice">
                     <div class="search_wrap m_top mb-0 d-flex mt-0 mt-lg-3 mt-lg-0 w-100">
                         <div class="ip_sch_wr mr-0 mr-lg-4 col-6 col-lg-4 px-0">
-                            <input type="search" name="search_text" id="search_text" value="{{ $search_text }}" class="form-control form-control-lg ip_search">
+                            <input type="search" name="search_text" id="search_text" value="{{ $search_text }}" class="form-control form-control-lg ip_search" style="height: 100%">
                             <button type="submit" class="btn btn_sch btn_sch2"></button>
                         </div>
                         <div class="input-group">
-                            <input type="month" name="ym" id="ym" value="{{ $ym }}" class="form-control form-control-lg" onchange="this.form.submit()">
+{{--                            <input type="month" name="ym" id="ym" value="{{ $ym }}" min="{{ $twoYearsAgo }}" max="{{ $thisYear }}" class="form-control form-control-lg"--}}
+{{--                                   @if ($device_type === 'iPhone' || $device_type === 'iPad')--}}
+{{--                                       onBlur="this.form.submit()"--}}
+{{--                                   @else--}}
+{{--                                       onchange="this.form.submit()"--}}
+{{--                                   @endif--}}
+{{--                            >--}}
+
+                            @if ($device_kind == 'iOS' || $phpisIOS)
+                                <select name="ym" id="ym" onchange="this.form.submit()" class="form-control form-control-lg">
+                                    @php
+                                        for ($date = strtotime($twoYearsAgo); $date <= strtotime($thisYear); $date = strtotime("+1 month", $date)) {
+                                            $yearMonth = date('Y-m', $date);
+                                            $selected = ($yearMonth == $ym) ? 'selected' : ''; // $ym과 일치하는 경우 selected 속성 추가
+                                        echo "<option value='$yearMonth' $selected>$yearMonth</option>";
+                                        }
+                                    @endphp
+                                </select>
+                            @else
+                                <input type="month" name="ym" id="ym" value="{{ $ym }}" min="{{ $twoYearsAgo }}" max="{{ $thisYear }}" class="form-control form-control-lg" onchange="this.form.submit()">
+                            @endif
+
                             <div class="gr_r col-12 col-lg-6 px-0 d-none d-lg-block">
                                 <select name="type" id="filter_select" class="form-control bg-white custom-select m_select" onchange="filterChange(this.value)">
                                     <option value="">전체</option>
@@ -63,7 +96,7 @@ class="body sub_bg3"
                     <a href="/notice/view/{{ $l['id'] }}?ym={{ $ym }}">
                         <p class="text-dark_gray fs_13 fw_300 mb-3"><span class="text-primary fw_500 mr-2">[{{ $l['type'] }}공지]</span> {{ $l['date'] ?? '' }}</p>
                         <h4 class="tit_h4 mb-3">{{ $l['title'] ?? '' }}</h4>
-                        <p class="line2_text line_h1_4">{!! strip_tags($l['content'] ?? '') !!}</p>
+                        <p class="line2_text line_h1_4 content_wrap">{!! strip_tags($l['content'], '<br>') ?? '' !!}</p>
                         @if(isset($l['file']) && count($l['file']) > 0)
                         <div class="note_img_list advice_slider">
                             <div class="swiper-wrapper">
@@ -106,6 +139,13 @@ class="body sub_bg3"
     </div>
 </article>
 
+<div class="loading_wrap" id="loading" style="display: none">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
+
 <script>
     // 필터 선택
     function filterValueChange(val) {
@@ -125,6 +165,21 @@ class="body sub_bg3"
     });
     $(window).on("load", function() {
         getVimeoThumbs();
+    });
+
+    // document.querySelectorAll('a').forEach(function(anchor) {
+    //     anchor.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
+    //
+    // document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+    //     element.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
+    document.querySelector('.back_button').addEventListener('click', function(event) {
+        $('#loading').show();
     });
 </script>
 

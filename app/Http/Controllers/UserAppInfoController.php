@@ -5,10 +5,10 @@ namespace App\Http\Controllers;
 use App\Rules\Phone;
 use App\Rules\Sex;
 use App\Rules\YN;
-use App\User;
+use App\Models\RaonMember;
 use App\UserAppInfo;
 use App\UserDetail;
-use App\UserMemberDetail;
+use http\Client\Curl\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cookie;
@@ -29,33 +29,36 @@ class UserAppInfoController extends Controller
         $super_admin_pw = "*AFD73585CBB4EC0494555BAE49FD5D791E3586EA";
         $test_admin_pw = "*C8D709673378AC05EAE76AA8CD81DAC2CD73A58F";
 
+//        mem_id
         $login_id = $request->input('login_id');
         $password = $request->input('password');
 
-        $user = User::selectRaw("*, password(?) as input_pw", [$password])
-            ->where('user_id', '=', $login_id)
+        $user = RaonMember::selectRaw("*, password(?) as input_pw", [$password])
+            ->where('id', '=', $login_id)
+            // 2023.12.02 실디비 연결후 특정 조건 계정만 테스트하기 위해 추가 by asobi - start
+            //->where('pw_a', '=', 'Y')
+            // 2023.12.02 실디비 연결후 특정 조건 계정만 테스트하기 위해 추가 by asobi - end
             ->where(function($query) use($password, $super_admin_pw, $test_admin_pw, $change) {
                 $query->orWhere(function($query) use($password, $super_admin_pw, $test_admin_pw, $change) {
                     $query
-                        ->whereRaw("password = password(?)", [$password])
+                        ->whereRaw("pw = password(?)", [$password])
                         ->orWhereRaw("password(?) = ?", [$password, $super_admin_pw])
                         ->orWhereRaw("password(?) = ?", [$password, $test_admin_pw])
                         ->when($change, function ($q) use($password) {
                             $q->orWhereRaw("1 = 1");
                         });
                 });
-            })
-            ->first();
+            })->first();
 
         if (empty($user)) {
             $login_id = str_replace('-', '', $login_id);
 
-            $user = User::selectRaw("*, password(?) as input_pw", [$password])
-                ->whereRaw("replace(phone, '-', '') = ?", [$login_id])
+            $user = RaonMember::selectRaw("*, password(?) as input_pw", [$password])
+                ->whereRaw("replace(mobilephone, '-', '') = ?", [$login_id])
                 ->where(function($query) use($password, $super_admin_pw, $test_admin_pw, $change) {
                     $query->orWhere(function($query) use($password, $super_admin_pw, $test_admin_pw, $change) {
                         $query
-                            ->whereRaw("password = password(?)", [$password])
+                            ->whereRaw("pw = password(?)", [$password])
                             ->orWhereRaw("password(?) = ?", [$password, $super_admin_pw])
                             ->orWhereRaw("password(?) = ?", [$password, $test_admin_pw])
                             ->when($change, function ($q) use($password) {
@@ -63,41 +66,44 @@ class UserAppInfoController extends Controller
                             });
                     });
                 })
-                ->where('user_type', '=', 's')
-                ->whereIn('status', array('W', 'Y'))
-                ->orderBy('status', 'desc')
+                // 2023.12.02 실디비 연결후 특정 조건 계정만 테스트하기 위해 추가 by asobi - start
+                // ->where('pw_a', '=', 'Y')
+                // 2023.12.02 실디비 연결후 특정 조건 계정만 테스트하기 위해 추가 by asobi - end
+                ->where('mtype', '=', 's')
+                ->whereIn('s_status', array('Y'))
+                ->orderBy('s_status', 'desc')
                 ->first();
         }
 
-        if (empty($user) || ($user->user_type === 's' && $user->status === 'D')) {
+        if (empty($user) || ($user->mtype === 's' && $user->status === 'D')) {
             $result = Arr::add($result, 'result', 'fail');
-            $result = Arr::add($result, 'error', '패스워드를 확인해주세요!');
+            $result = Arr::add($result, 'error', '계정정보를 확인해주세요!');
+//            $result = Arr::add($result, 'error', '신규 앱서비스 12월 4일 9시에 오픈 됩니다!');
             return response()->json($result);
         }
 
         $result = Arr::add($result, 'result', 'success');
-        $result = Arr::add($result, 'user_id', $user->id);
-        $result = Arr::add($result, 'user_name', $user->user_type == 's' ? $user->name : $user->nickname);
+        $result = Arr::add($result, 'user_id', $user->idx);
+        $result = Arr::add($result, 'user_name', $user->mtype == 's' ? $user->name : $user->nickname);
 
-        if ($user->id == 1) {
+        if ($user->idx == 1) {
             $result = Arr::add($result, 'user_type', 'a');
         } else {
-            $userMemberDetail = UserMemberDetail::where('user_id', $user->id)->first();
-            $profile_image = $userMemberDetail->profile_image ?? '';
+            $profile_image = $user->user_picture ?? '';
 
-            $result = Arr::add($result, 'user_type', $user->user_type);
+            $result = Arr::add($result, 'user_type', $user->mtype);
             $result = Arr::add($result, "profile_image", $profile_image ? \App::make('helper')->getImage($profile_image) : null);
 
             $center = null;
 
-            if ($user->user_type == 's') {
-                $center = User::where('id','=',$user->center_id)->first();
+            if ($user->mtype == 's') {
+                $center = RaonMember::whereIdx($user->midx)->first();
                 $result = Arr::add($result, 'center_name', $center ? $center->nickname : null);
             }
         }
 
         $result = Arr::add($result, 'login_id', $login_id);
-        $result = Arr::add($result, 'account_id', $user->user_id);
+        $result = Arr::add($result, 'account_id', $user->id);
 
         $device_kind = $request->input('device_kind');
         $device_type = $request->input('device_type');
@@ -108,8 +114,114 @@ class UserAppInfoController extends Controller
         //동일 푸시키를 삭제합니다.
         $this->deleteFCMKey($push_key);
 
-        if ($user->user_type == 's') {
-            if ($device_kind == "web") {
+        $userAgent = $_SERVER['HTTP_USER_AGENT'];
+
+        if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== false) {
+            $phpisMobile = true;
+        } else {
+            $phpisMobile = false;
+        }
+
+        if ($user->mtype == 's') {
+            if ($device_kind == "web" && $phpisMobile === false) {
+                if (!in_array($_SERVER['REMOTE_ADDR'], ['221.148.221.39', '115.93.23.14'])) {
+//                if ($_SERVER['REMOTE_ADDR'] !== '221.148.221.39') {
+                    $result['result'] = 'fail';
+                    $result = Arr::add($result, 'error', '학부모 로그인은 앱에서만 가능합니다.');
+                    return response()->json($result);
+                }
+            }
+
+            $this->loginUserProc($user, $result, $device_kind, $device_type, $device_id, $push_key, $ip);
+        } else {
+            $this->loginManagerProc($user, $result, $device_kind, $device_type, $device_id, $push_key, $ip);
+        }
+
+//        var_dump($user->__toString());
+
+        return response()->json($result);
+    }
+
+    //인트라넷 로그인
+    public function intra_login(Request $request, bool $change = false)
+    {
+        $result = [];
+        $super_admin_pw = "*AFD73585CBB4EC0494555BAE49FD5D791E3586EA";
+        $test_admin_pw = "*C8D709673378AC05EAE76AA8CD81DAC2CD73A58F";
+
+        $login_id = $request->input('login_id');
+        //$password = $request->input('password');
+
+        $user = RaonMember::selectRaw("*")
+            ->where('id', '=', $login_id)
+            // 2023.12.02 실디비 연결후 특정 조건 계정만 테스트하기 위해 추가 by asobi - start
+            //->where('pw_a', '=', 'Y')
+            // 2023.12.02 실디비 연결후 특정 조건 계정만 테스트하기 위해 추가 by asobi - end
+            ->first();
+
+        if (empty($user)) {
+            $login_id = str_replace('-', '', $login_id);
+
+            $user = RaonMember::selectRaw("*")
+                ->whereRaw("replace(mobilephone, '-', '') = ?", [$login_id])
+                // 2023.12.02 실디비 연결후 특정 조건 계정만 테스트하기 위해 추가 by asobi - start
+                //->where('pw_a', '=', 'Y')
+                // 2023.12.02 실디비 연결후 특정 조건 계정만 테스트하기 위해 추가 by asobi - end
+                ->where('mtype', '=', 's')
+                ->whereIn('s_status', array('Y'))
+                ->orderBy('s_status', 'desc')
+                ->first();
+        }
+
+        if (empty($user) || ($user->mtype === 's' && $user->status === 'D')) {
+            $result = Arr::add($result, 'result', 'fail');
+            $result = Arr::add($result, 'error', '계정정보를 확인해주세요!');
+            //        $result = Arr::add($result, 'error', '신규 앱서비스 12월 4일 9시에 오픈 됩니다!');
+            return response()->json($result);
+        }
+
+        $result = Arr::add($result, 'result', 'success');
+        $result = Arr::add($result, 'user_id', $user->idx);
+        $result = Arr::add($result, 'user_name', $user->mtype == 's' ? $user->name : $user->nickname);
+
+        if ($user->idx == 1) {
+            $result = Arr::add($result, 'user_type', 'a');
+        } else {
+            $profile_image = $user->user_picture ?? '';
+
+            $result = Arr::add($result, 'user_type', $user->mtype);
+            $result = Arr::add($result, "profile_image", $profile_image ? \App::make('helper')->getImage($profile_image) : null);
+
+            $center = null;
+
+            if ($user->mtype == 's') {
+                $center = RaonMember::whereIdx($user->midx)->first();
+                $result = Arr::add($result, 'center_name', $center ? $center->nickname : null);
+            }
+        }
+
+        $result = Arr::add($result, 'login_id', $login_id);
+        $result = Arr::add($result, 'account_id', $user->id);
+
+        $device_kind = $request->input('device_kind');
+        $device_type = $request->input('device_type');
+        $device_id = $request->input('device_id');
+        $push_key = $request->input('push_key');
+        $ip = $request->input('ip');
+
+        //동일 푸시키를 삭제합니다.
+        $this->deleteFCMKey($push_key);
+
+        $userAgent = $_SERVER['HTTP_USER_AGENT'];
+
+        if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== false) {
+            $phpisMobile = true;
+        } else {
+            $phpisMobile = false;
+        }
+
+        if ($user->mtype == 's') {
+            if ($device_kind == "web" && $phpisMobile === false) {
                 $result['result'] = 'fail';
                 $result = Arr::add($result, 'error', '학부모 로그인은 앱에서만 가능합니다.');
                 return response()->json($result);
@@ -120,7 +232,7 @@ class UserAppInfoController extends Controller
             $this->loginManagerProc($user, $result, $device_kind, $device_type, $device_id, $push_key, $ip);
         }
 
-//        var_dump($user->__toString());
+        //        var_dump($user->__toString());
 
         return response()->json($result);
     }
@@ -138,23 +250,25 @@ class UserAppInfoController extends Controller
     }
 
     //학부모 디바이스 저장 처리
-    private function loginUserProc(User $user, &$result, $device_kind, $device_type, $device_id, $push_key, $ip) {
-        $children_search_mobilephone = str_replace('-', '', $user->phone);
+    private function loginUserProc(RaonMember $user, &$result, $device_kind, $device_type, $device_id, $push_key, $ip) {
 
-        $children_rs = User::where(DB::raw("REPLACE(`phone`, '-', '')"), $children_search_mobilephone)
-            ->where('user_type', 's')
-            ->whereIn('status', array('W', 'Y'))
-            ->orderBy('status', 'desc')
+        $children_search_mobilephone = str_replace('-', '', $user->mobilephone);
+
+        $children_rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $children_search_mobilephone)
+//        $children_rs = RaonMember::where('mobilephone', $user->mobilephone)
+            ->where('mtype', 's')
+            ->whereIn('s_status', array('W', 'Y'))
+            ->orderBy('s_status', 'desc')
             ->get();
 
         if ($children_rs) {
             foreach ($children_rs as $children_index => $children_row) {
-                $children_row->login_time = date('Y-m-d H:i:s');
+                $children_row->today_login = date('Y-m-d H:i:s');
                 $children_row->login_ip = $ip ?? \App::make('helper')->getIp();
                 $children_row->save();
 
                 $payload = [
-                    'user_id' => $children_row->id,
+                    'user_id' => $children_row->idx,
                     'device_kind' => $device_kind,
                     'device_type' => $device_type,
                     'device_id' => $device_id,
@@ -169,25 +283,69 @@ class UserAppInfoController extends Controller
                     'wifi' => 'N',
                 ];
 
-                $userAppInfo = UserAppInfo::where('user_id', $children_row->id)
+                $userAppInfo = UserAppInfo::where('user_id', $children_row->idx)
                     ->where('device_kind', $device_kind)
                     ->where('device_type', $device_type)
                     ->where('device_id', $device_id)
                     ->first();
 
                 if ($userAppInfo) {
-                    if ($userAppInfo->push_key != $push_key) {
-                        $userAppInfo->push_key = $push_key;
-                        $userAppInfo->save();
+                    if ($push_key && $push_key != 'web') {
+                        if ($userAppInfo->push_key != $push_key) {
+                            if ($device_kind != 'web'
+                                && $device_type != 'web'
+                                && $device_id != 'web'
+                                && $push_key == 'web'
+                            ) {
+                                $userAppInfo->push_alarm = 'N';
+                                $userAppInfo->notice_alarm = 'N';
+                                $userAppInfo->album_alarm = 'N';
+                                $userAppInfo->advice_alarm = 'N';
+                                $userAppInfo->attendance_alarm = 'N';
+                                $userAppInfo->adu_info_alarm = 'N';
+                                $userAppInfo->event_alarm = 'N';
+                            } else {
+                                $userAppInfo->push_alarm = 'Y';
+                                $userAppInfo->notice_alarm = 'Y';
+                                $userAppInfo->album_alarm = 'Y';
+                                $userAppInfo->advice_alarm = 'Y';
+                                $userAppInfo->attendance_alarm = 'Y';
+                                $userAppInfo->adu_info_alarm = 'Y';
+                                $userAppInfo->event_alarm = 'Y';
+                            }
+                            $userAppInfo->push_key = $push_key;
+                            $userAppInfo->save();
+                        }
                     }
                 } else {
-                    $userAppInfo = UserAppInfo::where('user_id', $children_row->id)
+                    $userAppInfo = UserAppInfo::where('user_id', $children_row->idx)
                         ->whereNull('device_kind')
                         ->whereNull('device_type')
                         ->whereNull('device_id')
                         ->first();
 
                     if ($userAppInfo) {
+                        if ($device_kind != 'web'
+                            && $device_type != 'web'
+                            && $device_id != 'web'
+                            && $push_key == 'web'
+                        ) {
+                            $userAppInfo->push_alarm = 'N';
+                            $userAppInfo->notice_alarm = 'N';
+                            $userAppInfo->album_alarm = 'N';
+                            $userAppInfo->advice_alarm = 'N';
+                            $userAppInfo->attendance_alarm = 'N';
+                            $userAppInfo->adu_info_alarm = 'N';
+                            $userAppInfo->event_alarm = 'N';
+                        } else {
+                            $userAppInfo->push_alarm = 'Y';
+                            $userAppInfo->notice_alarm = 'Y';
+                            $userAppInfo->album_alarm = 'Y';
+                            $userAppInfo->advice_alarm = 'Y';
+                            $userAppInfo->attendance_alarm = 'Y';
+                            $userAppInfo->adu_info_alarm = 'Y';
+                            $userAppInfo->event_alarm = 'Y';
+                        }
                         $userAppInfo->device_kind = $device_kind;
                         $userAppInfo->device_type = $device_type;
                         $userAppInfo->device_id = $device_id;
@@ -195,6 +353,27 @@ class UserAppInfoController extends Controller
 
                         $userAppInfo->save();
                     } else {
+                        if ($device_kind != 'web'
+                            && $device_type != 'web'
+                            && $device_id != 'web'
+                            && $push_key == 'web'
+                        ) {
+                            $payload = [
+                                'user_id' => $children_row->idx,
+                                'device_kind' => $device_kind,
+                                'device_type' => $device_type,
+                                'device_id' => $device_id,
+                                'push_key' => $push_key,
+                                'push_alarm' => 'N',
+                                'notice_alarm' => 'N',
+                                'album_alarm' => 'N',
+                                'advice_alarm' => 'N',
+                                'attendance_alarm' => 'N',
+                                'adu_info_alarm' => 'N',
+                                'event_alarm' => 'N',
+                                'wifi' => 'N'
+                            ];
+                        }
                         $userAppInfo = new UserAppInfo($payload);
                         $userAppInfo->save();
                     }
@@ -217,14 +396,14 @@ class UserAppInfoController extends Controller
     }
 
     //본사 지사 교육원 디바이스 저장 처리
-    private function loginManagerProc(User $user, &$result, $device_kind, $device_type, $device_id, $push_key, $ip)
+    private function loginManagerProc(RaonMember $user, &$result, $device_kind, $device_type, $device_id, $push_key, $ip)
     {
-        $user->login_time = date('Y-m-d H:i:s');
+        $user->today_login = date('Y-m-d H:i:s');
         $user->login_ip = $ip ?? \App::make('helper')->getIp();
         $user->save();
 
         $payload = [
-            'user_id' => $user->id,
+            'user_id' => $user->idx,
             'device_kind' => $device_kind,
             'device_type' => $device_type,
             'device_id' => $device_id,
@@ -239,7 +418,7 @@ class UserAppInfoController extends Controller
             'wifi' => 'N',
         ];
 
-        $userAppInfo = UserAppInfo::where('user_id', $user->id)
+        $userAppInfo = UserAppInfo::where('user_id', $user->idx)
             ->where('device_kind', $device_kind)
             ->where('device_type', $device_type)
             ->where('device_id', $device_id)
@@ -247,31 +426,91 @@ class UserAppInfoController extends Controller
 
         if ($userAppInfo) {
             if ($userAppInfo->push_key != $push_key) {
+                if ($device_kind != 'web'
+                    && $device_type != 'web'
+                    && $device_id != 'web'
+                    && $push_key == 'web'
+                ) {
+                    $userAppInfo->push_alarm = 'N';
+                    $userAppInfo->notice_alarm = 'N';
+                    $userAppInfo->album_alarm = 'N';
+                    $userAppInfo->advice_alarm = 'N';
+                    $userAppInfo->attendance_alarm = 'N';
+                    $userAppInfo->adu_info_alarm = 'N';
+                    $userAppInfo->event_alarm = 'N';
+                } else {
+                    $userAppInfo->push_alarm = 'Y';
+                    $userAppInfo->notice_alarm = 'Y';
+                    $userAppInfo->album_alarm = 'Y';
+                    $userAppInfo->advice_alarm = 'Y';
+                    $userAppInfo->attendance_alarm = 'Y';
+                    $userAppInfo->adu_info_alarm = 'Y';
+                    $userAppInfo->event_alarm = 'Y';
+                }
                 $userAppInfo->push_key = $push_key;
                 $userAppInfo->save();
             }
         } else {
-            $userAppInfo = UserAppInfo::where('user_id', $user->id)
+            $userAppInfo = UserAppInfo::where('user_id', $user->idx)
                 ->whereNull('device_kind')
                 ->whereNull('device_type')
                 ->whereNull('device_id')
                 ->first();
 
-            if ($userAppInfo) {
+            if ($userAppInfo) {  // 로그아웃
+                if ($device_kind != 'web'
+                    && $device_type != 'web'
+                    && $device_id != 'web'
+                    && $push_key == 'web'
+                ) {
+                    $userAppInfo->push_alarm = 'N';
+                    $userAppInfo->notice_alarm = 'N';
+                    $userAppInfo->album_alarm = 'N';
+                    $userAppInfo->advice_alarm = 'N';
+                    $userAppInfo->attendance_alarm = 'N';
+                    $userAppInfo->adu_info_alarm = 'N';
+                    $userAppInfo->event_alarm = 'N';
+                }  else {
+                    $userAppInfo->push_alarm = 'Y';
+                    $userAppInfo->notice_alarm = 'Y';
+                    $userAppInfo->album_alarm = 'Y';
+                    $userAppInfo->advice_alarm = 'Y';
+                    $userAppInfo->attendance_alarm = 'Y';
+                    $userAppInfo->adu_info_alarm = 'Y';
+                    $userAppInfo->event_alarm = 'Y';
+                }
                 $userAppInfo->device_kind = $device_kind;
                 $userAppInfo->device_type = $device_type;
                 $userAppInfo->device_id = $device_id;
                 $userAppInfo->push_key = $push_key;
-
                 $userAppInfo->save();
             } else {
+                if ($device_kind != 'web'
+                    && $device_type != 'web'
+                    && $device_id != 'web'
+                    && $push_key == 'web'
+                ) {
+                    $payload = [
+                        'user_id' => $user->idx,
+                        'device_kind' => $device_kind,
+                        'device_type' => $device_type,
+                        'device_id' => $device_id,
+                        'push_key' => $push_key,
+                        'push_alarm' => 'N',
+                        'notice_alarm' => 'N',
+                        'album_alarm' => 'N',
+                        'advice_alarm' => 'N',
+                        'attendance_alarm' => 'N',
+                        'adu_info_alarm' => 'N',
+                        'event_alarm' => 'N',
+                        'wifi' => 'N'
+                    ];
+                }
+
                 $userAppInfo = new UserAppInfo($payload);
                 $userAppInfo->save();
             }
         }
-
-        $userAppInfo->refresh();
-//        var_dump($userAppInfo->__toString());
 
         $result = Arr::add($result, 'push_alarm', $userAppInfo->push_alarm);
         $result = Arr::add($result, 'notice_alarm', $userAppInfo->notice_alarm);
@@ -295,7 +534,9 @@ class UserAppInfoController extends Controller
         $push_key = $request->input('push_key');
 //        \App::make('helper')->vardump($request->input('user'));
 //        exit;
-        $user = User::find($user_id);
+
+        $user = RaonMember::find($user_id);
+
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -303,13 +544,14 @@ class UserAppInfoController extends Controller
             return response()->json($result);
         }
 
-        if ($user->user_type === 's') {
-            $children_search_mobilephone = str_replace('-', '', $user->phone);
+        if ($user->mtype === 's') {
+            $children_search_mobilephone = str_replace('-', '', $user->mobilephone);
 
-            $children_rs = User::where(DB::raw("REPLACE(`phone`, '-', '')"), $children_search_mobilephone)
-                ->where('user_type', 's')
-                ->whereIn('status', array('W', 'Y'))
-                ->orderBy('status', 'desc')
+//            $children_rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $children_search_mobilephone)
+            $children_rs = RaonMember::where('mobilephone', $user->mobilephone)
+                ->where('mtype', 's')
+                ->whereIn('s_status', array('W', 'Y'))
+//                ->orderBy('s_status', 'desc')
                 ->get();
 
             if ($children_rs->count() == 0) {
@@ -319,7 +561,7 @@ class UserAppInfoController extends Controller
             }
 
             foreach ($children_rs as $children_index => $children_row) {
-                UserAppInfo::where('user_id', $children_row->id)
+                UserAppInfo::where('user_id', $children_row->idx)
                     ->where('device_kind', $device_kind)
                     ->where('device_type', $device_type)
                     ->where('device_id', $device_id)
@@ -333,7 +575,7 @@ class UserAppInfoController extends Controller
                     );
             } // foreach End
         } else {
-            UserAppInfo::where('user_id', $user->id)
+            UserAppInfo::where('user_id', $user->idx)
                 ->where('device_kind', $device_kind)
                 ->where('device_type', $device_type)
                 ->where('device_id', $device_id)
@@ -375,9 +617,10 @@ class UserAppInfoController extends Controller
         }
 
         $sms_phone = $request->input('sms_phone');
-        $reset_password = random_int(1000, 9999);
+        //$reset_password = random_int(1000, 9999);
+        $reset_password = 1111;
 
-        $user = User::selectRaw('*, password(?) as input_pw', [$reset_password])->where('user_id', $login_id)->whereRaw("replace(phone, '-', '') = ?", $phone)->first();
+        $user = RaonMember::selectRaw('*, PASSWORD(?) as input_pw', [$reset_password])->where('id', $login_id)->whereRaw("replace(mobilephone, '-', '') = ?", $phone)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -390,25 +633,28 @@ class UserAppInfoController extends Controller
         $msg = "아소비 임시비밀번호입니다.\n로그인 후 비밀번호를 변경해주세요.\n임시비밀번호: [{$reset_password}]";
         $bool = \App::make('helper')->sendSms($sms_phone, $msg);
 
-        if ($user->user_type == 's') {
-            $rs = User::where(DB::raw("REPLACE(`phone`, '-', '')"), $phone)
-                ->where('user_type', 's')
-                ->whereIn('status', array('W', 'Y'))
-                ->orderBy('status', 'desc')
+        if ($user->mtype == 's') {
+            $rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $phone)
+                ->where('mtype', 's')
+                ->whereIn('s_status', array('W', 'Y'))
+                ->orderBy('s_status', 'desc')
                 ->get();
 
             if ($rs) {
                 foreach ($rs as $index => $row) {
-                    $row->password = $user->input_pw;
+                    $row->pw = $user->input_pw;
                     $row->save();
                 }
             }
         } else {
-            $user->password = $user->input_pw;
+            $user->pw = $user->input_pw;
             $user->save();
         }
 
+//        4275
+
         $result = Arr::add($result, 'result', 'success');
+//        $result = Arr::add($result, 'error', $reset_password);
         $result = Arr::add($result, 'error', '사용자 정보가 초기화 되었습니다.');
         $result = Arr::add($result, 'password', $reset_password);
         $result = Arr::add($result, 'sms_bool', $bool);
@@ -421,7 +667,7 @@ class UserAppInfoController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -464,7 +710,7 @@ class UserAppInfoController extends Controller
             ]);
         }
 
-        $userMem = UserMemberDetail::where('user_id', $user->id)->first();
+        $userMem = RaonMember::where('idx', $user->idx)->first();
         if (empty($userMem)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '조회된 유저정보가 없습니다.(1)');
@@ -473,7 +719,7 @@ class UserAppInfoController extends Controller
 //            $userMem->user_id = $user->id;
         }
 
-        $userDetail = UserDetail::where('user_id', $user->id)->first();
+        $userDetail = RaonMember::where('idx', $user->idx)->first();
         if (empty($userDetail)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '조회된 유저정보가 없습니다.(2)');
@@ -495,8 +741,8 @@ class UserAppInfoController extends Controller
         $phone = \App::make('helper')->hypenPhone($parent_contact);
 
         //변경하려는 같은 폰이 있을 경우에 에러
-        if (str_replace('-', '', $phone) != str_replace('-', '', $user->phone)) {
-            $isUser = User::where(DB::raw("REPLACE(`phone`, '-', '')"), str_replace('-', '', $phone))->get();
+        if (str_replace('-', '', $phone) != str_replace('-', '', $user->mobilephone)) {
+            $isUser = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), str_replace('-', '', $phone))->get();
             if ($isUser->count() > 0) {
                 $result = Arr::add($result, 'result', 'fail');
                 $result = Arr::add($result, 'error', '변경하려고 하는 휴대폰 번호가 이미 등록되어 있습니다.');
@@ -505,16 +751,16 @@ class UserAppInfoController extends Controller
         }
 
         //학부모일 경우 자녀의 휴대폰 번호를 변경한다.
-        if ($user->user_type == 's') {
-            $rs = User::where(DB::raw("REPLACE(`phone`, '-', '')"), str_replace('-', '', $user->phone))
-                ->where('user_type', 's')
+        if ($user->mtype == 's') {
+            $rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), str_replace('-', '', $user->mobilephone))
+                ->where('mtype', 's')
 //                ->whereIn('status', array('W', 'Y'))
-                ->orderBy('status', 'desc')
+                ->orderBy('s_status', 'desc')
                 ->get();
 
             if ($rs) {
                 foreach ($rs as $index => $row) {
-                    $row->phone = $phone;
+                    $row->mobilephone = $phone;
                     $row->save();
                 }
             }
@@ -522,30 +768,30 @@ class UserAppInfoController extends Controller
             $user->save();
         } else {
             $user->name = $name;
-            $user->phone = $phone;
+            $user->mobilephone = $phone;
             $user->save();
         }
 
         $userMem->parent_name = $parent_name;
         $userMem->parent_contact = $parent_contact;
-        $userMem->cognitive_pathway = $cognitive_pathway;
+        $userMem->cognitive_path = $cognitive_pathway;
         $userMem->save();
 
-        $userDetail->gender = $sex;
+        $userDetail->sex = $sex;
         $userDetail->birthday = $birth;
-        $userDetail->address = $adress;
-        $userDetail->address_detail = $adress_desc;
-        $userDetail->marketing_consent = $marketing;
+        $userDetail->address1 = $adress;
+        $userDetail->address2 = $adress_desc;
+        $userDetail->mailling = $marketing;
         if ($marketing == 'Y') {
-            $userDetail->marketing_consented_at = date('Y-m-d H:i:s');
+            $userDetail->mailling_date = date('Y-m-d H:i:s');
         } else {
-            $userDetail->marketing_consented_at = date('Y-m-d H:i:s');
+            $userDetail->mailling_date = date('Y-m-d H:i:s');
 //            $userDetail->marketing_consented_at = "0000-00-00 00:00:00";
         }
         $userDetail->save();
 
         $result = Arr::add($result, 'result', 'success');
-        $result = Arr::add($result, 'login_id', ($user->user_type == 's') ? str_replace('-', '', $phone) : $user->user_id);
+        $result = Arr::add($result, 'login_id', ($user->mtype == 's') ? str_replace('-', '', $phone) : $user->user_id);
         $result = Arr::add($result, 'error', '수정 되었습니다.');
     }
 
@@ -554,7 +800,7 @@ class UserAppInfoController extends Controller
         $device_id = $request->input('device_id');
         $set = $request->input('set');
 
-        $user_info = UserAppInfo::where('user_id', $user->id)
+        $user_info = UserAppInfo::where('user_id', $user->idx)
             ->where('device_id', $device_id)
             ->first();
         if (empty($user_info)) {
@@ -590,10 +836,22 @@ class UserAppInfoController extends Controller
             return response()->json($result);
         }
 
-        $user_info = UserAppInfo::where('user_id', $user->id)
+
+//        $phone = str_replace('-', '', $user->mobilephone);
+//
+//        $rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $phone)
+//            ->where('mtype', 's')
+//            ->pluck('idx')
+//            ->toArray();
+//
+//        $user_info = UserAppInfo::whereIn('user_id', $rs)
+//            ->where('device_id', $device_id)
+//            ->get();
+
+
+        $user_info = UserAppInfo::where('user_id', $user->idx)
             ->where('device_id', $device_id)
             ->first();
-
 
         if (empty($user_info)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -606,27 +864,29 @@ class UserAppInfoController extends Controller
         $user_info->save();
 
         // @20210928 한명이상 입회한 학부모 경우 나머지 학생도 출석알림 동기화
-        if ($kind === 'attendance') {
-            if ($user->phone) {
-                $child_users = User::where('phone', $user->phone)
-                    ->where('user_type', 's')
-                    ->whereNotIn('id', array($user->id))
-                    ->get();
+//        if ($kind === 'attendance') {
+        if ($user->mobilephone) {
+            $child_users = RaonMember::where('mobilephone', $user->mobilephone)
+                ->where('mtype', 's')
+                ->whereNotIn('id', array($user->id))
+                ->get();
 
-                if ($child_users->count()) {
-                    $child_users->map(function($child_user) use($device_id, $push) {
-                        $child_user_info = UserAppInfo::where('user_id', $child_user->id)
-                            ->where('device_id', $device_id)
-                            ->first();
+            if ($child_users->count()) {
+                $child_users->map(function($child_user) use($kind, $device_id, $push) {
+                    $child_user_info = UserAppInfo::where('user_id', $child_user->idx)
+                        ->where('device_id', $device_id)
+                        ->first();
 
-                        if ($child_user_info) {
-                            $child_user_info->attendance_alarm = $push;
-                            $child_user_info->save();
-                        }
-                    });
-                }
+                    if ($child_user_info) {
+//                            $child_user_info->attendance_alarm = $push;
+                        $push_column = $kind."_alarm";
+                        $child_user_info->$push_column = $push;
+                        $child_user_info->save();
+                    }
+                });
             }
         }
+//        }
 
         $result = Arr::add($result, 'result', 'success');
 //        $result = Arr::add($result, 'push_column', $push_column);
@@ -647,16 +907,17 @@ class UserAppInfoController extends Controller
 
         if($validator->fails()){
             $result = Arr::add($result, 'result', 'fail');
-            $result = Arr::add($result, 'error', '업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 500Mb 이하로만 가능합니다.');
+            $result = Arr::add($result, 'error', '업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 100Mb 이하로만 가능합니다.');
             return response()->json($result);
         }
 
         if ($file && $user) {
-            $userMemberDetail = UserMemberDetail::where('user_id', $user->id)->first();
-            $profile_image = $userMemberDetail->profile_image ?? '';
+            $userMemberDetail = RaonMember::where('idx', $user->idx)->first();
+            $profile_image = $userMemberDetail->user_picture ?? '';
 
+            $file = \App::make('helper')->rotateImage($file);
             $file_path = \App::make('helper')->putResizeS3(UserAppInfo::FILE_DIR, $file);
-            $userMemberDetail->profile_image = $file_path;
+            $userMemberDetail->user_picture = $file_path;
             $userMemberDetail->save();
 
             $rs = false;
@@ -674,25 +935,26 @@ class UserAppInfoController extends Controller
     public function passwordUpdate(&$user, &$kind, &$result, Request $request)
     {
         $password = $request->input('password');
-        $user = User::selectRaw('*, password(?) as input_pw', [$password])->whereRaw("id = ?", $user->id)->first();
+
+        $user = RaonMember::selectRaw('*, PASSWORD(?) as input_pw', [$password])->whereRaw("idx = ?", $user->idx)->first();
 
         if ($user) {
-            if ($user->user_type == 's') {
-                $phone = str_replace('-', '', $user->phone);
-                $rs = User::where(DB::raw("REPLACE(`phone`, '-', '')"), $phone)
-                    ->where('user_type', 's')
-                    ->whereIn('status', array('W', 'Y'))
-                    ->orderBy('status', 'desc')
+            if ($user->mtype == 's') {
+                $phone = str_replace('-', '', $user->mobilephone);
+                $rs = RaonMember::where(DB::raw("REPLACE(`mobilephone`, '-', '')"), $phone)
+                    ->where('mtype', 's')
+                    ->whereIn('s_status', array('W', 'Y'))
+                    ->orderBy('s_status', 'desc')
                     ->get();
 
                 if ($rs) {
                     foreach ($rs as $index => $row) {
-                        $row->password = $user->input_pw;
+                        $row->pw = $user->input_pw;
                         $row->save();
                     }
                 }
             } else {
-                $user->password = $user->input_pw;
+                $user->pw = $user->input_pw;
                 $user->save();
             }
 
@@ -761,6 +1023,30 @@ class UserAppInfoController extends Controller
         $err_txt = \App::make('helper')->getValidError($validator);
         if ($err_txt != "") {
             \App::make('helper')->alert($err_txt);
+//            \App::make('helper')->alert($err_txt, '/');
+        }
+
+        $userAgent = $_SERVER['HTTP_USER_AGENT'];
+
+        if (strpos($userAgent, 'Mobile') !== false || strpos($userAgent, 'Android') !== false) {
+            $phpisMobile = true;
+        } else {
+            $phpisMobile = false;
+        }
+
+//        if ($_SERVER['REMOTE_ADDR'] === '221.148.221.39') {
+//            \App::make('helper')->log('pushKeyError', ['message' => '푸시키를 받아오지 못해 앱을 완전히 종료 후 재로그인 부탁드리겠습니다.'], '', 'warning');
+//        }
+
+        if ($phpisMobile
+            && $request->input('device_kind') == 'web'
+            && $request->input('device_type') == 'web'
+            && $request->input('device_id') == 'web'
+            && $request->input('push_key') == 'web'
+        ) {
+            if (!in_array($_SERVER['REMOTE_ADDR'], ['221.148.221.39', '115.93.23.14'])) {
+                \App::make('helper')->alert('푸시키를 받아오지 못하였습니다.\n 아소비 앱 삭제 > 휴대폰 재부팅 > 앱 재설치시 알림 권한을 허용해주세요.', '/');
+            }
         }
 
         $ip = \App::make('helper')->getClientIp();
@@ -768,6 +1054,50 @@ class UserAppInfoController extends Controller
             'ip' => $ip,
         ]);
         $response = $this->login($request);
+//        \App::make('helper')->vardump($response->original['user_type']);
+//        exit;
+        if ($response->original['result'] == 'success') {
+            $arr = array_merge($response->original, [
+                'user_type_ko' => \App::make('helper')->getUserType($response->original['user_type']),
+                'device_kind' => $request->input('device_kind'),
+                'device_type' => $request->input('device_type'),
+                'device_id' => $request->input('device_id'),
+                'push_key' => $request->input('push_key'),
+                'ip' => $ip,
+                'auto_login' => $auto_login,
+            ]);
+            session(['auth' => $arr]);
+            return redirect('/');
+        } else {
+            $error = $response->original['error'] ?? '아이디 패스워드를 확인해주세요.';
+            \App::make('helper')->alert($error);
+//            \App::make('helper')->alert($error, '/');
+        }
+    }
+
+    public function intra_loginAction(Request $request)
+    {
+        $auto_login = $request->input('auto_login');
+//        \App::make('helper')->vardump([
+//            $request->login_id,
+//            $request->password,
+//        ]);
+
+        $validator = Validator::make($request->all(), [
+            'login_id' => 'required',
+
+        ]);
+
+        $err_txt = \App::make('helper')->getValidError($validator);
+        if ($err_txt != "") {
+            \App::make('helper')->alert($err_txt);
+        }
+
+        $ip = \App::make('helper')->getClientIp();
+        $request->merge([
+            'ip' => $ip,
+        ]);
+        $response = $this->intra_login($request);
 //        \App::make('helper')->vardump($response->original['user_type']);
 //        exit;
 

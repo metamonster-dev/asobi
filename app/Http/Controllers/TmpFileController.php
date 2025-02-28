@@ -8,10 +8,11 @@ use App\AdviceFile;
 use App\AlbumFile;
 use App\NoticeFile;
 use App\Rules\UploadFile;
-use App\User;
+use App\Models\RaonMember;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Validator;
 
@@ -21,7 +22,7 @@ class TmpFileController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -61,7 +62,7 @@ class TmpFileController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -82,9 +83,11 @@ class TmpFileController extends Controller
 
     public function store(Request $request)
     {
+
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
+        $isSetTmp = $request->input('isSetTmp') ?? false;
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -106,19 +109,22 @@ class TmpFileController extends Controller
         if($validator->fails()){
             return response()->json([
                 'result' => 'fail',
-                'error' => "업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 500Mb 이하로만 가능합니다."
+                'error' => "업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 100Mb 이하로만 가능합니다."
             ]);
         }
 
         $delete_files = $request->input('delete_files') ?? "";
+
         if ($delete_files) {
             $deleteFileArr = explode(",", $delete_files);
+
             //기존 파일 확인
             $files = File::where('type', $type)
                 ->where('type_id', '=', $user_id)
                 ->whereIn('id', $deleteFileArr)
                 ->orderByDesc('created_at')
                 ->get();
+
             //기존 임시등록된 파일 삭제
             if ($files) {
                 foreach ($files as $file) {
@@ -127,8 +133,22 @@ class TmpFileController extends Controller
 //                        $rs = $vimeo->delete2($file->vimeo_id);
                         $rs = \App::make('helper')->deleteImage($file->file_path);
                     } else {
+
                         $rs = \App::make('helper')->deleteImage($file->file_path);
                     }
+                    $file->delete();
+                }
+            }
+        } elseif ($isSetTmp === 'false') {
+            //기존 파일 확인
+            $files = File::where('type', $type)
+                ->where('type_id', '=', $user_id)
+                ->get();
+
+            //기존 임시등록된 파일 삭제
+            if ($files) {
+                foreach ($files as $file) {
+                    $rs = \App::make('helper')->deleteImage($file->file_path);
                     $file->delete();
                 }
             }
@@ -159,7 +179,9 @@ class TmpFileController extends Controller
 //                    $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                     $file_path = \App::make('helper')->putVideoS3($file_dir, $file);
                 } else {
-                    $file_path = \App::make('helper')->putResizeS3($file_dir, $file, 1160,180);
+                    $file = \App::make('helper')->rotateImage($file);
+//                    $file_path = \App::make('helper')->putResizeS3($file_dir, $file, 1160, 180);
+                    $file_path = \App::make('helper')->putResizeS3($file_dir, $file);
                 }
 
                 $payload = [
@@ -185,7 +207,7 @@ class TmpFileController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');

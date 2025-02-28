@@ -8,12 +8,14 @@ use App\AlbumHistory;
 use App\AppendFile;
 use App\AlbumComment;
 use App\Jobs\BatchPush;
-use App\User;
+use App\Models\RaonMember;
 use App\RequestLog;
 use App\UserMemberDetail;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
@@ -29,7 +31,7 @@ class AlbumController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -37,7 +39,7 @@ class AlbumController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m', 's'])) {
+        if (!in_array($user->mtype, ['m', 's'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -49,23 +51,29 @@ class AlbumController extends Controller
         $search_text = $request->input('search_text') ?? '';
         $search_text = trim($search_text);
 
-        if ($user->user_type == 'm') {
+        if ($user->mtype == 'm') {
             $rs = Album::with('files')
                 ->where('status', 'Y')
-                ->where('midx', $user->id)
+                ->where('midx', $user->idx)
                 ->where('year', $year)
                 ->where('month', $month)
                 ->when($search_text != "", function ($q) use ($search_text) {
                     $q->where('title','like','%'.$search_text.'%');
                 })
+                ->orderByRaw('CONCAT(year, "-", month, "-", day) DESC')
                 ->orderByDesc('created_at')
                 ->get();
         } else {
             $rs = Album::with('files')
                 ->where('status', 'Y')
-                ->where('sidx', 'like', "%" . json_encode($user->id) . "%")
+                ->when($search_text != "", function ($q) use ($search_text) {
+                    $q->where('title','like','%'.$search_text.'%');
+                })
+//                ->where('sidx', 'like', "%" . json_encode($user->idx) . "%")
+                ->whereJsonContains('sidx', json_encode($user->idx))
                 ->where('year', $year)
                 ->where('month', $month)
+                ->orderByRaw('CONCAT(year, "-", month, "-", day) DESC')
                 ->orderByDesc('created_at')
                 ->get();
         }
@@ -82,15 +90,15 @@ class AlbumController extends Controller
                 $result = Arr::add($result, "list.{$index}.date", $this_date->format('Y.m.d')." ".\App::make('helper')->dayOfKo($this_date, 2));
                 $result = Arr::add($result, "list.{$index}.reg_date", $row->created_at->format(Album::REG_DATE_FORMAT));
 
-                if ($user->user_type == 'm') {
-                    $students = $row->sidx != 'null' && $row->sidx ? User::whereIn('id', json_decode($row->sidx))->get() : null;
+                if ($user->mtype == 'm') {
+                    $students = $row->sidx != 'null' && $row->sidx ? RaonMember::whereIn('idx', json_decode($row->sidx))->get() : null;
 
                     if ($students) {
                         foreach ($students as $student_index => $student) {
-                            $userMemberDetail = UserMemberDetail::where('user_id', $student->id)->first();
-                            $profile_image = $userMemberDetail->profile_image ?? '';
+                            $userMemberDetail = RaonMember::where('idx', $student->idx)->first();
+                            $profile_image = $userMemberDetail->user_picture ?? '';
 
-                            $result = Arr::add($result, "list.{$index}.student.{$student_index}.id", $student->id);
+                            $result = Arr::add($result, "list.{$index}.student.{$student_index}.id", $student->idx);
                             $result = Arr::add($result, "list.{$index}.student.{$student_index}.name", $student->name);
                             $result = Arr::add($result, "list.{$index}.student.{$student_index}.user_picture", $profile_image ? \App::make('helper')->getImage($profile_image) : null);
                         }
@@ -119,7 +127,7 @@ class AlbumController extends Controller
         $result = array();
         $modify = $request->input('modify') ?? '';
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -127,17 +135,17 @@ class AlbumController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m', 's'])) {
+        if (!in_array($user->mtype, ['m', 's'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
         }
 
-        if ($user->user_type == 's') {
-            $children_rs = User::where('phone', $user->phone)
-                ->where('password', $user->password)
-                ->where('user_type', 's')
-                ->where('status', 'Y')
+        if ($user->mtype == 's') {
+            $children_rs = RaonMember::where('mobilephone', $user->mobilephone)
+                ->where('pw', $user->pw)
+                ->where('mtype', 's')
+                ->where('s_status', 'Y')
                 ->get();
 
             if (sizeof($children_rs) > 1) {
@@ -153,16 +161,17 @@ class AlbumController extends Controller
             }
         }
 
-        if ($user->user_type == 'm') {
+        if ($user->mtype == 'm') {
             $row = Album::with('files')
                 ->where('status', 'Y')
-                ->where('midx', $user->id)
+                ->where('midx', $user->idx)
                 ->whereId($album_id)
                 ->first();
         } else {
             $row = Album::with('files')
                 ->where('status', 'Y')
-                ->where('sidx', 'like', "%" . json_encode($user->id) . "%")
+//                ->where('sidx', 'like', "%" . json_encode($user->idx) . "%")
+//                ->whereJsonContains('sidx', json_encode($user->idx))
                 ->whereId($album_id)
                 ->first();
         }
@@ -180,21 +189,21 @@ class AlbumController extends Controller
         $result = Arr::add($result, "date", $this_date->format('Y.m.d')." ".\App::make('helper')->dayOfKo($this_date, 2));
         $result = Arr::add($result, "reg_date", $row->created_at->format(Album::REG_DATE_FORMAT));
 
-        if ($user->user_type == 'm') {
-            $students = User::whereIn('id', json_decode($row->sidx))->get();
+        if ($user->mtype == 'm' || $user->mtype == 's') {
+            $students = RaonMember::whereIn('idx', json_decode($row->sidx))->get();
             if ($students) {
                 foreach ($students as $student_index => $student) {
-                    $userMemberDetail = UserMemberDetail::where('user_id', $student->id)->first();
-                    $profile_image = $userMemberDetail->profile_image ?? '';
+                    $userMemberDetail = RaonMember::where('idx', $student->idx)->first();
+                    $profile_image = $userMemberDetail->user_picture ?? '';
 
-                    $result = Arr::add($result, "student.{$student_index}.id", $student->id);
+                    $result = Arr::add($result, "student.{$student_index}.idx", $student->idx);
                     $result = Arr::add($result, "student.{$student_index}.name", $student->name);
                     $result = Arr::add($result, "student.{$student_index}.user_picture", $profile_image ? \App::make('helper')->getImage($profile_image) : null);
 
                     $albumHistory = AlbumHistory::where('album_id', $album_id)
-                        ->where('hidx', $user->branch_id)
-                        ->where('midx', $user->id)
-                        ->where('sidx', 'like', '%' . $student->id . '%')
+                        ->where('hidx', $user->hidx)
+                        ->where('midx', $user->idx)
+                        ->where('sidx', 'like', '%' . $student->idx . '%')
                         ->count();
 
                     $readed = $albumHistory ? 'Y' : 'N';
@@ -217,32 +226,32 @@ class AlbumController extends Controller
             }
         }
 
-        if ($user->user_type == 's') {
-            if ($row->histories->where('sidx', $user->id)->count() === 0) {
+        if ($user->mtype == 's') {
+            if ($row->histories->where('sidx', $user->idx)->count() === 0) {
                 $row->histories()->create(
                     [
-                        'hidx' => $user->branch_id,
-                        'midx' => $user->center_id,
-                        'sidx' => $user->id
+                        'hidx' => $user->hidx,
+                        'midx' => $user->midx,
+                        'sidx' => $user->idx
                     ]
                 );
             }
         } else {
-            if ($user->user_type == 'm') {
-                if ($row->histories->where('midx', $user->id)->count() === 0) {
+            if ($user->mtype == 'm') {
+                if ($row->histories->where('midx', $user->idx)->count() === 0) {
                     $row->histories()->create(
                         [
-                            'hidx' => $user->branch_id,
-                            'midx' => $user->center_id
+                            'hidx' => $user->hidx,
+                            'midx' => $user->midx
                         ]
                     );
                 }
             } else {
-                if ($user->user_type == 'h') {
-                    if ($row->histories->where('hidx', $user->id)->count() === 0) {
+                if ($user->mtype == 'h') {
+                    if ($row->histories->where('hidx', $user->idx)->count() === 0) {
                         $row->histories()->create(
                             [
-                                'hidx' => $user->branch_id
+                                'hidx' => $user->hidx
                             ]
                         );
                     }
@@ -257,7 +266,7 @@ class AlbumController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         $validator = Validator::make($request->all(), [
             'upload_files' => [new UploadFile],
@@ -266,7 +275,7 @@ class AlbumController extends Controller
         if($validator->fails()){
             return response()->json([
                 'result' => 'fail',
-                'error' => "업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 500Mb 이하로만 가능합니다."
+                'error' => "업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 100Mb 이하로만 가능합니다."
             ]);
         }
 
@@ -297,7 +306,7 @@ class AlbumController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m'])) {
+        if (!in_array($user->mtype, ['m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -320,8 +329,8 @@ class AlbumController extends Controller
         $day = $request->input('day') ? sprintf('%02d', $request->input('day')) : $now->format('d');
 
         $payload = [
-            'hidx' => $user->branch_id,
-            'midx' => $user->id,
+            'hidx' => $user->hidx,
+            'midx' => $user->idx,
             'sidx' => $student,
             'title' => $title,
             'year' => $year,
@@ -355,6 +364,7 @@ class AlbumController extends Controller
                 if ($vimeo_id) {
                     $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                 } else {
+                    $file = \App::make('helper')->rotateImage($file);
                     $file_path = \App::make('helper')->putResizeS3(AlbumFile::FILE_DIR, $file);
                 }
 
@@ -383,9 +393,11 @@ class AlbumController extends Controller
 
     public function update(Request $request, $album_id)
     {
+        $upload_files = $request->file('upload_files');
+
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         $validator = Validator::make($request->all(), [
             'upload_files' => [new UploadFile],
@@ -394,7 +406,7 @@ class AlbumController extends Controller
         if($validator->fails()){
             return response()->json([
                 'result' => 'fail',
-                'error' => "업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 500Mb 이하로만 가능합니다."
+                'error' => "업로드 하려는 파일은 동영상, 이미지만 가능하고 이미지는 10Mb이하, 동영상은 100Mb 이하로만 가능합니다."
             ]);
         }
 
@@ -425,7 +437,7 @@ class AlbumController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m'])) {
+        if (!in_array($user->mtype, ['m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -442,7 +454,8 @@ class AlbumController extends Controller
             $student = json_encode($student);
         }
 
-        $album = Album::whereId($album_id)->where('midx', $user->id)->first();
+        $album = Album::whereId($album_id)->where('midx', $user->idx)->first();
+
         if (empty($album)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '잘못된 요청입니다.');
@@ -472,6 +485,7 @@ class AlbumController extends Controller
                 if ($vimeo_id) {
                     $file_path = AppendFile::getVimeoThumbnailUrl($vimeo_id);
                 } else {
+                    $file = \App::make('helper')->rotateImage($file);
                     $file_path = \App::make('helper')->putResizeS3(AlbumFile::FILE_DIR, $file);
                 }
 
@@ -496,7 +510,7 @@ class AlbumController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         RequestLog::create(
             [
@@ -513,16 +527,16 @@ class AlbumController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['a','m'])) {
+        if (!in_array($user->mtype, ['a','m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
         }
 
-        if ($user->user_type === 'a') {
+        if ($user->mtype === 'a') {
             $album = Album::whereId($album_id)->first();
         } else {
-            $album = Album::whereId($album_id)->where('midx', $user->id)->first();
+            $album = Album::whereId($album_id)->where('midx', $user->idx)->first();
         }
 
         if (empty($album)) {
@@ -570,7 +584,7 @@ class AlbumController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -585,7 +599,7 @@ class AlbumController extends Controller
             return response()->json($result);
         }
 
-        $album = Album::whereMidx($user->id)->whereId($file->album_id)->first();
+        $album = Album::whereMidx($user->idx)->whereId($file->album_id)->first();
         if (empty($album)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
@@ -651,7 +665,23 @@ class AlbumController extends Controller
             'user' => $uesrId
         ]);
         $res = $this->show($albumReq, $id);
+
         $student = $res->original['student'] ?? [];
+
+        // 알람 통해서 이동했는데 다른 자녀일 경우 홈으로
+        if (session()->get('auth')['user_type'] == 's') {
+            $myStudent = false;
+            foreach ($student as $stu) {
+                if (session()->get('auth')['user_id'] == $stu['idx']) {
+                    $myStudent = true;
+                }
+            }
+
+            if (!$myStudent) {
+                return redirect('/');
+            }
+        }
+
         $studentReadY = $studentReadN = [];
         foreach ($student as $stu) {
             if($stu['readed'] == "N") {
@@ -724,8 +754,66 @@ class AlbumController extends Controller
         $res = $userController->children($req);
         $student = $res->original['list'] ?? [];
 
-
         return view('album/write',[
+            'ymd' => $ymd,
+            'student' => $student ?? "",
+            'mode' => $mode,
+            'id' => $id,
+            'row' => $row,
+        ]);
+    }
+
+    public function albumWrite2(Request $request, $id="")
+    {
+        $ymd = date('Y-m-d');
+        $mode = "w";
+
+        $ym = $request->input('ym') ?? '';
+
+        if ($ym != "" && $ym != date('Y-m')) {
+            $ymd = $ym."-01";
+        }
+
+        $user = \App::make('helper')->getUsertId();
+        $userType = \App::make('helper')->getUsertType();
+        if (in_array($userType, ['a','h'])) {
+            $user = session()->get('center');
+        }
+
+        $row = [];
+//        \App::make('helper')->vardump($id);
+//        exit;
+        if ($id != "") {
+            $mode = "u";
+
+            $req = Request::create('/api/album/view/'.$id, 'GET', [
+                'user' => $user,
+                'modify' => 1,
+            ]);
+            $res = $this->show($req, $id);
+
+            if ($res->original['result'] != 'success') {
+                $error = \App::make('helper')->getErrorMsg($res->original['error']);
+                \App::make('helper')->alert($error);
+            }
+
+            $row = $res->original ?? [];
+
+            if (isset($row['date']) && $row['date'] != "") {
+                $date = explode(' ',$row['date']);
+                $date = str_replace('.','-',$date[0]);
+                $ymd = $date;
+            }
+        }
+
+        $req = Request::create('/api/children', 'GET', [
+            'user' => $user,
+        ]);
+        $userController = new UserController();
+        $res = $userController->children($req);
+        $student = $res->original['list'] ?? [];
+
+        return view('album/write2',[
             'ymd' => $ymd,
             'student' => $student ?? "",
             'mode' => $mode,
@@ -747,7 +835,12 @@ class AlbumController extends Controller
 //        \App::make('helper')->vardump($upload_files);
 //        exit;
 
-        if ($ymd == "") \App::make('helper')->alert('작성일자를 입력해주세요.');
+//        if ($mode == 'u') {
+//
+//        } else {
+//            if ($ymd == "") \App::make('helper')->alert('작성일자를 입력해주세요.');
+//        }
+
         $ymdArr = explode('-', $ymd);
         $year = $ymdArr[0]??-1;
         $month = $ymdArr[1]??-1;
@@ -778,6 +871,7 @@ class AlbumController extends Controller
                 }
             }
 
+            //
             $request->merge([
                 'user' => $user,
                 'student' => $student,
@@ -794,6 +888,7 @@ class AlbumController extends Controller
             ];
 
             $tmpFileIds = $request->input('tmp_file_ids');
+
             // 임시저장 폴더 request당 폴더를 만들고 api 리퀘스트가 끝나면 폴더를 삭제하여 임시파일을 삭제한다.
             $tmpSaveFilePath = 'tmp/'.Str::uuid()."/";
 
@@ -801,6 +896,7 @@ class AlbumController extends Controller
             // request에 업로드 파일을 merge하도록 한다.
             if ($tmpFileIds != "") {
                 $tmpFileIdArr = explode(",",$tmpFileIds);
+
                 $fileDatas = File::whereIn('id',$tmpFileIdArr)->get();
                 if ($fileDatas) {
                     foreach ($fileDatas as $fileData) {

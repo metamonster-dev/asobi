@@ -49,10 +49,11 @@ $back_link = "/education";
                 <!-- EDITOR -->
                 <textarea class="form-control" name="content" placeholder="내용을 입력해주세요" rows="5">{!! $row['content'] ?? '' !!}</textarea>
                 <script type="text/javascript">
-                    <!--
                     CKEDITOR.replace('content', {
-                        extraPlugins: 'uploadimage, image2',
+                        // extraPlugins: 'uploadimage, image2',
+                        language : 'ko',
                         height : '300px',
+                        linkDefaultProtocol: 'https://',
                         filebrowserImageUploadUrl : '/api/editor/fileWrite?type=1',
                         enterMode : CKEDITOR.ENTER_BR,
                         toolbarGroups : [
@@ -73,7 +74,7 @@ $back_link = "/education";
                         ],
                         removeButtons : 'Find,Replace,SelectAll,Scayt,Form,Checkbox,Radio,TextField,Textarea,Select,Button,ImageButton,HiddenField,Save,NewPage,Preview,Print,Templates,ShowBlocks,Undo,Redo,PasteFromWord,PasteText,Anchor,Flash,Smiley,SpecialChar,PageBreak,Iframe,Subscript,Superscript,CopyFormatting,Outdent,Indent,Blockquote,CreateDiv,BidiLtr,BidiRtl,Language,About,Styles,Font',
                     });
-                    //-->
+                    CKEDITOR.config.versionCheck = false;
                 </script>
             </div>
 
@@ -86,6 +87,13 @@ $back_link = "/education";
 
     </div>
 </article>
+
+<div class="loading_wrap" id="loading" style="display: none;">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
 
 <script>
 var delete_ids = [];
@@ -150,6 +158,8 @@ function frm_form_chk(f) {
         return false;
     }
 
+    $('#loading').show();
+
     return true;
 }
 $(document).ready(function() {
@@ -187,6 +197,28 @@ $(document).ready(function() {
     @endif
 
     $(document).on('change', '.upload_files', function(e) {
+        const imageMaxSize = 10 * 1024 * 1024; // 10MB
+        const videoMaxSize = 10 * 10 * 1024 * 1024 * 1.1; // 110MB
+
+        for (var i = 0; i < this.files.length; i++) {
+
+            console.log(this.files[i].type);
+
+            if (this.files[i].type.startsWith('image/')) {
+                if (this.files[i].size > imageMaxSize) {
+                    jalert('파일 크기가 너무 큽니다. 10MB 이하의 파일을 선택하세요.');
+                    this.value = '';
+                    return;
+                }
+            } else if (this.files[i].type.startsWith('video/')) {
+                if (this.files[i].size > videoMaxSize) {
+                    jalert('파일 크기가 너무 큽니다. 100MB 이하의 파일을 선택하세요.');
+                    this.value = '';
+                    return;
+                }
+            }
+        }
+
         let id = $(this).data('id');
         ycommon.previewImage(e, id);
     });

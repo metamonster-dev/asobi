@@ -49,11 +49,15 @@ $hd_bg = "1";
                 <div class="position-relative d-block d-lg-none">
                     <button type="button" class="btn p-0 btn_more h-auto"><img src="/img/ic_more.png" style="width: 1.6rem;"></button>
                     <ul class="more_cont">
-                        @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='m')
+                        @if(isset(session('auth')['user_type']) && (session('auth')['user_type'] =='m' || session('auth')['user_type'] == 'a'))
                         <li><button class="btn" onclick="UrlCopy()">공유</button></li>
-                        <li><button class="btn" onclick="location.href='/advice/letter/write/{{ $id }}'">수정</button></li>
+                            @if(session('auth')['user_type'] == 'a' && !$row)
+                            <li><button class="btn" onclick="location.href='/advice/letter/write/{{ $id }}?userId={{ $userId }}'">수정</button></li>
+                            @endif
                         @endif
+                        @if(!$row)
                         <li><button class="btn" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/advice/delete/{{ $id }}';})">삭제</button></li>
+                        @endif
                     </ul>
                 </div>
             @endif
@@ -69,7 +73,8 @@ $hd_bg = "1";
                 </div>
                 <div class="fs_15 line_h1_4">
                     @if(isset($row['content']) && $row['content'])
-                    <div class="wh_pre">{!! nl2br($row['content']) !!}</div>
+{{--                    <div class="wh_pre">{!! nl2br($row['content']) !!}</div>--}}
+                    <div class="fs_15 line_h1_4">{!! nl2br($row['content']) !!}</div>
                     @endif
                     @if(isset($row['content']) && $row['content'] && isset($row['prefix_content']) && $row['prefix_content'])
                     <br/>
@@ -159,17 +164,17 @@ $hd_bg = "1";
                         <img src="/img/m1_tit1.png">
                     </div>
                 </div>
-                <div class="fs_15 wh_pre line_h1_4">{!! nl2br($row['this_month_education_info']) !!}</div>
+                <div class="fs_15 wh_pre line_h1_4">{!! $row['this_month_education_info'] !!}</div>
             </div>
             @endif
         </div>
         <!-- ※ 삭제 버튼은 교육원, 본사일 때 노출 -->
         <div class="botton_btns d-none d-lg-flex pt_80">
-            @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='m')
+            @if(isset(session('auth')['user_type']) && (session('auth')['user_type'] =='m' || session('auth')['user_type'] == 'a') && !$row)
             <button type="button" class="btn btn-primary" onclick="location.href='/advice/letter/write/{{ $id }}'">수정</button>
             @endif
             <button type="button" class="btn btn-gray text-white" onclick="location.href='@if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='s') /advice/list @else /advice @endif'">목록</button>
-            @if(isset(session('auth')['user_type']) && (session('auth')['user_type'] =='m' || session('auth')['user_type'] =='a'))
+            @if(isset(session('auth')['user_type']) && (session('auth')['user_type'] =='m' || session('auth')['user_type'] =='a') && !$row)
             <button type="button" class="btn btn-gray text-white" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/advice/delete/{{ $id }}';})">삭제</button>
             @endif
         </div>
@@ -179,10 +184,19 @@ $hd_bg = "1";
 <script>
     function UrlCopy(){
         var url = window.location.href;
+        const id = {{ $id }};
         if (typeof window.ReactNativeWebView !== 'undefined') {
             window.ReactNativeWebView.postMessage(
                 JSON.stringify({targetFunc: "copy",url: url})
             );
+
+            let action = `/api/share?link=${url}&id=${id}`;
+            let data = '';
+
+            ycommon.ajaxJson('get', action, data, undefined, function (res) {
+
+            })
+
         }else {
             var tempInput = $('<input>');
             tempInput.css({
@@ -190,7 +204,7 @@ $hd_bg = "1";
                 left: '-9999px', // 화면 영역 밖으로 이동
             });
             $('body').append(tempInput);
-            let action = `/api/share?link=${url}`;
+            let action = `/api/share?link=${url}&id=${id}`;
             let data = '';
             ycommon.ajaxJson('get', action, data, undefined, function (res) {
                 tempInput.val(res.shortLink).select();

@@ -32,7 +32,7 @@ class AppServiceProvider extends ServiceProvider
         if (php_sapi_name() != 'cli' && env('APP_ENV') == 'development')
         {
             DB::listen(function ($query) {
-                Log::debug($query->sql, $query->bindings, $query->time);
+//                Log::debug($query->sql, $query->bindings, $query->time);
             });
         }
     }

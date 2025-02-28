@@ -89,6 +89,13 @@ $back_link = "/";
     <input type="hidden" name="user" value=""/>
 </form>
 
+<div class="loading_wrap" id="loading" style="display: none">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
+
 <script>
 function changeAction(id) {
     let f = $('#selectAction');
@@ -97,6 +104,8 @@ function changeAction(id) {
 }
 $(document).ready(function(){
     $('.children').change(function (e) {
+        $('#loading').show();
+
         let value = $(this).val();
         changeAction(value);
 {{--    @if(isset(session('auth')['device_kind']) && session('auth')['device_kind'] == 'web')--}}
@@ -110,6 +119,18 @@ $(document).ready(function(){
 {{--            // console.error(err);--}}
 {{--        });--}}
 {{--    @endif--}}
+    });
+});
+
+document.querySelectorAll('a').forEach(function(anchor) {
+    anchor.addEventListener('click', function(event) {
+        $('#loading').show();
+    });
+});
+
+document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+    element.addEventListener('click', function(event) {
+        // $('#loading').show();
     });
 });
 </script>

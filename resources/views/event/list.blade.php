@@ -10,6 +10,14 @@ $back_link = "/";
 ?>
 @include('common.headm02')
 
+<style>
+    @media (min-width: 540px) and (max-width: 992px) {
+        .container-md, .container-sm, .container {
+            max-width: 540px !important;
+        }
+    }
+</style>
+
 <article class="sub_pg overflow-hidden">
     <div class="container pt-4 pt_lg_50">
         <div class="d-none d-lg-block">
@@ -33,9 +41,9 @@ $back_link = "/";
                 @foreach($list as $l)
                     <li class="col">
                         <a href="/event/view/{{ $l['id'] }}">
-                            <div class="rect rect4 rounded-lg sizefull">
+                            <div class="rect rect4 rounded-lg sizefull img_height">
                                 @if(isset($l['image']) && $l['image'])
-                                <img src="{{ $l['image'] }}">
+                                <img src="{{ $l['image'] }}" style="object-fit: contain">
                                 @else
                                 <i class="no_img"></i>
                                 @endif
@@ -77,5 +85,30 @@ $back_link = "/";
         @endif
     </div>
 </article>
+
+<div class="loading_wrap" id="loading" style="display: none">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
+
+<script>
+    // document.querySelectorAll('a').forEach(function(anchor) {
+    //     anchor.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
+    //
+    // document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+    //     element.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
+
+    document.querySelector('.back_button').addEventListener('click', function(event) {
+        $('#loading').show();
+    });
+</script>
 
 @endsection

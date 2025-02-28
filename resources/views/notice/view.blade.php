@@ -21,19 +21,26 @@ $hd_bg = "3";
         </div>
 
         <div class="pb-4 mb-3 mb-lg-0 border-bottom d-flex align-items-center justify-content-between">
-            <div>
-                <p class="text-dark_gray fs_13 fw_300 mb-2 line_h1_2">
-                    <span class="d-inline-block d-lg-none text-primary fw_500 mr-2">[{{ $row['type'] }}공지]</span> {{ $row['date'] }}
-                </p>
+            <div class="w-100">
+                <div class="text-dark_gray fs_13 fw_300 mb-2 line_h1_2 d-flex justify-content-between">
+                    <div><span class="d-inline-block d-lg-none text-primary fw_500">[{{ $row['type'] }}공지]</span> {{ $row['date'] }}</div>
+                    @if(isset(session('auth')['user_type']) && session('auth')['user_type'] == 'a')
+                        <div class="fs_12 fw_300 text-light mr-3" style="text-align: right">전체 조회수: {{ number_format($getAllCountBoardView) }} / 순 조회수: {{ number_format($getFilterCountBoardView) }}</div>
+                    @endif
+                </div>
                 <h4 class="tit_h4 line1_text line_h1">
-                <span class="d-none d-lg-inline-block text-primary mr-2">[{{ $row['type'] }}공지]</span> {{ $row['title'] }}
+                    <span class="d-none d-lg-inline-block text-primary mr-2">[{{ $row['type'] }}공지]</span> {{ $row['title'] }}
                 </h4>
             </div>
-            @if(isset(session('auth')['user_type']) && (session('auth')['user_type'] =='m' || session('auth')['user_type'] =='a') && ($modifyBtn || $deleteBtn))
+
+            @if(isset(session('auth')['user_type']) && (in_array(session('auth')['user_type'], ['m', 'h', 'a'])))
+                <button class="btn p-0 d-none d-lg-block" onclick="UrlCopy()"><img src="/img/ic_share.png"></button>
             <!--  ※ 수정, 삭제 버튼은 교육원, 본사일 때 노출 -->
             <div class="position-relative d-block d-lg-none">
                 <button type="button" class="btn p-0 btn_more h-auto"><img src="/img/ic_more.png" style="width: 1.6rem;"></button>
+
                 <ul class="more_cont">
+                    <li><button class="btn" onclick="UrlCopy()">공유</button></li>
                     @if($modifyBtn)
                     <li><button class="btn" onclick="location.href='/notice/write/{{ $id }}'">수정</button></li>
                     @endif
@@ -77,7 +84,8 @@ $hd_bg = "3";
                 </ul>
             </div>
             @endif
-            <div class="editor_wrap fs_15">{!! $row['content'] !!}</div>
+
+            <div id="content" class="editor_wrap fs_15">{!! $row['content'] !!}</div>
 
             @if(isset(session('auth')['user_type']) && session('auth')['user_type'] !=='s')
             <!-- ※ 읽은 사람 확인은 학부모일 때 미노출 -->
@@ -110,16 +118,23 @@ $hd_bg = "3";
                 @if($modifyBtn)
                 <button type="button" class="btn btn-primary" onclick="location.href='/notice/write/{{ $id }}'">수정</button>
                 @endif
-                <button type="button" class="btn btn-gray text-white" onclick="location.href='/notice'">목록</button>
+                <button type="button" class="btn btn-gray text-white" onclick="location.href='{{ $back_link }}'">목록</button>
                 @if($deleteBtn)
                 <button type="button" class="btn btn-gray text-white" onclick="jalert2('삭제하시겠습니까?','삭제하기',function(){location.href='/notice/delete/{{ $id }}';})">삭제</button>
                 @endif
             @else
-            <button type="button" class="btn btn-gray text-white" onclick="location.href='/notice'">목록</button>
+            <button type="button" class="btn btn-gray text-white" onclick="location.href='{{ $back_link }}'">목록</button>
             @endif
         </div>
     </div>
 </article>
+
+<div class="loading_wrap" id="loading" style="display: none">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
 
 <!-- 원본 이미지 보기 -->
 <div class="modal_bg" id="bigImgModal">
@@ -173,11 +188,77 @@ $hd_bg = "3";
         if (event.origin !== undefined && event.origin == "https://player.vimeo.com") {
             return false;
         }
-        const data = JSON.parse(event.data);
+        const data = JSON.stringify(event.data);
         if(data.msg) {
             jalert(data.name, data.msg);
         }
     });
+
+    document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+        element.addEventListener('click', function(event) {
+            $('#loading').show();
+        });
+    });
+
+    // content 안에 링크 자동으로 a태그 만들어주기
+    const content = document.getElementById('content').innerHTML;
+
+    // const contentWithLinks = content.replace(/(http[s]?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
+
+    const contentWithLinks = content.replace(
+        /<a\s+(?:[^>]*?\s+)?href\s*=\s*(['"])(.*?)\1[^>]*>.*?<\/a>|((?<=^|>)[^<]*?(http[s]?:\/\/\S+)[^<]*?(?=<|$))/gi,
+        (match, p1, p2, p3, p4) => {
+            // 이미 <a> 태그로 감싸져 있는지 확인
+            if (p1) {
+                // 이미 <a> 태그로 감싸져 있는 경우 변환하지 않고 원래의 링크를 유지
+                return match;
+            } else {
+                // <a> 태그로 감싸지 않은 경우 링크를 <a> 태그로 변환
+                const linkText = p3.replace(/http\S+/, ''); // "http" 이후의 문자열 제거
+
+                return `${linkText} <a href="${p4}" target="_blank">${p4}</a>`;
+            }
+        }
+    );
+
+    document.getElementById('content').innerHTML = contentWithLinks;
+
+    function UrlCopy(){
+        var url = window.location.href;
+        const id = {{ $id }};
+        if (typeof window.ReactNativeWebView !== 'undefined') {
+            window.ReactNativeWebView.postMessage(
+                JSON.stringify({targetFunc: "copy",url: url})
+            );
+
+            let action = `/api/share?link=${url}&id=${id}`;
+            let data = '';
+
+            ycommon.ajaxJson('get', action, data, undefined, function (res) {
+            })
+
+        } else {
+            var tempInput = $('<input>');
+            tempInput.css({
+                position: 'absolute',
+                left: '-9999px', // 화면 영역 밖으로 이동
+            });
+            $('body').append(tempInput);
+            let action = `/api/share?link=${url}&id=${id}`;
+            let data = '';
+
+            ycommon.ajaxJson('get', action, data, undefined, function (res) {
+                tempInput.val(res.shortLink).select();
+                const copy = document.execCommand('copy');
+                tempInput.remove();
+                if (copy) {
+                    alert("클립보드 복사되었습니다.");
+                } else {
+                    alert("이 브라우저는 지원하지 않습니다.");
+                }
+            })
+        }
+    }
 </script>
 
 @endsection

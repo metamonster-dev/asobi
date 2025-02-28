@@ -7,6 +7,19 @@ class="body"
 $title = "앨범관리";
 $hd_bg = "2";
 $back_link = "/";
+$twoYearsAgo = date('Y-m', strtotime('-2 years', mktime(0, 0, 0, 1, 1, date('Y'))));
+$thisYear = date(date('Y').'-12');
+$device_type = session('auth')['device_type'] ?? '';
+$device_kind = session('auth')['device_kind'] ?? '';
+
+$userAgent = $_SERVER['HTTP_USER_AGENT'];
+$phpisIOS = false;
+if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== false || strpos($userAgent, 'iPod') !== false) {
+    $phpisIOS = true;
+} else {
+    $phpisIOS = false;
+}
+
 ?>
 @include('common.headm02')
 
@@ -26,9 +39,33 @@ $back_link = "/";
                     <div class="d-block d-lg-flex mt-0 mt-lg-3 mt-lg-0">
                         <div class="m_top mb-0">
                             <div class="input-group">
-                                <input type="month" name="ym" id="ym" value="{{ $ym }}" class="form-control form-control-lg col-6 col-lg-5" onchange="this.form.submit()">
+{{--                                <input type="month" name="ym" id="ym" value="{{ $ym }}" min="{{ $twoYearsAgo }}" max="{{ $thisYear }}" class="form-control form-control-lg col-6 col-lg-5"--}}
+{{--                                       @if ($device_type === 'iPhone' || $device_type === 'iPad')--}}
+{{--                                           onBlur="this.form.submit()"--}}
+{{--                                       @else--}}
+{{--                                           onchange="this.form.submit()"--}}
+{{--                                       @endif--}}
+{{--                                >--}}
+{{--                                    <select name="ym" id="ym" onchange="this.form.submit()" class="form-control form-control-lg col-6 col-lg-5">--}}
+{{--                                        <option value="2023-10">2023-10</option>--}}
+{{--                                        <option value="2023-09">2023-09</option>--}}
+{{--                                    </select>--}}
+                               @if ($device_kind == 'iOS' || $phpisIOS)
+                                <select name="ym" id="ym" onchange="this.form.submit()" class="form-control form-control-lg col-6 col-lg-5">
+                                @php
+                                    for ($date = strtotime($twoYearsAgo); $date <= strtotime($thisYear); $date = strtotime("+1 month", $date)) {
+                                        $yearMonth = date('Y-m', $date);
+                                        $selected = ($yearMonth == $ym) ? 'selected' : ''; // $ym과 일치하는 경우 selected 속성 추가
+                                    echo "<option value='$yearMonth' $selected>$yearMonth</option>";
+                                    }
+                                @endphp
+                                </select>
+                               @else
+                                <input type="month" name="ym" id="ym" value="{{ $ym }}" min="{{ $twoYearsAgo }}" max="{{ $thisYear }}" class="form-control form-control-lg col-6 col-lg-5" onchange="this.form.submit()">
+                                @endif
+
                                 <div class="ip_sch_wr col-6 col-lg-7 px-0">
-                                    <input type="search" name="search_text" id="search_text" value="{{ $search_text }}" class="form-control ip_search">
+                                    <input type="search" name="search_text" id="search_text" value="{{ $search_text }}" class="form-control ip_search" style="height: 100%">
                                     <button type="submit" class="btn btn_sch btn_sch2"></button>
                                 </div>
                             </div>
@@ -127,6 +164,13 @@ $back_link = "/";
             <li class=""><a href="#" class="page_btn next"><img src="/img/ic_arrow_right_gr.png"></a></li>
         </ul> -->
 
+{{--        143743 --}}
+{{--        @if(isset(session('auth')['user_id']) && (in_array(session('auth')['user_id'], ['86293'])))--}}
+{{--            <div class="f_btn_wr d-block d-lg-none" style="bottom: 10rem;">--}}
+{{--                <button type="button" class="btn float_btn" style="background-color: orange;" onclick="location.href='/album/write2'"><img src="/img/ic_write.png" style="width: 3rem;"></button>--}}
+{{--            </div>--}}
+{{--        @endif--}}
+
         @if(isset(session('auth')['user_type']) && (session('auth')['user_type'] =='m' || session('auth')['user_type'] =='a'))
         <!-- 모바일 작성 버튼 -->
         <!-- ※ 앨범작성은 교육원, 본사만 가능 -->
@@ -137,10 +181,33 @@ $back_link = "/";
     </div>
 </article>
 
+<div class="loading_wrap" id="loading" style="display: none">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
+
 <script>
     $(window).on("load", function() {
         getVimeoThumbs();
     });
+
+    document.querySelector('.back_button').addEventListener('click', function(event) {
+        $('#loading').show();
+    });
+
+    // document.querySelectorAll('a').forEach(function(anchor) {
+    //     anchor.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
+    //
+    // document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+    //     element.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
 </script>
 
 @endsection

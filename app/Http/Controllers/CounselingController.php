@@ -3,9 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Counseling;
-use App\User;
-use App\UserDetail;
-use App\UserMemberDetail;
+use App\Models\RaonMember;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -18,7 +16,7 @@ class CounselingController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -26,7 +24,7 @@ class CounselingController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m'])) {
+        if (!in_array($user->mtype, ['m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -49,32 +47,63 @@ class CounselingController extends Controller
 
 //        \App::make('helper')->log('search_user_id', ['search_user_id' => $search_user_id], 'search_user_id');
 
-        $rs = DB::table('users')
-            ->select('users.id as uid', 'users.name as uname', 'cls.created_at as ccreated_at')
-            ->leftJoin(DB::raw('(select max(created_at) created_at, sidx, year, month from counselings group by sidx) as cls'),function ($join) {
-                $join->on('users.id','=','cls.sidx');
+
+        $rs = DB::table('raon_member')
+            ->select('raon_member.idx as uid', 'raon_member.name as uname', 'cls.created_at as ccreated_at')
+            ->leftJoin(DB::raw('
+            (SELECT MAX(created_at) created_at, sidx, YEAR(created_at) AS year, MONTH(created_at) AS month
+                    FROM counselings
+                    GROUP BY sidx, YEAR(created_at), MONTH(created_at)) AS cls'),function ($join) {
+                $join->on('raon_member.idx','=','cls.sidx');
             })
-            ->where('center_id', $user->id)
-            ->where('users.user_type','s')
-            ->where('users.status','Y')
-//            ->whereRaw("users.user_type = 's'")
-//            ->whereRaw("users.status = 'Y'")
+            ->where('midx', $user->idx)
+            ->where('raon_member.mtype','s')
+            ->where('raon_member.s_status','Y')
             ->when($year_month, function ($q) use ($year_month) {
                 $q->whereRaw("date_format(cls.created_at, '%Y-%m') = '{$year_month}'");
             })
             ->when($search_user_id != "", function ($q) use ($search_user_id) {
-                $q->where('users.id', $search_user_id);
+                $q->where('raon_member.idx', $search_user_id);
             })
-            ->orderBy('users.name')
+            ->orderBy('raon_member.name')
             ->get();
+
+//        $uids = DB::connection('mysql')->table('raon_member')
+//            ->select('idx as uid')
+//            ->where('midx', $user->idx)
+//            ->where('mtype', 's')
+//            ->where('s_status', 'Y')
+//            ->when($search_user_id != "", function ($q) use ($search_user_id) {
+//                $q->where('raon_member.idx', $search_user_id);
+//            })
+//            ->pluck('uid');
+//
+//        $maxCreated = DB::table('counselings')
+//            ->select(DB::raw('MAX(created_at) as ccreated_at'), 'sidx as uid')
+//            ->groupBy('sidx', DB::raw('YEAR(created_at)'), DB::raw('MONTH(created_at)'))
+//            ->whereIn('sidx', $uids)
+////            ->whereRaw("DATE_FORMAT(created_at, '%Y-%m') = '{$year_month}'")
+//            ->when($year_month, function ($q) use ($year_month) {
+//                $q->whereRaw("DATE_FORMAT(created_at, '%Y-%m') = '{$year_month}'");
+//            })
+//            ->orderBy('sidx')
+//            ->get();
+//
+//        foreach ($maxCreated as $key => $value) {
+//            $nameResult = DB::connection('mysql')->table('raon_member')->select('name')->whereIdx($value->uid)->first();
+//
+//            $maxCreated[$key]->uname = $nameResult->name;
+//        }
+//
+//        $rs = $maxCreated;
 
         $result = Arr::add($result, 'result', 'success');
         $result = Arr::add($result, 'count', $rs->count());
 
         if ($rs) {
             foreach ($rs as $index => $row) {
-                $userMemberDetail = UserMemberDetail::where('user_id', $row->uid)->first();
-                $profile_image = $userMemberDetail->profile_image ?? '';
+                $userMemberDetail = RaonMember::where('idx', $row->uid)->first();
+                $profile_image = $userMemberDetail->user_picture ?? '';
 
                 $result = Arr::add($result, "list.{$index}.id", $row->uid);
                 $result = Arr::add($result, "list.{$index}.name", $row->uname);
@@ -93,7 +122,7 @@ class CounselingController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -114,7 +143,7 @@ class CounselingController extends Controller
             $year_month = $year."-".$month;
         }
 
-        $rs = Counseling::where('sidx', $user->id)->when($year_month, function ($q) use ($year, $month) {
+        $rs = Counseling::where('sidx', $user->idx)->when($year_month, function ($q) use ($year, $month) {
             $q->where('year', $year)->where('month', $month);
         })->orderByDesc('created_at')->get();
         $result = Arr::add($result, 'result', 'success');
@@ -134,7 +163,7 @@ class CounselingController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -142,17 +171,17 @@ class CounselingController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m'])) {
+        if (!in_array($user->mtype, ['m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
         }
 
-        $row = Counseling::whereMidx($user->id)->whereId($counseling_id)->first();
+        $row = Counseling::whereMidx($user->idx)->whereId($counseling_id)->first();
         if ($row) {
-            $student = User::whereId($row->sidx)->first();
+            $student = RaonMember::whereIdx($row->sidx)->first();
             $result = Arr::add($result, 'result', 'success');
-            $result = Arr::add($result, "id", $row->id);
+            $result = Arr::add($result, "id", $row->idx);
             $result = Arr::add($result, "content", $row->content);
             $result = Arr::add($result, "date", $row->created_at->format(Counseling::DATE_FORMAT));
             $result = Arr::add($result, "sidx", $row->sidx);
@@ -170,7 +199,7 @@ class CounselingController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -178,7 +207,7 @@ class CounselingController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m'])) {
+        if (!in_array($user->mtype, ['m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
@@ -198,8 +227,8 @@ class CounselingController extends Controller
         }
 
         $payload = [
-            'hidx' => $user->branch_id,
-            'midx' => $user->center_id,
+            'hidx' => $user->hidx,
+            'midx' => $user->idx,
             'sidx' => $student,
             'content' => $content,
             'year' => $year,
@@ -220,7 +249,7 @@ class CounselingController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -228,13 +257,13 @@ class CounselingController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m'])) {
+        if (!in_array($user->mtype, ['m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
         }
 
-        $counseling = Counseling::whereMidx($user->id)->whereId($counseling_id)->first();
+        $counseling = Counseling::whereMidx($user->idx)->whereId($counseling_id)->first();
         if (empty($counseling)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '잘못된 요청입니다.');
@@ -257,7 +286,7 @@ class CounselingController extends Controller
     {
         $result = array();
         $user_id = $request->input('user');
-        $user = User::whereId($user_id)->first();
+        $user = RaonMember::whereIdx($user_id)->first();
 
         if (empty($user)) {
             $result = Arr::add($result, 'result', 'fail');
@@ -265,13 +294,13 @@ class CounselingController extends Controller
             return response()->json($result);
         }
 
-        if (!in_array($user->user_type, ['m'])) {
+        if (!in_array($user->mtype, ['m'])) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '권한이 없습니다.');
             return response()->json($result);
         }
 
-        $counseling = Counseling::whereMidx($user->id)->whereId($counseling_id)->first();
+        $counseling = Counseling::whereMidx($user->idx)->whereId($counseling_id)->first();
         if (empty($counseling)) {
             $result = Arr::add($result, 'result', 'fail');
             $result = Arr::add($result, 'error', '잘못된 요청입니다.');
@@ -327,6 +356,13 @@ class CounselingController extends Controller
             }
         }
 
+        $minDate = DB::table('counselings')
+            ->select(DB::raw('min(year) as min_year, min(month) as min_month'))
+            ->first();
+
+        $minYear = $minDate->min_year;
+        $minMonth = $minDate->min_month;
+
         if ($search_user_id == "") {
             //학생리스트
             $req = Request::create('/api/counseling/student/list', 'GET', [
@@ -357,6 +393,8 @@ class CounselingController extends Controller
             'search_text' => $search_text,
             'search_user_id' => $search_user_id,
             'studentList' => json_encode($studentList),
+            'minYear' => $minYear,
+            'minMonth' => $minMonth
         ]);
     }
     public function counselView(Request $request, $id)
@@ -442,7 +480,8 @@ class CounselingController extends Controller
     {
         $mode = $request->input('mode') ?? '';
         $id = $request->input('id') ?? '';
-        $date = $request->input('date') ? explode('-', $request->input('date')) : explode('-', date("Y-m-d"));
+//        $date = $request->input('date') ? explode('-', $request->input('date')) : explode('-', date("Y-m-d"));
+        $date = $request->input('ymd') ? explode('-', $request->input('ymd')) : explode('-', date("Y-m-d"));;
 
         $request->merge([
             'user' => \App::make('helper')->getUsertId(),

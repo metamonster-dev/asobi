@@ -6,6 +6,8 @@ class="body"
 <?php
 $title = "알림장 작성";
 $hd_bg = "1";
+
+$currentDateTime = date('Y-m-d H:i:s');
 ?>
 @include('common.headm04')
 @include('advice.notePreview')
@@ -38,17 +40,17 @@ $hd_bg = "1";
 
             <div class="grid02_list">
                 <div>
-                    <div class="ip_wr">
+                    <div class="ip_wr" @if ($mode=="u") style="display: none;" @endif>
                         <div class="ip_tit d-flex align-items-center justify-content-between">
                             <h5>작성일자</h5>
                         </div>
-                        <input type="date" name="ymd" id="ymd" value="{{ $ymd }}" max="<?php echo date("Y-m-d") ?>" @if($mode == "u")readonly="readonly"@endif class="form-control text-dark_gray" >
+                        <input type="date" name="ymd" id="ymd" value="{{ $ymd }}" max="<?php echo date("Y-m-d") ?>" class="form-control text-dark_gray" >
                     </div>
 
                     <div class="form-group ip_wr mt-4 mt-lg-5 mb-0 mb-lg-4">
                         <div class="ip_tit d-flex align-items-center">
                             <h5 class="mr-3">사진·동영상</h5>
-                            <p class="fs_13 text-light"><span id="uploadCount">0</span>/20</p>
+                            <p class="fs_13 text-light"><span id="uploadCount">0</span>/10</p>
                         </div>
                         <div class="scroll_wrap none_scroll_bar_lg">
                             <div class="input-group-prepend" id="imgUpload">
@@ -137,6 +139,13 @@ $hd_bg = "1";
     </div>
 </article>
 
+<div class="loading_wrap" id="loading" style="display: none">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
+
 <script>
     var delete_ids = [];
     var tmp_file_ids = [];
@@ -144,6 +153,7 @@ $hd_bg = "1";
     var upload_cont = 0;
     var multiform_idx = [];
     var multiform_delete_idx = [];
+    let isSetTmp = false;
 
     @if(isset($row['file']) && is_array($row['file']) && count($row['file']) > 0)
         upload_cont = {{ count($row['file']) }};
@@ -160,7 +170,11 @@ $hd_bg = "1";
         fsubmit = true;
         $("#fsubmit").prop('disabled',true);
 
-        const currentDate = new Date();
+        // const currentDate = new Date();
+
+        const currentDateTime = '<?php echo $currentDateTime; ?>';
+        const currentDate = new Date(currentDateTime);
+
         const ymdValue = new Date(f.ymd.value);
 
         // let upfileCnt = 0;
@@ -199,6 +213,13 @@ $hd_bg = "1";
             f.tmp_file_ids.value = tmp_file_ids.join(',');
         }
 
+        if (ycommon.getUploadCount(upload_cont-delete_ids.length+tmp_file_ids.length) > 10 ) {
+            fsubmit = false;
+            $("#fsubmit").prop('disabled',false);
+            jalert("사진 및 동영상을 10개 초과할 수 없습니다.");
+            return false;
+        }
+
         if (f.ymd.value == "") {
             fsubmit = false;
             $("#fsubmit").prop('disabled',false);
@@ -206,12 +227,12 @@ $hd_bg = "1";
             return false;
         }
 
-        if (ymdValue > currentDate) {
-            fsubmit = false;
-            $("#fsubmit").prop('disabled',false);
-            jalert('미래 날짜는 선택할 수 없습니다.');
-            return false;
-        }
+        //if (ymdValue > currentDate) {
+        //    fsubmit = false;
+        //    $("#fsubmit").prop('disabled',false);
+        //    jalert('미래 날짜는 선택할 수 없습니다.');
+        //    return false;
+        //}
 
         if (f.content.value == "") {
             fsubmit = false;
@@ -240,7 +261,12 @@ $hd_bg = "1";
         //     ycommon.deleteData('advice');
         // }
 
+        $('#loading').show();
+
         ycommon.setDeleteUploadFile(multiform_delete_idx);
+
+        ycommon.deleteData('advice');
+        ycommon.deleteData('file');
 
         return true;
     }
@@ -256,6 +282,7 @@ $hd_bg = "1";
             const formData = new FormData();
             formData.append("user", userId);
             formData.append("type", '3');
+            formData.append("isSetTmp", isSetTmp);
             if ($('.upload_files').length > 0) {
                 for(let i=0; i < $('.upload_files').length; i++) {
                     let del_keys = [];
@@ -274,30 +301,58 @@ $hd_bg = "1";
                 formData.append("delete_files", tmp_file_delete_ids.join(','));
             }
 
+            $('#loading').show();
+
             let action = `/api/tmpFileSave`;
-            ycommon.ajaxJson('post', action, formData, undefined, undefined,undefined,function (jqXHR, textStatus, errorThrown){
+            ycommon.ajaxJson('post', action, formData, undefined, function () {
+                let content = $('#content').val();
+                let ymd = $('#ymd').val();
+                let studentChk = $('input[name="student[]"]:checked');
+                let student = [];
+                if (studentChk.length > 0) {
+                    for (let i=0; i<studentChk.length; i++) {
+                        if ($(studentChk[i]).val()) student.push($(studentChk[i]).val());
+                    }
+                }
+                ycommon.setData('advice',{
+                    content: content,
+                    ymd: ymd,
+                    student: student
+                });
+
+                $('#loading').hide();
+                jalert("임시저장 되었습니다.");
+            },undefined,function (jqXHR, textStatus, errorThrown){
+                $('#loading').hide();
                 jalert("파일 임시저장에 실패하였습니다.");
-            },undefined,undefined,{processData:false, contentType: false});
+            }, 30000,undefined,{processData:false, contentType: false});
+        } else {
+            let content = $('#content').val();
+            let ymd = $('#ymd').val();
+            let studentChk = $('input[name="student[]"]:checked');
+            let student = [];
+            if (studentChk.length > 0) {
+                for (let i=0; i<studentChk.length; i++) {
+                    if ($(studentChk[i]).val()) student.push($(studentChk[i]).val());
+                }
+            }
+            ycommon.setData('advice',{
+                content: content,
+                ymd: ymd,
+                student: student
+            });
+            jalert("임시저장 되었습니다.");
         }
 
-        let content = $('#content').val();
-        let ymd = $('#ymd').val();
-        let studentChk = $('input[name="student[]"]:checked');
-        let student = [];
-        if (studentChk.length > 0) {
-            for (let i=0; i<studentChk.length; i++) {
-                if ($(studentChk[i]).val()) student.push($(studentChk[i]).val());
-            }
-        }
-        ycommon.setData('advice',{
-            content: content,
-            ymd: ymd,
-            student: student
-        });
-        jalert("임시저장 되었습니다.");
     }
 
     function setTmpSave() {
+        ycommon.setData('file', {
+            file: 'Y'
+        });
+
+        isSetTmp = true;
+
         // console.log("임시 저장 불러오기!!!");
         let tmpData = ycommon.getData('advice');
         if (tmpData.content !== undefined) $('#content').val(tmpData.content);
@@ -312,7 +367,7 @@ $hd_bg = "1";
         ycommon.ajaxJson('get', action, {user: userId, type: "3"}, undefined, function (data){
             // console.log(data)
             if (data.count !== undefined && data.count > 0) {
-                let privewUploade = '<div class="image-upload2 on mr-3" data-id="{i}" id="image-upload-{i}">'+
+                let privewUploade = '<div class="image-upload2 on mr-3 videoThumnail" data-id="{i}" id="image-upload-{i}">'+
                     '<label id="label_upload_file_{i}" for="upload_file_{i}">' +
                     '<div class="upload-icon2">' +
                     '<button type="button" class="btn del" data-tmpid="{image_id}"></button>' +
@@ -335,7 +390,7 @@ $hd_bg = "1";
                     privewUploadeTmp = privewUploadeTmp.replaceAll("{i}", data.list[i].file_id);
                     privewUploadeTmp = privewUploadeTmp.replaceAll('{image_id}', data.list[i].file_id);
                     if (data.list[i].vimeo_id == "video") {
-                        privewUploadeTmp = privewUploadeTmp.replaceAll('{image}', "<video><source src='"+data.list[i].file_path+"' /></video>");
+                        privewUploadeTmp = privewUploadeTmp.replaceAll('{image}', "<video><source src='"+data.list[i].file_path+'#t=1'+"' /></video>");
                     } else {
                         privewUploadeTmp = privewUploadeTmp.replaceAll('{image}', "<img src='"+data.list[i].file_path+"' />");
                     }
@@ -343,13 +398,30 @@ $hd_bg = "1";
                     previewHtmlTmp = previewHtml;
                     previewHtmlTmp = previewHtmlTmp.replaceAll("{i}", data.list[i].file_id);
                     if (data.list[i].vimeo_id == "video") {
-                        previewHtmlTmp = previewHtmlTmp.replaceAll('{imageVideo}', '<video><source src="'+data.list[i].file_path+'" class="w-100"></video>');
+                        previewHtmlTmp = previewHtmlTmp.replaceAll('{imageVideo}', '<video><source src="'+data.list[i].file_path+"#t=1"+'" class="w-100"></video>');
                     } else {
                         previewHtmlTmp = previewHtmlTmp.replaceAll('{imageVideo}', '<img src="'+data.list[i].file_path+'" class="w-100">');
                     }
 
                     $('#imgUpload').append(privewUploadeTmp)
                     $('#imageVideo').append(previewHtmlTmp)
+
+                    const attImgTag = document.querySelector('.att_img video');
+                    if (attImgTag) {
+                        attImgTag.load();
+                        attImgTag.pause();
+                    }
+
+                    const videoThumnailTag = document.querySelectorAll('.videoThumnail');
+
+                    videoThumnailTag.forEach((elem) => {
+                        let videoTag = elem.querySelector('video');
+
+                        if (videoTag) {
+                            videoTag.load();
+                            videoTag.pause();
+                        }
+                    })
                 }
                 setTimeout(function (){
                     ycommon.setUploadCount(tmp_file_ids.length);
@@ -392,10 +464,10 @@ $hd_bg = "1";
         var i = 0;
         $(".addBtn").on('click', function(e) {
             // console.log('addBtn');
-            if (ycommon.getUploadCount(upload_cont-delete_ids.length+tmp_file_ids.length) >= 20) {
-                jalert("사진 동영상은 20개까지만 등록 가능합니다.");
-                return;
-            }
+            // if (ycommon.getUploadCount(upload_cont-delete_ids.length+tmp_file_ids.length) >= 10) {
+            //     jalert("사진 동영상은 10개까지만 등록 가능합니다.");
+            //     return;
+            // }
             let addForm = '<div class="image-upload2 mr-3" data-id="'+i+'" id="image-upload-'+i+'">'+
                     '<label id="label_upload_file_'+i+'" for="upload_file_'+i+'">' +
                         '<div class="upload-icon2">' +
@@ -406,7 +478,7 @@ $hd_bg = "1";
 
             addForm += '<input id="upload_file_'+i+'" multiple="multiple" name="upload_files[]" class="upload_files d-none" data-id="'+i+'" type="file" accept="image/*,video/*" />';
 
-            $('#imgUpload').append(addForm)
+            $('#imgUpload').append(addForm);
             $('#label_upload_file_'+i).trigger('click');
             i++;
         });
@@ -446,6 +518,55 @@ $hd_bg = "1";
         @endif
 
         $(document).on('change', '.upload_files', function(e) {
+            let entireCount = parseInt(document.getElementById('uploadCount').innerText);
+
+            if (entireCount + this.files.length > 10) {
+                jalert("사진 동영상은 10개까지만 등록 가능합니다.");
+                return;
+            }
+
+            const imageMaxSize = 10 * 1024 * 1024; // 10MB
+            const videoMaxSize = 10 * 10 * 1024 * 1024 * 1.1; // 110MB
+
+            let breaker = false;
+            let videoCount = 0;
+            for (var i = 0; i < this.files.length; i++) {
+                if (this.files[i].type.startsWith('image/')) {
+                    if (this.files[i].size > imageMaxSize) {
+                        jalert('파일 크기가 너무 큽니다. 10MB 이하의 파일을 선택하세요.');
+                        this.value = '';
+                        return;
+                    }
+                } else if (this.files[i].type.startsWith('video/')) {
+                    videoCount++;
+                    document.querySelectorAll('video').forEach((elem) => {
+                        if (elem) {
+                            breaker = true;
+                        }
+                    })
+
+                    if (breaker) {
+                        jalert('동영상은 하나만 첨부할 수 있습니다.');
+                        this.value = '';
+                        return;
+                    }
+
+                    if (this.files[i].size > videoMaxSize) {
+                        jalert('파일 크기가 너무 큽니다. 100MB 이하의 파일을 선택하세요.');
+                        this.value = '';
+                        return;
+                    }
+                }
+            }
+
+            if (videoCount > 1) {
+                jalert('동영상은 하나만 첨부할 수 있습니다.');
+                this.value = '';
+                return;
+            }
+
+            $('#loading').show();
+
             let id = $(this).data('id');
             ycommon.previewImage(e, id, upload_cont-delete_ids.length+tmp_file_ids.length);
         });
@@ -481,6 +602,22 @@ $hd_bg = "1";
         }
         @endif
 
+    });
+
+    // document.querySelectorAll('a').forEach(function(anchor) {
+        // anchor.addEventListener('click', function(event) {
+        //     $('#loading').show();
+        // });
+    // });
+    //
+    // document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+    //     element.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
+
+    document.querySelector('.back_button').addEventListener('click', function(event) {
+        $('#loading').show();
     });
 </script>
 

@@ -71,7 +71,7 @@ $back_link = "/app";
             if (event.origin !== undefined && event.origin == "https://player.vimeo.com") {
                 return false;
             }
-            const data = JSON.parse(event.data);
+            const data = JSON.stringify(event.data);
             // alert(data);
             $('#version').html(data.appVersion);
             $('#number').html(data.buildNumber);

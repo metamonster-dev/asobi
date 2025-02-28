@@ -39,6 +39,11 @@ $back_link = "/";
         </form>
         @endif
 
+        <?php if ($_SERVER['REMOTE_ADDR'] === '221.148.221.39') : ?>
+            <input type="text" name="device_id" id="device_id" value="{{ session('auth')['device_id'] ?? '' }}" />
+            <input type="text" name="push_key" id="push_key" value="{{ session('auth')['push_key'] ?? '' }}" />
+        <?php endif; ?>
+
         <div class="ip_wr mt-5">
             <div class="ip_tit">
                 <h5>이름</h5>
@@ -67,14 +72,21 @@ $back_link = "/";
             <div class="mt-4 pb-3">
                 <button type="button" class="btn btn-block btn-outline-light border bg-white text-light" onclick="location.href='/mypage/resetPw'">비밀번호 변경</button>
             </div>
-            @if(session('auth')['user_type'] =='s' ?? '')
-            <div class="pb-3">
-                <button type="button" class="btn btn-block btn-outline-light border bg-white text-light" onclick="location.href='/mypage/editInfo'">회원정보 수정</button>
-            </div>
-            @endif
+{{--            @if(session('auth')['user_type'] =='s' ?? '')--}}
+{{--            <div class="pb-3">--}}
+{{--                <button type="button" class="btn btn-block btn-outline-light border bg-white text-light" onclick="location.href='/mypage/editInfo'">회원정보 수정</button>--}}
+{{--            </div>--}}
+{{--            @endif--}}
         </div>
     </div>
 </article>
+
+<div class="loading_wrap" id="loading" style="display: none">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
 
 <script>
     // 프로필 이미지 업로드
@@ -104,6 +116,36 @@ $back_link = "/";
             );
         }
     }
+
+    // document.querySelectorAll('a').forEach(function(anchor) {
+    //     anchor.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
+    //
+    // document.querySelectorAll('[onclick*="location.href"]').forEach(function(element) {
+    //     element.addEventListener('click', function(event) {
+    //         $('#loading').show();
+    //     });
+    // });
+    //
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function(event) {
+            $('#loading').show();
+            // $('#loading2').show();
+        });
+    });
+
+    document.querySelector('.back_button').addEventListener('click', function(event) {
+        $('#loading').show();
+    });
+
+    // document.querySelectorAll('button').forEach((elem) => {
+    //     elem.addEventListener('click', () => {
+    //         $('#loading').show();
+    //     })
+    // })
+
 </script>
 
 @endsection

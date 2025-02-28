@@ -49,6 +49,44 @@ $back_link = "/event";
                     </div>
                 </div>
             </div>
+
+            <div class="ip_wr my-4">
+                <div class="ip_tit">
+                    <h5>댓글 사용</h5>
+                </div>
+                <div class="checks_wr">
+                    <div class="checks">
+                        <label>
+                            <input type="radio" name="useComment" value="1" {{ isset($row['useComment']) && $row['useComment'] == 1 ? 'checked' : '' }}>
+                            <span class="ic_box"></span>
+                            <div class="chk_p">
+                                <p>사용</p>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="checks">
+                        <label>
+                            <input type="radio" name="useComment" value="0" {{ isset($row['useComment']) && $row['useComment'] == 0 ? 'checked' : '' }}>
+                            <span class="ic_box"></span>
+                            <div class="chk_p">
+                                <p>중지</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <div class="ip_wr">
+                    <div class="ip_tit d-flex align-items-center justify-content-between">
+                        <h5>노출 순서</h5>
+                    </div>
+                </div>
+                <div class="grid02_list_input" style="width: 60px;">
+                    <input type="number" name="order" value="{{ $row['order'] ?? 1 }}" min="0" class="form-control">
+                </div>
+            </div>
+
             <div class="form-group ip_wr mt-4 mt-lg-5 mb-0 mb-lg-4">
                 <div class="ip_tit d-flex align-items-center">
                     <h5 class="mr-3">썸네일 이미지1</h5>
@@ -109,6 +147,17 @@ $back_link = "/event";
             <div class="mt-4">
                 <div class="ip_wr">
                     <div class="ip_tit d-flex align-items-center justify-content-between">
+                        <h5>배너 링크</h5>
+                    </div>
+                </div>
+                <div class="grid02_list_input">
+                    <input type="text" name="bannerLink" value="{{ $row['bannerLink'] ?? '' }}" class="form-control">
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <div class="ip_wr">
+                    <div class="ip_tit d-flex align-items-center justify-content-between">
                         <h5>이벤트 기간</h5>
                     </div>
                 </div>
@@ -129,8 +178,10 @@ $back_link = "/event";
                 <script type="text/javascript">
                     <!--
                     CKEDITOR.replace('content', {
-                        extraPlugins: 'uploadimage, image2',
+                        // extraPlugins: 'uploadimage, image2',
+                        language : 'ko',
                         height : '300px',
+                        linkDefaultProtocol: 'https://',
                         filebrowserImageUploadUrl : '/api/editor/fileWrite?type=2',
                         enterMode : CKEDITOR.ENTER_BR,
                         toolbarGroups : [
@@ -151,6 +202,7 @@ $back_link = "/event";
                         ],
                         removeButtons : 'Find,Replace,SelectAll,Scayt,Form,Checkbox,Radio,TextField,Textarea,Select,Button,ImageButton,HiddenField,Save,NewPage,Preview,Print,Templates,ShowBlocks,Undo,Redo,PasteFromWord,PasteText,Anchor,Flash,Smiley,SpecialChar,PageBreak,Iframe,Subscript,Superscript,CopyFormatting,Outdent,Indent,Blockquote,CreateDiv,BidiLtr,BidiRtl,Language,About,Styles,Font',
                     });
+                    CKEDITOR.config.versionCheck = false;
                     //-->
                 </script>
             </div>
@@ -162,6 +214,14 @@ $back_link = "/event";
         </form>
     </div>
 </article>
+
+<div class="loading_wrap" id="loading" style="display: none;">
+    <div class="loading_text">
+        <i class="loading_circle"></i>
+        <span>로딩중</span>
+    </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
 <script>
     var delete_ids = [];
@@ -314,6 +374,17 @@ $back_link = "/event";
             }
         }
 
+        if (f.bannerLink.value) {
+            if (f.bannerLink.value.length > 250) {
+                fsubmit = false;
+                $("#fsubmit").prop('disabled',false);
+                jalert("배너 링크는 250자 이하로 입력해주세요.");
+                return false;
+            }
+        }
+
+        $('#loading').show();
+
         return true;
     }
     $(document).ready(function() {
@@ -353,6 +424,28 @@ $back_link = "/event";
         @endif
 
         $(document).on('change', '.upload_files', function(e) {
+            const imageMaxSize = 10 * 1024 * 1024; // 10MB
+            const videoMaxSize = 10 * 10 * 1024 * 1024 * 1.1; // 110MB
+
+            for (var i = 0; i < this.files.length; i++) {
+
+                console.log(this.files[i].type);
+
+                if (this.files[i].type.startsWith('image/')) {
+                    if (this.files[i].size > imageMaxSize) {
+                        jalert('파일 크기가 너무 큽니다. 10MB 이하의 파일을 선택하세요.');
+                        this.value = '';
+                        return;
+                    }
+                } else if (this.files[i].type.startsWith('video/')) {
+                    if (this.files[i].size > videoMaxSize) {
+                        jalert('파일 크기가 너무 큽니다. 100MB 이하의 파일을 선택하세요.');
+                        this.value = '';
+                        return;
+                    }
+                }
+            }
+
             let id = $(this).data('id');
             ycommon.previewImage(e, id);
         });

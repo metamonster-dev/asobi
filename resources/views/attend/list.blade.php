@@ -7,6 +7,19 @@ class="body sub_bg4"
 $title = "출석부 관리";
 $hd_bg = "4";
 $back_link = "/";
+$twoYearsAgo = date('Y-m', strtotime('-2 years', mktime(0, 0, 0, 1, 1, date('Y'))));
+$thisYear = date(date('Y').'-12');
+$thisYear = date(date('Y').'-12');
+$device_type = session('auth')['device_type'] ?? '';
+$device_kind = session('auth')['device_kind'] ?? '';
+
+$userAgent = $_SERVER['HTTP_USER_AGENT'];
+$phpisIOS = false;
+if (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== false || strpos($userAgent, 'iPod') !== false) {
+    $phpisIOS = true;
+} else {
+    $phpisIOS = false;
+}
 ?>
 @include('common.headm02')
 
@@ -26,11 +39,32 @@ $back_link = "/";
                 <form name="attendForm" id="attendForm" method="GET" action="/attend" class="col-lg-6 px-0">
                     <div class="m_top mb-0 mt-0 mt-lg-3 mt-lg-0 pt-3 pt-lg-0">
                         <div class="input-group justify-content-start justify-content-lg-end">
-                            <input type="month" name="ym" id="ym" value="{{ $ym }}" class="form-control form-control-lg col-lg-6" onchange="form_ym_change()">
+{{--                            <input type="month" name="ym" id="ym" value="{{ $ym }}" min="{{ $twoYearsAgo }}" max="{{ $thisYear }}" class="form-control form-control-lg col-lg-6"--}}
+{{--                                   @if ($device_type === 'iPhone' || $device_type === 'iPad')--}}
+{{--                                       onBlur="this.form.submit()"--}}
+{{--                                   @else--}}
+{{--                                       onchange="this.form.submit()"--}}
+{{--                                   @endif--}}
+{{--                            >--}}
+
+                            @if ($device_kind == 'iOS' || $phpisIOS)
+                                <select name="ym" id="ym" onchange="this.form.submit()" class="form-control form-control-lg col-6 col-lg-5">
+                                    @php
+                                        for ($date = strtotime($twoYearsAgo); $date <= strtotime($thisYear); $date = strtotime("+1 month", $date)) {
+                                            $yearMonth = date('Y-m', $date);
+                                            $selected = ($yearMonth == $ym) ? 'selected' : ''; // $ym과 일치하는 경우 selected 속성 추가
+                                        echo "<option value='$yearMonth' $selected>$yearMonth</option>";
+                                        }
+                                    @endphp
+                                </select>
+                            @else
+                                <input type="month" name="ym" id="ym" value="{{ $ym }}" min="{{ $twoYearsAgo }}" max="{{ $thisYear }}" class="form-control form-control-lg col-6 col-lg-5" onchange="this.form.submit()">
+                            @endif
+
                             @if(isset(session('auth')['user_type']) && session('auth')['user_type'] =='m')
                             <!-- ※ 아래의 select, 교육원일 때만 노출 -->
                             <div class="position-relative gr_r">
-                                <select name="day" id="dateSelect" class="form-control bg-white custom-select m_select" onchange="this.form.submit()">
+                                <select name="day" id="dateSelect" class="form-control bg-white custom-select m_select" style="height: 100%;" onchange="this.form.submit()">
                                     <option value="all" selected>전체</option>
                                 </select>
                             </div>
@@ -87,7 +121,8 @@ $back_link = "/";
                         </div>
                         <div class="d-flex align-items-center">
                             <div class="d-flex align-items-center pr-2 pr-sm-3">
-                                <p class="fs_14 mr-2">등원 </p>
+                                <span class="dot_stat bg-primary"></span>
+                                <p class="fs_14 mx-2">등원 </p>
                                 <div class="toggle_wr">
                                     <input type="checkbox" value="in-{{ $l['id'] }}" name="in{{ $l['id'] }}" id="in{{ $l['id'] }}" @if($l['attendance_in'] && $l['attendance_in'] == 1) checked @endif onchange="inoutChange(this)">
                                     <label for="in{{ $l['id'] }}" class="toggle_switch">
@@ -96,7 +131,8 @@ $back_link = "/";
                                 </div>
                             </div>
                             <div class="d-flex align-items-center pl-2 pl-sm-3">
-                                <p class="fs_14 mr-2">하원 </p>
+                                <span class="dot_stat bg-secondary"></span>
+                                <p class="fs_14 mx-2">하원 </p>
                                 <div class="toggle_wr">
                                     <input type="checkbox" value="out-{{ $l['id'] }}" name="out{{ $l['id'] }}" id="out{{ $l['id'] }}" @if($l['attendance_out'] && $l['attendance_out'] == 1) checked @endif onchange="inoutChange(this)">
                                     <label for="out{{ $l['id'] }}" class="toggle_switch">
@@ -203,6 +239,7 @@ $back_link = "/";
     // 등,하원 선택
     function inoutChange(_this) {
         // alert()
+
         const f = $("#attendAction");
 
         const userId = '{{ session('auth')['user_id'] ?? "" }}';
@@ -224,7 +261,15 @@ $back_link = "/";
             attendIn = f.find(`input[name=in${id}]`).is(':checked') ? 1 : 0;
             attendOut = f.find(`input[name=out${id}]`).is(':checked') ? 1 : 0;
 
+            console.log(type);
+
             if(type == 'in') {
+                if (attendOut == 1) {
+                    f.find(`input[name=in${id}]`).prop("checked", true);
+                    jalert('하원 후에는 등원 취소 처리하실 수 없습니다.');
+                    return false;
+                }
+
                 check = attendIn;
             } else {
                 if (attendIn == 0) {
@@ -257,6 +302,8 @@ $back_link = "/";
             $("#dateSelect").val({{ $day }}).prop("selected", true);
         @endif
     });
+
+
 </script>
 
 @endsection
