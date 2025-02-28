@@ -766,7 +766,7 @@ class PushMessageController extends Controller
                 /*아이폰2*/
                 'foRHE6Eku0O-g52DCu2akR:APA91bGCcYZSOO3H-JpjwPFQ_5IXtETctxCjoG-C7mu7pLUFL7RwUMOIHgtzoy0Hi925TungzQRLH6bsE9-2UP3E4fj18rFEY_InDp2PlX_u9ZDnPwRaWCTjBWsVPNfbLvnG4-J2DuZR',
                 /*내 아이폰*/
-//                'cYxbJfKY9kzWhA5hrB8u_i:APA91bEIedrv1r_kBty9APISGaDoBSbeXN2eF_RaxsLp1pqamEDUJArVnOBFj83_ilk2rP7qjOmRpMmd2nzsNCMxtNH-qEn2TAD3ZdhH-dBC_iRJCmQPRBAAZj0-xqOnaZWdkXgHZRJn',
+                'cYxbJfKY9kzWhA5hrB8u_i:APA91bEIedrv1r_kBty9APISGaDoBSbeXN2eF_RaxsLp1pqamEDUJArVnOBFj83_ilk2rP7qjOmRpMmd2nzsNCMxtNH-qEn2TAD3ZdhH-dBC_iRJCmQPRBAAZj0-xqOnaZWdkXgHZRJn',
 //                /*내 갤럭시*/'c3ucVGlbQMeQguiIawruhc:APA91bFp5iQmfdL0yxV4NjJhKv4ULNBFt8DVnF0GcCjoO5orvSUh0PeO9-0**Y4VsnWUPQzznhX9J1XbGiR7hXtH_Oxp_p3La1DGd5sJ7BlHueARAW5_1qEA6YFvlIc6newOanCWfO5w',
             ];
 

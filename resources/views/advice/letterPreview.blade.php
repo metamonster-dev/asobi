@@ -34,7 +34,8 @@ $title = "미리보기";
 
                             국가는 대외무역을 육성하며, 이를 규제·조정할 수 있다. 지방의회의 조직·권한·의원선거와 지방자치단체의 장의 선임방법 기타 지방자치단체의 조직과 운영에 관한 사항은 법률로 정한다.</p>
                             <br/>
-                            {{ $row['prefix_content'] ?? '' }}
+                            <p class="fs_15 wh_pre line_h1_4">{{ $row['prefix_content'] ?? '' }}</p>
+                        </div>
                         </div>
                         <div class="letter_box letter_box2">
                             <div class="rounded-pill py-4 text-center position-relative">
