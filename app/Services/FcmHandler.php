@@ -182,85 +182,118 @@ class FcmHandler
 
     private function getRequest(array $tokens, $mode = 'production', $accessToken = null)
     {
-        // 'to' for single receiver,
-        // 'registration_ids' for multiple receivers
-        if (sizeof($tokens) > 1) {
-            $httpBody = \GuzzleHttp\json_encode([
-                'registration_ids' => $tokens,
-                'notification' => $this->message,
-                'data' => $this->message_data,
-                'priority' => 'high'
-            ]);
-        } else {
-            $httpBody = \GuzzleHttp\json_encode([
-                'to' => $tokens[0],
-                'notification' => $this->message,
-                'data' => $this->message_data,
-                'priority' => 'high'
-            ]);
-        }
+        $projectId = env('FIREBASE_PROJECT_ID', 'new-asobi');
+        $hasV1     = !empty($accessToken);                    // accessToken 유무로 v1 사용 여부 판단
 
-//        if ($mode === 'test') {
-            $url = "https://fcm.googleapis.com/v1/projects/new-asobi/messages:send";
+        $title = $this->message['title'] ?? null;
+        $body  = $this->message['body']  ?? null;
+        $data  = (isset($this->message_data) && is_array($this->message_data)) ? $this->message_data : [];
+        $channelId = $data['channel_id'] ?? 'default_high';
 
-//            $android_opt = array (
-//                'notification' => array(
-//                    'default_sound' => true,
-//                    'channel_id' => '프로젝트명',
-//                ),
-//                'priority' => 'high',
-//                'data' => $this->message_data,
-//            );
-
-            $message = [
-                'message' => [
-                    'token' => $tokens[0],
+        // v1 메세지 빌더 (단건용)
+        $buildV1Message = function (string $token) use ($title, $body, $data, $channelId) {
+            $msg = [
+                'token' => $token,
+                'android' => [
+                    'priority' => 'HIGH',
                     'notification' => [
-                        'title' => $this->message['title'],
-                        'body' => $this->message['body'],
+                        'channel_id' => $channelId,
+                        'sound'      => 'default',
                     ],
-                    'data' => $this->message_data,
-                    'android' => [
-                        'priority' => 'HIGH',
-                        'notification' => [
-                            'channel_id' => $this->message_data['channel_id'] ?? 'default',
+                ],
+                'apns' => [
+                    'headers' => [
+                        'apns-push-type' => 'alert',
+                        'apns-priority'  => '10',
+                    ],
+                    'payload' => [
+                        'aps' => [
                             'sound' => 'default',
                         ],
                     ],
-//                    "android" => [
-//                        "notification" => [
-//                            "click_action" => "TOP_STORY_ACTIVITY",
-//                        ],
-//                        'data' => $this->message_data,
-//                    ],
-//                    "apns" => [
-//                        "payload" => [
-//                            "aps" => [
-//                                "category" => "NEW_MESSAGE_CATEGORY"
-//                            ]
-//                        ]
-//                    ],
-                ]
+                ],
+                'data' => array_map('strval', $data),
             ];
 
-          $headers = [
-              'Authorization' => 'Bearer ' . $accessToken,
-              'Content-Type' => 'application/json',
-          ];
+            // title/body가 하나라도 있으면 notification 포함, 아니면 data-only
+            if (!empty($title) || !empty($body)) {
+                $msg['notification'] = [
+                    'title' => (string)($title ?? ''),
+                    'body'  => (string)($body  ?? ''),
+                ];
+            } else {
+                // data-only
+                $msg['apns']['headers']['apns-push-type'] = 'background';
+                $msg['apns']['headers']['apns-priority']  = '5';
+                unset($msg['notification']);
+            }
 
-          $httpBody = json_encode($message);
+            return $msg;
+        };
 
-          try {
-              return new Request('POST', $url, $headers, $httpBody);
-          } catch (\Exception $e) {
-              $this->logger->error("Failed to create request.", ['exception' => $e->getMessage()]);
-              return false;
-          }
+        try {
+            if ($hasV1) {
+                // ---------- HTTP v1 ----------
+                $headers = [
+                    'Authorization' => 'Bearer ' . $accessToken,
+                    'Content-Type'  => 'application/json',
+                ];
 
-//        return new Request('POST', 'https://fcm.googleapis.com/v1/projects/new-asobi/messages:send', [], $httpBody);
-//      } else {
-//            return new Request('POST', self::API_ENDPOINT, [], $httpBody);
-//        }
+                if (count($tokens) > 1) {
+                    // 다건: batchSend
+                    $url = "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:batchSend";
+                    $messages = [];
+                    foreach ($tokens as $t) {
+                        $messages[] = $buildV1Message($t);
+                    }
+                    $httpBody = json_encode(['messages' => $messages], JSON_UNESCAPED_UNICODE);
+                } else {
+                    // 단건: send
+                    $url = "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send";
+                    $httpBody = json_encode(['message' => $buildV1Message($tokens[0])], JSON_UNESCAPED_UNICODE);
+                }
+
+                return new \GuzzleHttp\Psr7\Request('POST', $url, $headers, $httpBody);
+
+            } else {
+                // ---------- HTTP legacy ----------
+                $serverKey = env('FCM_SERVER_KEY');
+                $headers = [
+                    'Authorization' => 'key=' . $serverKey,
+                    'Content-Type'  => 'application/json',
+                ];
+
+                // 레거시 payload 구성
+                $payload = [
+                    'priority' => 'high',
+                    'data'     => array_map('strval', $data),
+                ];
+                if (!empty($title) || !empty($body)) {
+                    $payload['notification'] = [
+                        'title' => (string)($title ?? ''),
+                        'body'  => (string)($body  ?? ''),
+                        'sound' => 'default',
+                    ];
+                }
+                if (count($tokens) > 1) {
+                    $payload['registration_ids'] = $tokens;
+                } else {
+                    $payload['to'] = $tokens[0];
+                }
+
+                $httpBody = json_encode($payload, JSON_UNESCAPED_UNICODE);
+                $url = self::API_ENDPOINT ?? 'https://fcm.googleapis.com/fcm/send';
+
+                return new \GuzzleHttp\Psr7\Request('POST', $url, $headers, $httpBody);
+            }
+        } catch (\Throwable $e) {
+            $this->logger->error("[FcmHandler] Failed to create request.", [
+                'exception'   => $e->getMessage(),
+                'project_id'  => $projectId,
+                'use_v1'      => $hasV1,
+            ]);
+            return false;
+        }
     }
 
 //    private function updatePushServiceIdsIfAny(DownstreamResponse $response)
