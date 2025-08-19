@@ -6,6 +6,7 @@ use Exception;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\Request;
+use Illuminate\Support\Facades\DB;
 use Psr\Log\LoggerInterface;
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use GuzzleHttp\Client;
@@ -185,16 +186,16 @@ class FcmHandler
         $projectId = env('FIREBASE_PROJECT_ID', 'new-asobi');
         $hasV1     = !empty($accessToken);
 
-        $title = $this->message['title'] ?? null;
-        $body  = $this->message['body']  ?? null;
-        $data  = (isset($this->message_data) && is_array($this->message_data)) ? $this->message_data : [];
+        $title     = $this->message['title'] ?? null;
+        $body      = $this->message['body']  ?? null;
+        $data      = (isset($this->message_data) && is_array($this->message_data)) ? $this->message_data : [];
         $channelId = $data['channel_id'] ?? 'default_high';
 
         $buildV1Message = function (string $token) use ($title, $body, $data, $channelId) {
             $msg = [
-                'token' => $token,
+                'token'   => $token,
                 'android' => [
-                    'priority' => 'HIGH',
+                    'priority'     => 'HIGH',
                     'notification' => [
                         'channel_id' => $channelId,
                         'sound'      => 'default',
@@ -211,6 +212,7 @@ class FcmHandler
                 ],
                 'data' => array_map('strval', $data),
             ];
+
             if (!empty($title) || !empty($body)) {
                 $msg['notification'] = [
                     'title' => (string)($title ?? ''),
@@ -231,42 +233,20 @@ class FcmHandler
                     'Content-Type'  => 'application/json',
                 ];
 
-                $url = count($tokens) > 1
-                    ? "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:batchSend"
-                    : "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send";
-
-                $httpBody = count($tokens) > 1
-                    ? json_encode(['messages' => array_map(fn($t) => $buildV1Message($t), $tokens)], JSON_UNESCAPED_UNICODE)
-                    : json_encode(['message' => $buildV1Message($tokens[0])], JSON_UNESCAPED_UNICODE);
-
-                try {
-                    $client = $this->httpClient ?? new \GuzzleHttp\Client(['timeout' => 10]);
-                    $res = $client->post($url, ['headers' => $headers, 'body' => $httpBody]);
-                    return ['ok' => true, 'body' => json_decode((string)$res->getBody(), true)];
-                } catch (\GuzzleHttp\Exception\RequestException $e) {
-                    $resp = $e->getResponse();
-                    $respBody = $resp ? (string)$resp->getBody() : null;
-                    $json = $respBody ? json_decode($respBody, true) : null;
-                    $statusStr = $json['error']['status'] ?? null;
-
-                    if (in_array($statusStr, ['NOT_FOUND', 'UNREGISTERED', 'INVALID_ARGUMENT'])) {
-                        \DB::table('user_app_infos')
-                            ->where('push_key', $tokens[0])
-                            ->update([
-                                'push_key' => null,
-                            ]);
-                        $this->logger->warning('[FcmHandler] token invalidated in user_app_infos', [
-                            'reason' => $statusStr,
-                            'token_hash' => substr(hash('sha256',$tokens[0]),0,16),
-                        ]);
+                if (count($tokens) > 1) {
+                    $url      = "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:batchSend";
+                    $messages = [];
+                    foreach ($tokens as $t) {
+                        $messages[] = $buildV1Message($t);
                     }
-
-                    return ['ok' => false, 'error' => $statusStr, 'resp' => $json];
+                    $httpBody = json_encode(['messages' => $messages], JSON_UNESCAPED_UNICODE);
+                } else {
+                    $url      = "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send";
+                    $httpBody = json_encode(['message' => $buildV1Message($tokens[0])], JSON_UNESCAPED_UNICODE);
                 }
-
             } else {
                 $serverKey = env('FCM_SERVER_KEY');
-                $headers = [
+                $headers   = [
                     'Authorization' => 'key=' . $serverKey,
                     'Content-Type'  => 'application/json',
                 ];
@@ -288,38 +268,43 @@ class FcmHandler
                     $payload['to'] = $tokens[0];
                 }
 
-                $url = self::API_ENDPOINT ?? 'https://fcm.googleapis.com/fcm/send';
-
-                $client = $this->httpClient ?? new \GuzzleHttp\Client(['timeout' => 10]);
-                $res = $client->post($url, ['headers' => $headers, 'json' => $payload]);
-                $json = json_decode((string)$res->getBody(), true);
-
-                foreach (($json['results'] ?? []) as $i => $r) {
-                    if (!empty($r['error'])) {
-                        $err = strtoupper($r['error']);
-                        if (in_array($err, ['NOTREGISTERED','INVALIDREGISTRATION','MISMATCHSENDERID'])) {
-                            \DB::table('user_app_infos')
-                                ->where('push_key', $tokens[$i] ?? $tokens[0])
-                                ->update([
-                                    'push_key' => null,
-                                ]);
-                            $this->logger->warning('[FcmHandler] token invalidated in user_app_infos', [
-                                'reason' => $err,
-                                'token_hash' => substr(hash('sha256',$tokens[$i] ?? $tokens[0]),0,16),
-                            ]);
-                        }
-                    }
-                }
-
-                return ['ok' => true, 'body' => $json];
+                $httpBody = json_encode($payload, JSON_UNESCAPED_UNICODE);
+                $url      = self::API_ENDPOINT ?? 'https://fcm.googleapis.com/fcm/send';
             }
-        } catch (\Throwable $e) {
-            $this->logger->error("[FcmHandler] Failed in getRequest()", [
-                'exception'   => $e->getMessage(),
-                'project_id'  => $projectId,
-                'use_v1'      => $hasV1,
+
+            $response = $this->httpClient->post($url, [
+                'headers' => $headers,
+                'body'    => $httpBody,
             ]);
-            return ['ok' => false, 'error' => 'UNEXPECTED', 'message' => $e->getMessage()];
+
+            $status = $response->getStatusCode();
+            $body   = json_decode((string)$response->getBody(), true);
+
+            if ($status >= 400 || isset($body['error'])) {
+                foreach ($tokens as $token) {
+                    \DB::table('user_app_infos')
+                        ->where('push_key', $token)
+                        ->update(['push_key' => null]);
+                }
+                $this->logger->warning("[FcmHandler] FCM error, tokens invalidated", [
+                    'tokens' => $tokens,
+                    'resp'   => $body,
+                ]);
+            }
+
+            return $body;
+
+        } catch (\Throwable $e) {
+            foreach ($tokens as $token) {
+                \DB::table('user_app_infos')
+                    ->where('push_key', $token)
+                    ->update(['push_key' => null]);
+            }
+            $this->logger->error("[FcmHandler] Failed to send request.", [
+                'exception' => $e->getMessage(),
+                'tokens'    => $tokens,
+            ]);
+            return false;
         }
     }
 
