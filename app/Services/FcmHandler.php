@@ -9,7 +9,7 @@ use GuzzleHttp\Psr7\Request;
 use Psr\Log\LoggerInterface;
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use GuzzleHttp\Client;
-
+use GuzzleHttp\Exception\RequestException;
 
 class FcmHandler
 {
@@ -183,14 +183,13 @@ class FcmHandler
     private function getRequest(array $tokens, $mode = 'production', $accessToken = null)
     {
         $projectId = env('FIREBASE_PROJECT_ID', 'new-asobi');
-        $hasV1     = !empty($accessToken);                    // accessToken 유무로 v1 사용 여부 판단
+        $hasV1     = !empty($accessToken);
 
         $title = $this->message['title'] ?? null;
         $body  = $this->message['body']  ?? null;
         $data  = (isset($this->message_data) && is_array($this->message_data)) ? $this->message_data : [];
         $channelId = $data['channel_id'] ?? 'default_high';
 
-        // v1 메세지 빌더 (단건용)
         $buildV1Message = function (string $token) use ($title, $body, $data, $channelId) {
             $msg = [
                 'token' => $token,
@@ -207,63 +206,71 @@ class FcmHandler
                         'apns-priority'  => '10',
                     ],
                     'payload' => [
-                        'aps' => [
-                            'sound' => 'default',
-                        ],
+                        'aps' => ['sound' => 'default'],
                     ],
                 ],
                 'data' => array_map('strval', $data),
             ];
-
-            // title/body가 하나라도 있으면 notification 포함, 아니면 data-only
             if (!empty($title) || !empty($body)) {
                 $msg['notification'] = [
                     'title' => (string)($title ?? ''),
                     'body'  => (string)($body  ?? ''),
                 ];
             } else {
-                // data-only
                 $msg['apns']['headers']['apns-push-type'] = 'background';
                 $msg['apns']['headers']['apns-priority']  = '5';
                 unset($msg['notification']);
             }
-
             return $msg;
         };
 
         try {
             if ($hasV1) {
-                // ---------- HTTP v1 ----------
                 $headers = [
                     'Authorization' => 'Bearer ' . $accessToken,
                     'Content-Type'  => 'application/json',
                 ];
 
-                if (count($tokens) > 1) {
-                    // 다건: batchSend
-                    $url = "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:batchSend";
-                    $messages = [];
-                    foreach ($tokens as $t) {
-                        $messages[] = $buildV1Message($t);
+                $url = count($tokens) > 1
+                    ? "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:batchSend"
+                    : "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send";
+
+                $httpBody = count($tokens) > 1
+                    ? json_encode(['messages' => array_map(fn($t) => $buildV1Message($t), $tokens)], JSON_UNESCAPED_UNICODE)
+                    : json_encode(['message' => $buildV1Message($tokens[0])], JSON_UNESCAPED_UNICODE);
+
+                try {
+                    $client = $this->httpClient ?? new \GuzzleHttp\Client(['timeout' => 10]);
+                    $res = $client->post($url, ['headers' => $headers, 'body' => $httpBody]);
+                    return ['ok' => true, 'body' => json_decode((string)$res->getBody(), true)];
+                } catch (\GuzzleHttp\Exception\RequestException $e) {
+                    $resp = $e->getResponse();
+                    $respBody = $resp ? (string)$resp->getBody() : null;
+                    $json = $respBody ? json_decode($respBody, true) : null;
+                    $statusStr = $json['error']['status'] ?? null;
+
+                    if (in_array($statusStr, ['NOT_FOUND', 'UNREGISTERED', 'INVALID_ARGUMENT'])) {
+                        \DB::table('user_app_infos')
+                            ->where('push_key', $tokens[0])
+                            ->update([
+                                'push_key' => null,
+                            ]);
+                        $this->logger->warning('[FcmHandler] token invalidated in user_app_infos', [
+                            'reason' => $statusStr,
+                            'token_hash' => substr(hash('sha256',$tokens[0]),0,16),
+                        ]);
                     }
-                    $httpBody = json_encode(['messages' => $messages], JSON_UNESCAPED_UNICODE);
-                } else {
-                    // 단건: send
-                    $url = "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send";
-                    $httpBody = json_encode(['message' => $buildV1Message($tokens[0])], JSON_UNESCAPED_UNICODE);
+
+                    return ['ok' => false, 'error' => $statusStr, 'resp' => $json];
                 }
 
-                return new \GuzzleHttp\Psr7\Request('POST', $url, $headers, $httpBody);
-
             } else {
-                // ---------- HTTP legacy ----------
                 $serverKey = env('FCM_SERVER_KEY');
                 $headers = [
                     'Authorization' => 'key=' . $serverKey,
                     'Content-Type'  => 'application/json',
                 ];
 
-                // 레거시 payload 구성
                 $payload = [
                     'priority' => 'high',
                     'data'     => array_map('strval', $data),
@@ -281,18 +288,38 @@ class FcmHandler
                     $payload['to'] = $tokens[0];
                 }
 
-                $httpBody = json_encode($payload, JSON_UNESCAPED_UNICODE);
                 $url = self::API_ENDPOINT ?? 'https://fcm.googleapis.com/fcm/send';
 
-                return new \GuzzleHttp\Psr7\Request('POST', $url, $headers, $httpBody);
+                $client = $this->httpClient ?? new \GuzzleHttp\Client(['timeout' => 10]);
+                $res = $client->post($url, ['headers' => $headers, 'json' => $payload]);
+                $json = json_decode((string)$res->getBody(), true);
+
+                foreach (($json['results'] ?? []) as $i => $r) {
+                    if (!empty($r['error'])) {
+                        $err = strtoupper($r['error']);
+                        if (in_array($err, ['NOTREGISTERED','INVALIDREGISTRATION','MISMATCHSENDERID'])) {
+                            \DB::table('user_app_infos')
+                                ->where('push_key', $tokens[$i] ?? $tokens[0])
+                                ->update([
+                                    'push_key' => null,
+                                ]);
+                            $this->logger->warning('[FcmHandler] token invalidated in user_app_infos', [
+                                'reason' => $err,
+                                'token_hash' => substr(hash('sha256',$tokens[$i] ?? $tokens[0]),0,16),
+                            ]);
+                        }
+                    }
+                }
+
+                return ['ok' => true, 'body' => $json];
             }
         } catch (\Throwable $e) {
-            $this->logger->error("[FcmHandler] Failed to create request.", [
+            $this->logger->error("[FcmHandler] Failed in getRequest()", [
                 'exception'   => $e->getMessage(),
                 'project_id'  => $projectId,
                 'use_v1'      => $hasV1,
             ]);
-            return false;
+            return ['ok' => false, 'error' => 'UNEXPECTED', 'message' => $e->getMessage()];
         }
     }
 
