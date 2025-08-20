@@ -183,14 +183,13 @@ class FcmHandler
     private function getRequest(array $tokens, $mode = 'production', $accessToken = null)
     {
         $projectId = env('FIREBASE_PROJECT_ID', 'new-asobi');
-        $hasV1     = !empty($accessToken);                    // accessToken 유무로 v1 사용 여부 판단
+        $hasV1     = !empty($accessToken); // v1 사용 여부
 
         $title = $this->message['title'] ?? null;
         $body  = $this->message['body']  ?? null;
         $data  = (isset($this->message_data) && is_array($this->message_data)) ? $this->message_data : [];
         $channelId = $data['channel_id'] ?? 'default_high';
 
-        // v1 메세지 빌더 (단건용)
         $buildV1Message = function (string $token) use ($title, $body, $data, $channelId) {
             $msg = [
                 'token' => $token,
@@ -207,27 +206,21 @@ class FcmHandler
                         'apns-priority'  => '10',
                     ],
                     'payload' => [
-                        'aps' => [
-                            'sound' => 'default',
-                        ],
+                        'aps' => ['sound' => 'default'],
                     ],
                 ],
                 'data' => array_map('strval', $data),
             ];
-
-            // title/body가 하나라도 있으면 notification 포함, 아니면 data-only
             if (!empty($title) || !empty($body)) {
                 $msg['notification'] = [
                     'title' => (string)($title ?? ''),
                     'body'  => (string)($body  ?? ''),
                 ];
             } else {
-                // data-only
                 $msg['apns']['headers']['apns-push-type'] = 'background';
                 $msg['apns']['headers']['apns-priority']  = '5';
                 unset($msg['notification']);
             }
-
             return $msg;
         };
 
@@ -240,20 +233,65 @@ class FcmHandler
                 ];
 
                 if (count($tokens) > 1) {
-                    // 다건: batchSend
-                    $url = "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:batchSend";
+                    // 배치 전송용 payload
+                    $url      = "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:batchSend";
                     $messages = [];
                     foreach ($tokens as $t) {
                         $messages[] = $buildV1Message($t);
                     }
                     $httpBody = json_encode(['messages' => $messages], JSON_UNESCAPED_UNICODE);
+
+                    // ✅ (선택) 배치 개별 검증: validate_only는 단건에만 정확하므로 토큰별 단건 validate 시도
+                    // 검증 실패 토큰은 user_app_infos.push_key = null
+                    $client = $this->httpClient ?? new \GuzzleHttp\Client(['timeout' => 8]);
+                    foreach ($tokens as $tok) {
+                        $validateUrl  = "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send";
+                        $validateBody = json_encode([
+                            'message'        => $buildV1Message($tok),
+                            'validate_only'  => true,
+                        ], JSON_UNESCAPED_UNICODE);
+                        try {
+                            $resp = $client->request('POST', $validateUrl, ['headers' => $headers, 'body' => $validateBody]);
+                            $respJson = json_decode((string)$resp->getBody(), true);
+                            if (isset($respJson['error'])) {
+                                \DB::table('user_app_infos')->where('push_key', $tok)->update(['push_key' => null]);
+                            }
+                        } catch (\Throwable $ve) {
+                            // 예: 404 NOT_FOUND, 400 INVALID_ARGUMENT 등 → 무효화
+                            \DB::table('user_app_infos')->where('push_key', $tok)->update(['push_key' => null]);
+                        }
+                    }
+
+                    // 👉 최종: 실제 전송용 Request 객체 반환
+                    return new \GuzzleHttp\Psr7\Request('POST', $url, $headers, $httpBody);
+
                 } else {
                     // 단건: send
-                    $url = "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send";
-                    $httpBody = json_encode(['message' => $buildV1Message($tokens[0])], JSON_UNESCAPED_UNICODE);
-                }
+                    $url      = "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send";
+                    $msgBody  = ['message' => $buildV1Message($tokens[0])];
+                    $httpBody = json_encode($msgBody, JSON_UNESCAPED_UNICODE);
 
-                return new \GuzzleHttp\Psr7\Request('POST', $url, $headers, $httpBody);
+                    // ✅ 단건 사전검증 (validate_only)
+                    $client = $this->httpClient ?? new \GuzzleHttp\Client(['timeout' => 8]);
+                    try {
+                        $validateBody = json_encode([
+                            'message'        => $msgBody['message'],
+                            'validate_only'  => true,
+                        ], JSON_UNESCAPED_UNICODE);
+
+                        $resp = $client->request('POST', $url, ['headers' => $headers, 'body' => $validateBody]);
+                        $respJson = json_decode((string)$resp->getBody(), true);
+                        if (isset($respJson['error'])) {
+                            \DB::table('user_app_infos')->where('push_key', $tokens[0])->update(['push_key' => null]);
+                        }
+                    } catch (\Throwable $e) {
+                        // 예외(404 NOT_FOUND 등) → 토큰 무효화
+                        \DB::table('user_app_infos')->where('push_key', $tokens[0])->update(['push_key' => null]);
+                    }
+
+                    // 👉 최종: 실제 전송용 Request 객체 반환
+                    return new \GuzzleHttp\Psr7\Request('POST', $url, $headers, $httpBody);
+                }
 
             } else {
                 // ---------- HTTP legacy ----------
@@ -281,9 +319,36 @@ class FcmHandler
                     $payload['to'] = $tokens[0];
                 }
 
-                $httpBody = json_encode($payload, JSON_UNESCAPED_UNICODE);
                 $url = self::API_ENDPOINT ?? 'https://fcm.googleapis.com/fcm/send';
 
+                // ✅ 레거시 사전검증(dry_run)
+                $client = $this->httpClient ?? new \GuzzleHttp\Client(['timeout' => 8]);
+                try {
+                    $validatePayload = $payload;
+                    $validatePayload['dry_run'] = true;
+                    $validateBody = json_encode($validatePayload, JSON_UNESCAPED_UNICODE);
+
+                    $resp = $client->request('POST', $url, ['headers' => $headers, 'body' => $validateBody]);
+                    $respJson = json_decode((string)$resp->getBody(), true);
+
+                    // results[].error 가 있으면 해당 토큰 무효화
+                    if (isset($respJson['results']) && is_array($respJson['results'])) {
+                        foreach ($respJson['results'] as $i => $r) {
+                            if (!empty($r['error'])) {
+                                $bad = $tokens[$i] ?? $tokens[0];
+                                \DB::table('user_app_infos')->where('push_key', $bad)->update(['push_key' => null]);
+                            }
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    // 예외 시 전체 토큰 무효화(필요 시 일부만 처리하도록 조정 가능)
+                    foreach ($tokens as $tok) {
+                        \DB::table('user_app_infos')->where('push_key', $tok)->update(['push_key' => null]);
+                    }
+                }
+
+                // 👉 최종: 실제 전송용 Request 객체 반환
+                $httpBody = json_encode($payload, JSON_UNESCAPED_UNICODE);
                 return new \GuzzleHttp\Psr7\Request('POST', $url, $headers, $httpBody);
             }
         } catch (\Throwable $e) {
