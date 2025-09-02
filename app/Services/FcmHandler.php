@@ -92,7 +92,7 @@ class FcmHandler
 
     public function setReceivers(array $receivers)
     {
-        $this->receivers = $receivers;
+        $this->receivers = array_values(array_unique(array_filter($receivers)));
     }
 
     public function setMessage(array $message)
@@ -254,7 +254,11 @@ class FcmHandler
                             $resp = $client->request('POST', $validateUrl, ['headers' => $headers, 'body' => $validateBody]);
                             $respJson = json_decode((string)$resp->getBody(), true);
                             if (isset($respJson['error'])) {
-                                \DB::table('user_app_infos')->where('push_key', $tok)->update(['push_key' => null]);
+                                $error = $respJson['error']['status'] ?? '';
+                                if (in_array($error, ['UNREGISTERED', 'INVALID_ARGUMENT', 'NOT_FOUND'])) {
+                                    \DB::table('user_app_infos')->where('push_key', $tokens[0])->update(['push_key' => null]);
+                                }
+                                // UNAVAILABLE, INTERNAL 같은 일시적 에러는 null 처리 ❌
                             }
                         } catch (\Throwable $ve) {
                             // 예: 404 NOT_FOUND, 400 INVALID_ARGUMENT 등 → 무효화
@@ -282,7 +286,11 @@ class FcmHandler
                         $resp = $client->request('POST', $url, ['headers' => $headers, 'body' => $validateBody]);
                         $respJson = json_decode((string)$resp->getBody(), true);
                         if (isset($respJson['error'])) {
-                            \DB::table('user_app_infos')->where('push_key', $tokens[0])->update(['push_key' => null]);
+                            $error = $respJson['error']['status'] ?? '';
+                            if (in_array($error, ['UNREGISTERED', 'INVALID_ARGUMENT', 'NOT_FOUND'])) {
+                                \DB::table('user_app_infos')->where('push_key', $tokens[0])->update(['push_key' => null]);
+                            }
+                            // UNAVAILABLE, INTERNAL 같은 일시적 에러는 null 처리 ❌
                         }
                     } catch (\Throwable $e) {
                         // 예외(404 NOT_FOUND 등) → 토큰 무효화
@@ -335,8 +343,11 @@ class FcmHandler
                     if (isset($respJson['results']) && is_array($respJson['results'])) {
                         foreach ($respJson['results'] as $i => $r) {
                             if (!empty($r['error'])) {
-                                $bad = $tokens[$i] ?? $tokens[0];
-                                \DB::table('user_app_infos')->where('push_key', $bad)->update(['push_key' => null]);
+                                $error = $r['error'];
+                                if (in_array($error, ['NotRegistered', 'InvalidRegistration'])) {
+                                    $bad = $tokens[$i] ?? $tokens[0];
+                                    \DB::table('user_app_infos')->where('push_key', $bad)->update(['push_key' => null]);
+                                }
                             }
                         }
                     }
